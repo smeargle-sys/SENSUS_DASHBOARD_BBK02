@@ -780,13 +780,25 @@
 
             <!-- Keluarga & Nama Lengkap Row -->
             <div class="form-row">
-              <div class="form-group">
-                <label for="form-id-keluarga">Pilih Keluarga (KK)</label>
-                <select id="form-id-keluarga" name="id_keluarga" onchange="toggleKeluargaFields()" required>
-                  <option value="">-- Pilih KK --</option>
-                  <option value="NEW" style="color: var(--color-accent); font-weight: 600;">+ Buat Keluarga (KK) Baru
-                  </option>
-                </select>
+              <div class="form-group" style="position: relative;">
+                <label for="keluarga-search-input">Pilih Keluarga (KK)</label>
+                <!-- ✅ Searchable Keluarga Input -->
+                <input 
+                  type="text" 
+                  id="keluarga-search-input" 
+                  placeholder="Cari nama kepala keluarga atau alamat..." 
+                  style="width: 100%; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; color: var(--text-main); font-family: var(--font-family); font-size: 0.95rem; outline: none; transition: var(--transition);"
+                  oninput="filterKeluargaSearch()">
+                
+                <!-- Hidden select to store selected value -->
+                <input type="hidden" id="form-id-keluarga" name="id_keluarga" required>
+                
+                <!-- Dropdown Results -->
+                <div 
+                  id="keluarga-dropdown-results" 
+                  style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid #cbd5e1; border-top: none; border-radius: 0 0 8px 8px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                  <!-- Populated by JavaScript -->
+                </div>
               </div>
               <div class="form-group">
                 <label for="form-nama-lengkap">Nama Lengkap</label>
@@ -1114,6 +1126,114 @@
     }
 
     // --- View Rendering ---
+    
+    // ✅ Semantic Search for Keluarga
+    function filterKeluargaSearch() {
+      const searchInput = document.getElementById('keluarga-search-input');
+      const query = searchInput.value.toLowerCase().trim();
+      const dropdown = document.getElementById('keluarga-dropdown-results');
+      
+      if (!query) {
+        renderKeluargaDropdown(appData.keluarga);
+        return;
+      }
+      
+      // Semantic search: match nama_kk or alamat partially
+      const filtered = appData.keluarga.filter(k => {
+        const nama = k.nama_kk.toLowerCase();
+        const alamat = k.alamat.toLowerCase();
+        
+        // Exact match gets priority, then partial match
+        if (nama.includes(query) || alamat.includes(query)) {
+          return true;
+        }
+        
+        // Fuzzy match: check if all query chars are in the name
+        let queryIdx = 0;
+        for (let i = 0; i < nama.length && queryIdx < query.length; i++) {
+          if (nama[i] === query[queryIdx]) queryIdx++;
+        }
+        return queryIdx === query.length;
+      });
+      
+      renderKeluargaDropdown(filtered);
+    }
+    
+    function renderKeluargaDropdown(keluargaList) {
+      const dropdown = document.getElementById('keluarga-dropdown-results');
+      
+      if (keluargaList.length === 0 && document.getElementById('keluarga-search-input').value.trim()) {
+        dropdown.innerHTML = `
+          <div style="padding: 1rem; text-align: center; color: #999;">
+            <p>Tidak ada hasil. <strong>Buat Keluarga (KK) Baru</strong></p>
+          </div>
+          <div onclick="selectKeluarga('NEW', 'Buat Keluarga Baru')" style="padding: 0.75rem 1rem; cursor: pointer; background: #667eea; color: white; text-align: center; font-weight: 600; border-radius: 0 0 8px 8px;">
+            + Buat Keluarga (KK) Baru
+          </div>
+        `;
+        dropdown.style.display = 'block';
+        return;
+      }
+      
+      let html = '';
+      
+      // Add "Buat Keluarga Baru" option at top
+      html += `<div onclick="selectKeluarga('NEW', 'Buat Keluarga Baru')" style="padding: 0.75rem 1rem; cursor: pointer; background: #667eea; color: white; font-weight: 600; border-bottom: 1px solid #eee;">
+        + Buat Keluarga (KK) Baru
+      </div>`;
+      
+      // Add keluarga options
+      keluargaList.forEach(k => {
+        html += `<div onclick="selectKeluarga('${k.id_keluarga}', '${k.nama_kk}')" style="padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid #eee; transition: 0.2s;">
+          <div style="font-weight: 600; color: #333;">${k.nama_kk}</div>
+          <div style="font-size: 0.85rem; color: #999;">${k.alamat}</div>
+        </div>`;
+      });
+      
+      dropdown.innerHTML = html;
+      dropdown.style.display = 'block';
+    }
+    
+    function selectKeluarga(keluargaId, keluargaNama) {
+      const searchInput = document.getElementById('keluarga-search-input');
+      const hiddenSelect = document.getElementById('form-id-keluarga');
+      const dropdown = document.getElementById('keluarga-dropdown-results');
+      
+      hiddenSelect.value = keluargaId;
+      searchInput.value = keluargaNama;
+      dropdown.style.display = 'none';
+      
+      // Trigger change event to show/hide new keluarga fields
+      toggleKeluargaFields();
+    }
+    
+    function toggleKeluargaFields() {
+      const selectedValue = document.getElementById('form-id-keluarga').value;
+      const newKeluargaFields = document.getElementById('new-keluarga-fields');
+      
+      if (selectedValue === 'NEW') {
+        newKeluargaFields.style.display = 'block';
+        document.getElementById('form-nama-kk').required = true;
+        document.getElementById('form-alamat').required = true;
+      } else {
+        newKeluargaFields.style.display = 'none';
+        document.getElementById('form-nama-kk').required = false;
+        document.getElementById('form-alamat').required = false;
+      }
+    }
+    
+    // Show dropdown when keluarga search is focused
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('keluarga-search-input');
+      if (searchInput) {
+        searchInput.addEventListener('focus', () => {
+          if (!document.getElementById('keluarga-search-input').value.trim()) {
+            renderKeluargaDropdown(appData.keluarga);
+          }
+        });
+      }
+    });
+
     function renderAll() {
       // 5. KPI stats
       document.getElementById('kpi-total').innerText = appData.rekap.total;
