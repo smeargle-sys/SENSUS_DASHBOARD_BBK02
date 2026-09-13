@@ -1558,21 +1558,39 @@
 
       filtered.forEach((j, index) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="color: var(--text-muted);">${index + 1}</td>
-          <td style="font-weight: 600;">${j.nama_lengkap} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">(${j.nama_absen})</span></td>
-          <td style="text-align: center;"><span style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 0.2rem 0.4rem; border-radius: 4px;">${j.hubungan_keluarga}</span></td>
-          <td>${j.nama_kk}</td>
-          <td>${j.kategori_usia}</td>
-          <td style="text-align: center;">${j.umur} th</td>
-          <td style="text-align: center;"><span class="active-badge ${j.is_aktif === 'Y' ? 'yes' : 'no'}">${j.is_aktif}</span></td>
-          <td style="text-align: center;"><span class="active-badge ${j.flag_absen === 'Y' ? 'yes' : 'no'}">${j.flag_absen}</span></td>
-          <td>
-            <button class="edit-btn" onclick="editJamaah('${j.id_jamaah}')">
-              <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> Edit
-            </button>
-          </td>
-        `;
+        
+        // ✅ Build row cells safely without innerHTML
+        const cells = [
+          { text: String(index + 1), style: 'color: var(--text-muted);' },
+          { html: `${j.nama_lengkap} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">(${j.nama_absen})</span>`, style: 'font-weight: 600;' },
+          { html: `<span style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 0.2rem 0.4rem; border-radius: 4px;">${j.hubungan_keluarga}</span>`, style: 'text-align: center;' },
+          { text: j.nama_kk, style: '' },
+          { text: j.kategori_usia, style: '' },
+          { text: j.umur + ' th', style: 'text-align: center;' },
+          { html: `<span class="active-badge ${j.is_aktif === 'Y' ? 'yes' : 'no'}">${j.is_aktif}</span>`, style: 'text-align: center;' },
+          { html: `<span class="active-badge ${j.flag_absen === 'Y' ? 'yes' : 'no'}">${j.flag_absen}</span>`, style: 'text-align: center;' }
+        ];
+        
+        cells.forEach(cell => {
+          const td = document.createElement('td');
+          if (cell.style) td.style.cssText = cell.style;
+          if (cell.html) {
+            td.innerHTML = cell.html;
+          } else {
+            td.textContent = cell.text;
+          }
+          tr.appendChild(td);
+        });
+        
+        // Add Edit button in last cell
+        const tdEdit = document.createElement('td');
+        const editBtn = document.createElement('button');
+        editBtn.className = 'edit-btn';
+        editBtn.innerHTML = '<i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> Edit';
+        editBtn.onclick = function() { editJamaah(j.id_jamaah); };
+        tdEdit.appendChild(editBtn);
+        tr.appendChild(tdEdit);
+        
         tbody.appendChild(tr);
       });
 
