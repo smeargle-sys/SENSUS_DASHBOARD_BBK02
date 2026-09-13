@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ringkasan Publik - Sensus Jiwa Babakan Barat</title>
+
+  <!-- Outfit Font for Premium Aesthetics -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons for Clean Iconography -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js for High Level Data Visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Design System: Sleek Light Mode & Premium Clean Aesthetics */
+    :root {
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --card-hover-border: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+
+      --color-primary: #10b981;
+      --color-primary-hover: #059669;
+      --color-accent: #6366f1;
+      --color-danger: #ef4444;
+      --color-warning: #d97706;
+
+      --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Decorative Soft Glow Blobs */
+    body::before {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+      top: -100px;
+      left: 10%;
+      z-index: -1;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, rgba(0, 0, 0, 0) 70%);
+      bottom: 10%;
+      right: 5%;
+      z-index: -1;
+      filter: blur(100px);
+      pointer-events: none;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Header Styling */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      padding: 1.5rem 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+    }
+
+    .header-title h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #0284c7 0%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+
+    .header-title p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      color: #ffffff;
+    }
+
+    /* Loading & Error States */
+    #loading-state,
+    #error-state {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 4rem 2rem;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(16, 185, 129, 0.1);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Grid Layouts */
+    .grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 1200px) {
+      .grid-5 {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+    }
+
+    .grid-layout-2 {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 992px) {
+      .grid-layout-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05), 0 8px 16px -6px rgba(15, 23, 42, 0.05);
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      border-color: var(--card-hover-border);
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px -5px rgba(15, 23, 42, 0.08), 0 8px 24px -6px rgba(15, 23, 42, 0.08);
+    }
+
+    .stat-card {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .stat-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.08);
+      color: var(--color-primary);
+    }
+
+    .stat-card.accent .stat-icon {
+      background: rgba(99, 102, 241, 0.08);
+      color: var(--color-accent);
+    }
+
+    .stat-info h3 {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-info p {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-main);
+    }
+
+    /* Tables */
+    .list-table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th,
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+      transition: var(--transition);
+    }
+
+    th.sortable:hover {
+      background: rgba(0, 0, 0, 0.02);
+      color: var(--text-main);
+    }
+
+    .sort-icon {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 0.25rem;
+      opacity: 0.5;
+    }
+
+    th.sortable.sorted {
+      color: var(--color-primary);
+    }
+
+    th.sortable.sorted .sort-icon {
+      opacity: 1;
+    }
+
+    tr:hover td {
+      background: rgba(0, 0, 0, 0.005);
+    }
+
+    /* Badge & Indicators */
+    .active-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      text-align: center;
+    }
+
+    .active-badge.yes {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--color-primary);
+    }
+
+    .active-badge.no {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--color-danger);
+    }
+
+    /* Visual Stats List (Dual Progress Bars) */
+    .visual-stat-item {
+      margin-bottom: 0.95rem;
+    }
+
+    .visual-stat-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.825rem;
+      font-weight: 500;
+      margin-bottom: 0.35rem;
+    }
+
+    .visual-stat-label {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .visual-stat-value {
+      color: var(--text-muted);
+    }
+
+    .progress-bar-bg {
+      background: #e2e8f0;
+      height: 8px;
+      border-radius: 9999px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .progress-bar-fill-l {
+      background: #60a5fa; /* Blue for L */
+      height: 100%;
+      transition: var(--transition);
+    }
+
+    .progress-bar-fill-p {
+      background: #f43f5e; /* Red/Pink for P */
+      height: 100%;
+      transition: var(--transition);
+    }
+
+    /* Filters Box */
+    .filters-card {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 768px) {
+      .filters-card {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 1rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 0.65rem 1rem 0.65rem 2.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: var(--font-family);
+      font-size: 0.9rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-box input:focus {
+      border-color: var(--color-primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .filter-select {
+      padding: 0.65rem 1rem;
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: var(--font-family);
+      font-size: 0.9rem;
+      outline: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .filter-select:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font-family);
+      font-size: 0.9rem;
+      transition: var(--transition);
+      border: none;
+      outline: none;
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: #f8fafc;
+      border-color: var(--card-hover-border);
+    }
+
+    .btn-accent {
+      background: var(--color-accent);
+      color: #ffffff;
+    }
+
+    .btn-accent:hover {
+      background: #4f46e5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="header-title">
+        <h1>Sensus Jiwa & Jamaah</h1>
+        <p>Kelompok Babakan Barat - Ringkasan Publik & Laporan Kehadiran</p>
+      </div>
+      <div id="mode-badge" class="badge" style="background: var(--color-accent);">
+        <i data-lucide="eye"></i>
+        <span>Mode Lihat (Read-Only)</span>
+      </div>
+    </header>
+
+    <!-- Loading State -->
+    <div id="loading-state">
+      <div class="spinner"></div>
+      <h2>Memuat Laporan Sensus...</h2>
+      <p style="color: var(--text-muted); margin-top: 0.5rem;">Sedang menyinkronkan data langsung dari server.</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" style="display: none;">
+      <i data-lucide="alert-triangle" style="color: var(--color-danger); width: 64px; height: 64px; margin-bottom: 1rem;"></i>
+      <h2>Gagal Memuat Laporan</h2>
+      <p id="error-message" style="color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 1.5rem;"></p>
+      <button class="btn btn-accent" onclick="loadData()" style="width: auto; margin: 0 auto;">Coba Lagi</button>
+    </div>
+
+    <!-- Main Content Area -->
+    <div id="main-content" style="display: none; display: flex; flex-direction: column; gap: 2rem;">
+      <!-- KPI Stats -->
+      <div class="grid-5">
+        <div class="card stat-card">
+          <div class="stat-icon">
+            <i data-lucide="users"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Total Jamaah</h3>
+            <p id="kpi-total">0</p>
+          </div>
+        </div>
+        <div class="card stat-card accent">
+          <div class="stat-icon">
+            <i data-lucide="home"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Total Keluarga (KK)</h3>
+            <p id="kpi-kk">0</p>
+          </div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-icon" style="color: #60a5fa; background: rgba(96, 165, 250, 0.1);">
+            <i data-lucide="user"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Laki-Laki</h3>
+            <p id="kpi-laki">0</p>
+          </div>
+        </div>
+        <div class="card stat-card" style="border-color: rgba(244, 63, 94, 0.2);">
+          <div class="stat-icon" style="color: #f43f5e; background: rgba(244, 63, 94, 0.1);">
+            <i data-lucide="user-plus"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Perempuan</h3>
+            <p id="kpi-perempuan">0</p>
+          </div>
+        </div>
+        <div class="card stat-card" style="border-color: rgba(217, 119, 6, 0.2);">
+          <div class="stat-icon" style="color: #d97706; background: rgba(217, 119, 6, 0.08);">
+            <i data-lucide="heart"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Lansia (≥ 57 th)</h3>
+            <p id="kpi-lansia">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toggle Button for Analytics Dashboard -->
+      <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+        <button id="toggle-analytics-btn" class="btn btn-accent" onclick="toggleAnalyticsDashboard()" style="gap: 0.75rem; padding: 0.75rem 1.5rem; font-size: 1rem;">
+          <i id="toggle-analytics-icon" data-lucide="eye"></i>
+          <span id="toggle-analytics-text">Tampilkan Visualisasi Data</span>
+        </button>
+      </div>
+
+      <!-- High Level Visual Analytics Dashboard (Hidden by Default) -->
+      <div id="analytics-dashboard" style="display: none; flex-direction: column; gap: 1.5rem;">
+        <!-- Chart Card -->
+        <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column;">
+          <h3 class="section-title" style="font-size: 1.05rem; margin-bottom: 1.25rem;">
+            <i data-lucide="pie-chart" style="color: var(--color-primary); width: 18px; height: 18px;"></i>
+            <span>Proporsi Kategori Sensus (Doughnut)</span>
+          </h3>
+          <div style="flex: 1; display: flex; align-items: center; justify-content: center; position: relative; min-height: 250px;">
+            <canvas id="categoryChart"></canvas>
+            <div id="chart-no-data" style="display: none; color: var(--text-muted); font-size: 0.9rem;">Belum ada data aktif untuk divisualisasikan.</div>
+          </div>
+        </div>
+
+        <!-- Stats Details Card -->
+        <div class="card" style="padding: 1.5rem;">
+          <h3 class="section-title" style="font-size: 1.05rem; margin-bottom: 1.25rem;">
+            <i data-lucide="bar-chart-3" style="color: var(--color-accent); width: 18px; height: 18px;"></i>
+            <span>Penyebaran Gender per Kategori Sensus</span>
+          </h3>
+          <div id="visual-stats-list" style="display: flex; flex-direction: column; justify-content: center; height: calc(100% - 2.5rem);">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Rekapitulasi Tabel Kategori Usia Sensus 2026 -->
+      <div class="card">
+        <h3 class="section-title">
+          <i data-lucide="table" style="color: var(--color-primary);"></i>
+          <span>Rekapitulasi Kategori Usia Sensus 2026</span>
+        </h3>
+        <div class="list-table-container">
+          <table style="font-size: 0.85rem; text-align: center;">
+            <thead>
+              <tr style="background: rgba(255, 255, 255, 0.03);">
+                <th rowspan="2" style="text-align: center; border-bottom: 2px solid var(--card-border);">Total KK</th>
+                <th rowspan="2" style="text-align: center; border-bottom: 2px solid var(--card-border);">Total L</th>
+                <th rowspan="2" style="text-align: center; border-bottom: 2px solid var(--card-border);">Total P</th>
+                <th rowspan="2" style="text-align: center; border-bottom: 2px solid var(--card-border);">Total Jiwa</th>
+                <th colspan="2" style="text-align: center; border-bottom: 1px solid var(--card-border);">Balita/PAUD</th>
+                <th colspan="2" style="text-align: center; border-bottom: 1px solid var(--card-border);">Caberawit</th>
+                <th colspan="2" style="text-align: center; border-bottom: 1px solid var(--card-border);">Pra Remaja</th>
+                <th colspan="2" style="text-align: center; border-bottom: 1px solid var(--card-border);">Remaja (SMA)</th>
+                <th colspan="2" style="text-align: center; border-bottom: 1px solid var(--card-border);">Usia Menikah</th>
+                <th colspan="2" style="text-align: center; border-bottom: 1px solid var(--card-border);">Dewasa Menikah</th>
+                <th colspan="2" style="text-align: center; border-bottom: 1px solid var(--card-border);">Duda / Janda</th>
+                <th rowspan="2" style="text-align: center; border-bottom: 2px solid var(--card-border); background: rgba(16,185,129,0.05);">Grand Total</th>
+              </tr>
+              <tr>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="font-weight: 700; font-size: 1.05rem;">
+                <td id="rekap-kk" style="text-align: center; color: var(--color-accent);">0</td>
+                <td id="rekap-laki" style="text-align: center; color: #60a5fa;">0</td>
+                <td id="rekap-perempuan" style="text-align: center; color: #f43f5e;">0</td>
+                <td id="rekap-total-gender" style="text-align: center;">0</td>
+
+                <td id="rekap-balita-l" style="text-align: center; font-weight: normal;">0</td>
+                <td id="rekap-balita-p" style="text-align: center; font-weight: normal;">0</td>
+
+                <td id="rekap-caberawit-l" style="text-align: center; font-weight: normal;">0</td>
+                <td id="rekap-caberawit-p" style="text-align: center; font-weight: normal;">0</td>
+
+                <td id="rekap-pra-remaja-l" style="text-align: center; font-weight: normal;">0</td>
+                <td id="rekap-pra-remaja-p" style="text-align: center; font-weight: normal;">0</td>
+
+                <td id="rekap-remaja-l" style="text-align: center; font-weight: normal;">0</td>
+                <td id="rekap-remaja-p" style="text-align: center; font-weight: normal;">0</td>
+
+                <td id="rekap-pra-nikah-l" style="text-align: center; font-weight: normal;">0</td>
+                <td id="rekap-pra-nikah-p" style="text-align: center; font-weight: normal;">0</td>
+
+                <td id="rekap-dewasa-l" style="text-align: center; font-weight: normal;">0</td>
+                <td id="rekap-dewasa-p" style="text-align: center; font-weight: normal;">0</td>
+
+                <td id="rekap-duda" style="text-align: center; color: var(--color-warning);">0</td>
+                <td id="rekap-janda" style="text-align: center; color: var(--color-warning);">0</td>
+
+                <td id="rekap-total-all" style="text-align: center; color: var(--color-primary); background: rgba(16,185,129,0.08);">0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Daftar Sensus Jamaah Card (Full Width) -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+          <h2 class="section-title" style="margin-bottom: 0;">
+            <i data-lucide="list" style="color: var(--color-primary);"></i>
+            <span>Daftar Sensus Jamaah (Aktif &amp; Masuk Absen)</span>
+          </h2>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-secondary" onclick="exportToCSV()" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); color: var(--color-primary);">
+              <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+              <span>Ekspor CSV</span>
+            </button>
+            <button class="btn btn-secondary" onclick="printTable()">
+              <i data-lucide="printer" style="width: 15px; height: 15px; color: var(--color-accent);"></i>
+              <span>Cetak Hasil</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-card">
+          <div class="search-box">
+            <i data-lucide="search" style="width: 18px; height: 18px;"></i>
+            <input type="text" id="search-input" placeholder="Cari nama jamaah atau KK..." oninput="filterAndRenderTable()">
+          </div>
+          <select id="filter-kategori" class="filter-select" onchange="filterAndRenderTable()">
+            <option value="">Semua Kategori</option>
+            <option value="BALITA-PAUD">BALITA-PAUD</option>
+            <option value="Caberawit">Caberawit</option>
+            <option value="Pra Remaja (SMP)">Pra Remaja (SMP)</option>
+            <option value="Remaja (SMA)">Remaja (SMA)</option>
+            <option value="Usia (Pra) Menikah">Usia (Pra) Menikah</option>
+            <option value="Dewasa Menikah">Dewasa Menikah</option>
+          </select>
+          <select id="filter-gender" class="filter-select" onchange="filterAndRenderTable()">
+            <option value="">Semua Gender</option>
+            <option value="L">Laki-Laki</option>
+            <option value="P">Perempuan</option>
+          </select>
+        </div>
+
+        <!-- Table -->
+        <div class="list-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 50px; text-align: center;">No</th>
+                <th class="sortable" onclick="setSort('nama_lengkap')">Nama Lengkap <span id="sort-nama_lengkap" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
+                <th class="sortable" onclick="setSort('nama_absen')">Nama Absen <span id="sort-nama_absen" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
+                <th class="sortable" onclick="setSort('hubungan_keluarga')" style="text-align: center;">Hub KK <span id="sort-hubungan_keluarga" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
+                <th class="sortable" onclick="setSort('nama_kk')">Nama KK <span id="sort-nama_kk" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
+                <th class="sortable" onclick="setSort('kategori_usia')">Kategori Usia <span id="sort-kategori_usia" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
+                <th class="sortable" onclick="setSort('umur')" style="text-align: center;">Umur <span id="sort-umur" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
+                <th style="text-align: center; width: 80px;">Aktif</th>
+                <th style="text-align: center; width: 80px;">Absen</th>
+              </tr>
+            </thead>
+            <tbody id="jamaah-table-rows">
+              <!-- JS populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Global Data Store ---
+    let appData = {
+      jamaah: [],
+      keluarga: [],
+      rekap: {}
+    };
+
+    // --- Sorting State ---
+    let sortField = '';
+    let sortOrder = 'asc';
+
+    // --- Chart State ---
+    let categoryChartInstance = null;
+
+    // --- Analytics Dashboard Toggle State ---
+    let analyticsDashboardVisible = false;
+
+    // --- Check Mode (GAS vs Local) ---
+    const isLocalMode = typeof google === 'undefined' || !google.script || !google.script.run;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      initApp();
+    });
+
+    function initApp() {
+      const modeBadge = document.getElementById('mode-badge');
+      if (isLocalMode) {
+        modeBadge.style.background = 'var(--color-warning)';
+        modeBadge.querySelector('span').innerText = 'Mode Ringkasan Publik (Simulasi)';
+        simulateLoadData();
+      } else {
+        loadData();
+      }
+    }
+
+    function simulateLoadData() {
+      // Mock data matching the reverted format
+      const mockKeluarga = [
+        { id_keluarga: "KK-1", nama_kk: "H. Sutardjo", alamat: "Babakan Barat RT 01/02", telepon: "08123456789" },
+        { id_keluarga: "KK-2", nama_kk: "Daud Wibisono", alamat: "Babakan Barat RT 02/02", telepon: "08571234567" },
+        { id_keluarga: "KK-3", nama_kk: "H. Slamet Riyadi", alamat: "Babakan Barat RT 03/02", telepon: "08139988776" }
+      ];
+
+      const mockJamaah = [
+        { id_jamaah: "JM-1", id_keluarga: "KK-1", nama_kk: "H. Sutardjo", hubungan_keluarga: "A", nama_lengkap: "H. Sutardjo", nama_absen: "Sutardjo", jenis_kelamin: "L", tahun_lahir: 1956, umur: 70, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
+        { id_jamaah: "JM-2", id_keluarga: "KK-1", nama_kk: "H. Sutardjo", hubungan_keluarga: "B", nama_lengkap: "Sunarni", nama_absen: "Sunarni Sutardjo", jenis_kelamin: "P", tahun_lahir: 1968, umur: 58, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
+        { id_jamaah: "JM-3", id_keluarga: "KK-2", nama_kk: "Daud Wibisono", hubungan_keluarga: "A", nama_lengkap: "Daud Wibisono", nama_absen: "Daud Wibisono", jenis_kelamin: "L", tahun_lahir: 1997, umur: 29, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
+        { id_jamaah: "JM-4", id_keluarga: "KK-2", nama_kk: "Daud Wibisono", hubungan_keluarga: "B", nama_lengkap: "Amalia Istiqomah", nama_absen: "Amalia Isti Wibi", jenis_kelamin: "P", tahun_lahir: 1999, umur: 27, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
+        { id_jamaah: "JM-5", id_keluarga: "KK-2", nama_kk: "Daud Wibisono", hubungan_keluarga: "C", nama_lengkap: "Zafran Shaum Wibisono", nama_absen: "Zafran Shaum Wibisono", jenis_kelamin: "L", tahun_lahir: 2025, umur: 1, status_nikah: "BELUM", is_aktif: "Y", flag_absen: "N", status_keberadaan: "Menetap", kategori_usia: "BALITA-PAUD", catatan: "" },
+        { id_jamaah: "JM-6", id_keluarga: "KK-3", nama_kk: "H. Slamet Riyadi", hubungan_keluarga: "A", nama_lengkap: "H. Slamet Riyadi", nama_absen: "Slamet Riyadi", jenis_kelamin: "L", tahun_lahir: 1967, umur: 59, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
+        { id_jamaah: "JM-7", id_keluarga: "KK-3", nama_kk: "H. Slamet Riyadi", hubungan_keluarga: "B", nama_lengkap: "Yusrida Djamal", nama_absen: "Yusrida Djamal Slamet.R", jenis_kelamin: "P", tahun_lahir: 1964, umur: 62, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" }
+      ];
+
+      setTimeout(() => {
+        appData.keluarga = mockKeluarga;
+        appData.jamaah = mockJamaah;
+        calculateMockRekap();
+        
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('main-content').style.display = 'flex';
+        renderAll();
+      }, 800);
+    }
+
+    function calculateMockRekap() {
+      // Calculate rekap statistics based on is_aktif = Y
+      const active = appData.jamaah.filter(j => j.is_aktif === 'Y');
+      const l = active.filter(j => j.jenis_kelamin === 'L').length;
+      const p = active.filter(j => j.jenis_kelamin === 'P').length;
+      const duda = active.filter(j => j.status_nikah === 'DUDA' && j.jenis_kelamin === 'L').length;
+      const janda = active.filter(j => j.status_nikah === 'JANDA' && j.jenis_kelamin === 'P').length;
+      const lansia = active.filter(j => j.umur >= 57).length;
+
+      appData.rekap = {
+        total: active.length,
+        kk: appData.keluarga.length,
+        laki: l,
+        perempuan: p,
+        duda: duda,
+        janda: janda,
+        lansia: lansia,
+        detail: {
+          "BALITA-PAUD": { L: active.filter(j => j.kategori_usia === "BALITA-PAUD" && j.jenis_kelamin === "L").length, P: active.filter(j => j.kategori_usia === "BALITA-PAUD" && j.jenis_kelamin === "P").length },
+          "Caberawit": { L: active.filter(j => j.kategori_usia === "Caberawit" && j.jenis_kelamin === "L").length, P: active.filter(j => j.kategori_usia === "Caberawit" && j.jenis_kelamin === "P").length },
+          "Pra Remaja (SMP)": { L: active.filter(j => j.kategori_usia === "Pra Remaja (SMP)" && j.jenis_kelamin === "L").length, P: active.filter(j => j.kategori_usia === "Pra Remaja (SMP)" && j.jenis_kelamin === "P").length },
+          "Remaja (SMA)": { L: active.filter(j => j.kategori_usia === "Remaja (SMA)" && j.jenis_kelamin === "L").length, P: active.filter(j => j.kategori_usia === "Remaja (SMA)" && j.jenis_kelamin === "P").length },
+          "Usia (Pra) Menikah": { L: active.filter(j => j.kategori_usia === "Usia (Pra) Menikah" && j.jenis_kelamin === "L").length, P: active.filter(j => j.kategori_usia === "Usia (Pra) Menikah" && j.jenis_kelamin === "P").length },
+          "Dewasa Menikah": { L: active.filter(j => j.kategori_usia === "Dewasa Menikah" && j.jenis_kelamin === "L").length, P: active.filter(j => j.kategori_usia === "Dewasa Menikah" && j.jenis_kelamin === "P").length }
+        }
+      };
+    }
+
+    function loadData() {
+      document.getElementById('loading-state').style.display = 'block';
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('error-state').style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler((res) => {
+          document.getElementById('loading-state').style.display = 'none';
+          if (res.success) {
+            appData.jamaah = res.data.jamaah;
+            appData.keluarga = res.data.keluarga;
+            appData.rekap = res.data.rekap;
+            document.getElementById('main-content').style.display = 'flex';
+            renderAll();
+          } else {
+            showError(res.message);
+          }
+        })
+        .withFailureHandler((err) => {
+          document.getElementById('loading-state').style.display = 'none';
+          showError(err.toString());
+        })
+        .getSensusData();
+    }
+
+    function showError(msg) {
+      document.getElementById('error-state').style.display = 'block';
+      document.getElementById('error-message').innerText = msg;
+    }
+
+    function renderAll() {
+      // Set KPI Cards
+      document.getElementById('kpi-total').innerText = appData.rekap.total + " Jiwa";
+      document.getElementById('kpi-kk').innerText = appData.rekap.kk + " KK";
+      document.getElementById('kpi-laki').innerText = appData.rekap.laki + " Jiwa";
+      document.getElementById('kpi-perempuan').innerText = appData.rekap.perempuan + " Jiwa";
+      document.getElementById('kpi-lansia').innerText = appData.rekap.lansia + " Jiwa";
+
+      // Set Rekapitulasi Table cells
+      document.getElementById('rekap-kk').innerText = appData.rekap.kk;
+      document.getElementById('rekap-laki').innerText = appData.rekap.laki;
+      document.getElementById('rekap-perempuan').innerText = appData.rekap.perempuan;
+      document.getElementById('rekap-total-gender').innerText = appData.rekap.laki + appData.rekap.perempuan;
+
+      const cats = {
+        "BALITA-PAUD": "rekap-balita",
+        "Caberawit": "rekap-caberawit",
+        "Pra Remaja (SMP)": "rekap-pra-remaja",
+        "Remaja (SMA)": "rekap-remaja",
+        "Usia (Pra) Menikah": "rekap-pra-nikah",
+        "Dewasa Menikah": "rekap-dewasa"
+      };
+
+      for (let key in cats) {
+        const prefix = cats[key];
+        const detail = appData.rekap.detail[key] || { L: 0, P: 0 };
+        document.getElementById(`${prefix}-l`).innerText = detail.L;
+        document.getElementById(`${prefix}-p`).innerText = detail.P;
+      }
+
+      document.getElementById('rekap-duda').innerText = appData.rekap.duda;
+      document.getElementById('rekap-janda').innerText = appData.rekap.janda;
+      document.getElementById('rekap-total-all').innerText = appData.rekap.total;
+
+      // Render Visual Stats & Chart
+      renderVisualStats();
+      filterAndRenderTable();
+    }
+
+    function renderVisualStats() {
+      const detail = appData.rekap.detail;
+      const listContainer = document.getElementById('visual-stats-list');
+      listContainer.innerHTML = '';
+
+      const labels = Object.keys(detail);
+      const dataL = [];
+      const dataP = [];
+      const totals = [];
+
+      labels.forEach(k => {
+        const valL = detail[k].L;
+        const valP = detail[k].P;
+        const sum = valL + valP;
+        dataL.push(valL);
+        dataP.push(valP);
+        totals.push(sum);
+
+        const percL = sum > 0 ? Math.round((valL / sum) * 100) : 0;
+        const percP = sum > 0 ? Math.round((valP / sum) * 100) : 0;
+
+        const row = document.createElement('div');
+        row.className = 'visual-stat-item';
+        row.innerHTML = `
+          <div class="visual-stat-info">
+            <span class="visual-stat-label">${k}</span>
+            <span class="visual-stat-value">L: ${valL} (${percL}%) &nbsp;|&nbsp; P: ${valP} (${percP}%) &nbsp;&bull;&nbsp; Total: ${sum}</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill-l" style="width: ${percL}%"></div>
+            <div class="progress-bar-fill-p" style="width: ${percP}%"></div>
+          </div>
+        `;
+        listContainer.appendChild(row);
+      });
+
+      // Chart.js rendering
+      if (categoryChartInstance) {
+        categoryChartInstance.destroy();
+      }
+
+      const totalVal = totals.reduce((a, b) => a + b, 0);
+      if (totalVal === 0) {
+        document.getElementById('categoryChart').style.display = 'none';
+        document.getElementById('chart-no-data').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('categoryChart').style.display = 'block';
+      document.getElementById('chart-no-data').style.display = 'none';
+
+      const ctx = document.getElementById('categoryChart').getContext('2d');
+      categoryChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: totals,
+            backgroundColor: [
+              '#10b981', // Emerald
+              '#3b82f6', // Blue
+              '#6366f1', // Indigo
+              '#a855f7', // Purple
+              '#ec4899', // Pink
+              '#f59e0b'  // Amber
+            ],
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.08)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#94a3b8',
+                font: {
+                  family: 'Outfit',
+                  size: 11
+                },
+                padding: 12
+              }
+            }
+          },
+          cutout: '65%'
+        }
+      });
+    }
+
+    function setSort(field) {
+      if (sortField === field) {
+        sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
+      } else {
+        sortField = field;
+        sortOrder = 'asc';
+      }
+      filterAndRenderTable();
+      updateSortIcons();
+    }
+
+    function updateSortIcons() {
+      const fields = ['nama_lengkap', 'nama_absen', 'hubungan_keluarga', 'nama_kk', 'kategori_usia', 'umur'];
+      fields.forEach(f => {
+        const el = document.getElementById(`sort-${f}`);
+        if (!el) return;
+        
+        let iconName = 'chevrons-up-down';
+        if (sortField === f) {
+          iconName = (sortOrder === 'asc') ? 'chevron-up' : 'chevron-down';
+          el.parentElement.classList.add('sorted');
+        } else {
+          el.parentElement.classList.remove('sorted');
+        }
+        
+        el.innerHTML = `<i data-lucide="${iconName}" style="width: 14px; height: 14px;"></i>`;
+      });
+      lucide.createIcons();
+    }
+
+    function filterAndRenderTable() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const fKategori = document.getElementById('filter-kategori').value;
+      const fGender = document.getElementById('filter-gender').value;
+
+      // Filter: ONLY Aktif = Y and Absen = Y (flag_absen = Y)
+      const filtered = appData.jamaah.filter(j => {
+        const matchesQ = j.nama_lengkap.toLowerCase().includes(q) ||
+          j.nama_absen.toLowerCase().includes(q) ||
+          j.nama_kk.toLowerCase().includes(q);
+        const matchesKategori = !fKategori || j.kategori_usia === fKategori;
+        const matchesGender = !fGender || j.jenis_kelamin === fGender;
+        
+        // Hardcoded target subset
+        const matchesAktifAbsen = j.is_aktif === 'Y' && j.flag_absen === 'Y';
+
+        return matchesQ && matchesKategori && matchesGender && matchesAktifAbsen;
+      });
+
+      // Sorting logic
+      if (sortField) {
+        filtered.sort((a, b) => {
+          let valA = a[sortField];
+          let valB = b[sortField];
+          
+          if (typeof valA === 'string') {
+            valA = valA.toLowerCase();
+            valB = valB.toLowerCase();
+          }
+          
+          if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+          if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }
+
+      const tbody = document.getElementById('jamaah-table-rows');
+      tbody.innerHTML = '';
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted);">Tidak ada data jamaah aktif & absen yang cocok dengan filter.</td></tr>';
+        return;
+      }
+
+      filtered.forEach((j, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="color: var(--text-muted); text-align: center;">${index + 1}</td>
+          <td style="font-weight: 600;">${j.nama_lengkap}</td>
+          <td>${j.nama_absen}</td>
+          <td style="text-align: center;"><span style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 0.2rem 0.4rem; border-radius: 4px;">${j.hubungan_keluarga}</span></td>
+          <td>${j.nama_kk}</td>
+          <td>${j.kategori_usia}</td>
+          <td style="text-align: center;">${j.umur} th</td>
+          <td style="text-align: center;"><span class="active-badge yes">${j.is_aktif}</span></td>
+          <td style="text-align: center;"><span class="active-badge yes">${j.flag_absen}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    function exportToCSV() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const fKategori = document.getElementById('filter-kategori').value;
+      const fGender = document.getElementById('filter-gender').value;
+
+      const filtered = appData.jamaah.filter(j => {
+        const matchesQ = j.nama_lengkap.toLowerCase().includes(q) ||
+          j.nama_absen.toLowerCase().includes(q) ||
+          j.nama_kk.toLowerCase().includes(q);
+        const matchesKategori = !fKategori || j.kategori_usia === fKategori;
+        const matchesGender = !fGender || j.jenis_kelamin === fGender;
+        
+        // Only Aktif = Y and Absen = Y
+        const matchesAktifAbsen = j.is_aktif === 'Y' && j.flag_absen === 'Y';
+
+        return matchesQ && matchesKategori && matchesGender && matchesAktifAbsen;
+      });
+
+      if (sortField) {
+        filtered.sort((a, b) => {
+          let valA = a[sortField];
+          let valB = b[sortField];
+          if (typeof valA === 'string') {
+            valA = valA.toLowerCase();
+            valB = valB.toLowerCase();
+          }
+          if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+          if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }
+
+      // Prepare CSV contents
+      const headers = ["No", "Nama Lengkap", "Nama Absen", "Hub KK", "Nama KK", "Kategori Usia", "Umur", "Status Aktif", "Masuk Absen"];
+      const rows = filtered.map((j, index) => [
+        index + 1,
+        `"${j.nama_lengkap.replace(/"/g, '""')}"`,
+        `"${j.nama_absen.replace(/"/g, '""')}"`,
+        `"${j.hubungan_keluarga}"`,
+        `"${j.nama_kk.replace(/"/g, '""')}"`,
+        `"${j.kategori_usia}"`,
+        `${j.umur}`,
+        `"${j.is_aktif}"`,
+        `"${j.flag_absen}"`
+      ]);
+
+      const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `sensus_jamaah_aktif_dan_absen_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function printTable() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const fKategori = document.getElementById('filter-kategori').value;
+      const fGender = document.getElementById('filter-gender').value;
+
+      const filtered = appData.jamaah.filter(j => {
+        const matchesQ = j.nama_lengkap.toLowerCase().includes(q) ||
+          j.nama_absen.toLowerCase().includes(q) ||
+          j.nama_kk.toLowerCase().includes(q);
+        const matchesKategori = !fKategori || j.kategori_usia === fKategori;
+        const matchesGender = !fGender || j.jenis_kelamin === fGender;
+        const matchesAktifAbsen = j.is_aktif === 'Y' && j.flag_absen === 'Y';
+
+        return matchesQ && matchesKategori && matchesGender && matchesAktifAbsen;
+      });
+
+      if (sortField) {
+        filtered.sort((a, b) => {
+          let valA = a[sortField];
+          let valB = b[sortField];
+          if (typeof valA === 'string') {
+            valA = valA.toLowerCase();
+            valB = valB.toLowerCase();
+          }
+          if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+          if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Cetak Ringkasan Sensus Jamaah (Aktif & Absen)</title>
+            <style>
+              body {
+                font-family: system-ui, -apple-system, sans-serif;
+                color: #1e293b;
+                padding: 2.5rem;
+                line-height: 1.5;
+              }
+              h2 {
+                text-align: center;
+                margin-top: 0;
+                margin-bottom: 0.25rem;
+                color: #0f766e;
+                font-size: 1.6rem;
+              }
+              .sub-title {
+                text-align: center;
+                font-size: 1.1rem;
+                font-weight: 500;
+                color: #475569;
+                margin-bottom: 0.5rem;
+              }
+              .meta-info {
+                text-align: center;
+                font-size: 0.85rem;
+                color: #64748b;
+                margin-bottom: 2rem;
+                border-bottom: 2px solid #e2e8f0;
+                padding-bottom: 1rem;
+              }
+              table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.8rem;
+              }
+              th, td {
+                border: 1px solid #cbd5e1;
+                padding: 0.5rem 0.75rem;
+                text-align: left;
+              }
+              th {
+                background: #f8fafc;
+                font-weight: 600;
+                color: #334155;
+              }
+              .text-center {
+                text-align: center;
+              }
+              tr:nth-child(even) {
+                background: #f8fafc;
+              }
+            </style>
+          </head>
+          <body>
+            <h2>Sensus Jamaah Babakan Barat</h2>
+            <div class="sub-title">Ringkasan Sensus Jamaah (Aktif & Absen)</div>
+            <div class="meta-info">
+              Dicetak pada: ${new Date().toLocaleString('id-ID')} &bull; Jumlah Data: ${filtered.length} Jiwa
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 40px;" class="text-center">No</th>
+                  <th>Nama Lengkap</th>
+                  <th>Nama Absen</th>
+                  <th style="width: 80px;" class="text-center">Hub KK</th>
+                  <th>Nama KK</th>
+                  <th>Kategori Usia</th>
+                  <th style="width: 70px;" class="text-center">Umur</th>
+                  <th style="width: 60px;" class="text-center">Aktif</th>
+                  <th style="width: 60px;" class="text-center">Absen</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filtered.length === 0 ? `
+                  <tr>
+                    <td colspan="9" class="text-center" style="color: #64748b; padding: 2rem;">Tidak ada data yang cocok dengan kriteria filter.</td>
+                  </tr>
+                ` : filtered.map((j, index) => `
+                  <tr>
+                    <td class="text-center">${index + 1}</td>
+                    <td><strong>${j.nama_lengkap}</strong></td>
+                    <td>${j.nama_absen}</td>
+                    <td class="text-center" style="font-family: monospace;">${j.hubungan_keluarga}</td>
+                    <td>${j.nama_kk}</td>
+                    <td>${j.kategori_usia}</td>
+                    <td class="text-center">${j.umur} th</td>
+                    <td class="text-center">${j.is_aktif}</td>
+                    <td class="text-center">${j.flag_absen}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <script>
+              window.onload = function() {
+                window.print();
+                window.onafterprint = function() { window.close(); };
+              };
+            <\/script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+
+    // Toggle Analytics Dashboard
+    function toggleAnalyticsDashboard() {
+      analyticsDashboardVisible = !analyticsDashboardVisible;
+      const dashboard = document.getElementById('analytics-dashboard');
+      const btn = document.getElementById('toggle-analytics-btn');
+      const btnText = document.getElementById('toggle-analytics-text');
+      const btnIcon = document.getElementById('toggle-analytics-icon');
+
+      if (analyticsDashboardVisible) {
+        dashboard.style.display = 'flex';
+        btnText.innerText = 'Sembunyikan Visualisasi Data';
+        btnIcon.setAttribute('data-lucide', 'eye-off');
+        // Render the visual stats and chart when toggled on
+        renderVisualStats();
+      } else {
+        dashboard.style.display = 'none';
+        btnText.innerText = 'Tampilkan Visualisasi Data';
+        btnIcon.setAttribute('data-lucide', 'eye');
+      }
+
+      lucide.createIcons();
+    }
+  </script>
+</body>
+
+</html>

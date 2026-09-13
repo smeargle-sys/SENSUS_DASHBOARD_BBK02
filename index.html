@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sensus Jiwa Babakan Barat</title>
+
+  <!-- Outfit Font for Premium Aesthetics -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons for Clean Iconography -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js for High Level Data Visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Design System: Sleek Light Mode & Premium Clean Aesthetics */
+    :root {
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --card-hover-border: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+
+      --color-primary: #10b981;
+      /* Emerald Green */
+      --color-primary-hover: #059669;
+      --color-accent: #6366f1;
+      /* Indigo */
+      --color-danger: #ef4444;
+      /* Red */
+      --color-warning: #d97706;
+      /* Darker Amber for light mode contrast */
+
+      --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Decorative Background Soft Ambient Blobs */
+    body::before {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+      top: -100px;
+      left: 10%;
+      z-index: -1;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, rgba(0, 0, 0, 0) 70%);
+      bottom: 10%;
+      right: 5%;
+      z-index: -1;
+      filter: blur(100px);
+      pointer-events: none;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Header Styling */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      padding: 1.5rem 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+    }
+
+    .header-title h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #0284c7 0%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+
+    .header-title p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      color: #ffffff;
+    }
+
+    /* State Boxes */
+    #loading-state,
+    #error-state {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 4rem 2rem;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(16, 185, 129, 0.1);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Grid Layouts */
+    .grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 1200px) {
+      .grid-5 {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+    }
+
+    .grid-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .grid-layout-2 {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 992px) {
+      .grid-layout-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .visual-stat-item {
+      margin-bottom: 0.95rem;
+    }
+
+    .visual-stat-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.825rem;
+      font-weight: 500;
+      margin-bottom: 0.35rem;
+    }
+
+    .visual-stat-label {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .visual-stat-value {
+      color: var(--text-muted);
+    }
+
+    .progress-bar-bg {
+      background: #e2e8f0;
+      height: 8px;
+      border-radius: 9999px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .progress-bar-fill-l {
+      background: #60a5fa; /* Blue for L */
+      height: 100%;
+      transition: var(--transition);
+    }
+
+    .progress-bar-fill-p {
+      background: #f43f5e; /* Red/Pink for P */
+      height: 100%;
+      transition: var(--transition);
+    }
+
+    /* Card Styling */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05), 0 8px 16px -6px rgba(15, 23, 42, 0.05);
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      border-color: var(--card-hover-border);
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px -5px rgba(15, 23, 42, 0.08), 0 8px 24px -6px rgba(15, 23, 42, 0.08);
+    }
+
+    .stat-card {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .stat-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.08);
+      color: var(--color-primary);
+    }
+
+    .stat-card.accent .stat-icon {
+      background: rgba(99, 102, 241, 0.08);
+      color: var(--color-accent);
+    }
+
+    .stat-info h3 {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-info p {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group.checkbox-group {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #334155;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: var(--font-family);
+      font-size: 0.95rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      color: #334155;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      width: auto;
+      cursor: pointer;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    /* Sub-section for new keluarga form */
+    .new-keluarga-section {
+      background: rgba(99, 102, 241, 0.03);
+      border: 1px dashed rgba(99, 102, 241, 0.25);
+      padding: 1.25rem;
+      border-radius: 12px;
+      margin-bottom: 1.25rem;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-main);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.85rem;
+      border-radius: 8px;
+      border: none;
+      font-family: var(--font-family);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: var(--transition);
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-primary-hover);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-secondary {
+      background: #f8fafc;
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      margin-top: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+      background: #f1f5f9;
+    }
+
+    /* Dashboard Tables & Rekap */
+    .rekap-table-container {
+      overflow-x: auto;
+      margin-top: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th,
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: 600;
+      color: #334155;
+      white-space: nowrap;
+    }
+
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+      transition: var(--transition);
+    }
+
+    th.sortable:hover {
+      background: #f1f5f9;
+      color: var(--color-primary);
+    }
+
+    .sort-icon {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 0.25rem;
+      vertical-align: middle;
+      opacity: 0.4;
+      transition: var(--transition);
+    }
+
+    th.sortable:hover .sort-icon,
+    th.sorted .sort-icon {
+      opacity: 1;
+      color: var(--color-primary);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr.total-row {
+      background: rgba(16, 185, 129, 0.03);
+      font-weight: 700;
+      border-top: 2px solid rgba(16, 185, 129, 0.15);
+    }
+
+    /* Filter & Search Controls */
+    .filters-card {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .search-box input {
+      padding-left: 2.75rem;
+    }
+
+    .filter-select {
+      width: 160px;
+    }
+
+    @media (max-width: 768px) {
+      .filter-select {
+        width: 100%;
+      }
+    }
+
+    /* Data Table styling */
+    .list-table-container {
+      overflow-x: auto;
+      max-height: 500px;
+      overflow-y: auto;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+    }
+
+    .active-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .active-badge.yes {
+      background: rgba(16, 185, 129, 0.1);
+      color: #047857;
+    }
+
+    .active-badge.no {
+      background: rgba(239, 68, 68, 0.08);
+      color: #b91c1c;
+    }
+
+    .edit-btn {
+      background: rgba(99, 102, 241, 0.08);
+      color: #4f46e5;
+      border: 1px solid rgba(99, 102, 241, 0.18);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: var(--font-family);
+      font-weight: 500;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .edit-btn:hover {
+      background: var(--color-accent);
+      color: #fff;
+    }
+
+    /* Tabs for Form */
+    .form-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 1.5rem;
+    }
+
+    .form-tab {
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 2px solid transparent;
+      transition: var(--transition);
+    }
+
+    .form-tab.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="header-title">
+        <h1>Sensus Jiwa & Jamaah</h1>
+        <p>Kelompok Babakan Barat - Desa Babakan Tangerang Selatan</p>
+      </div>
+      <div id="mode-badge" class="badge" style="background: var(--color-primary);">
+        <i data-lucide="database"></i>
+        <span>Memuat...</span>
+      </div>
+    </header>
+
+    <!-- Loading State -->
+    <div id="loading-state">
+      <div class="spinner"></div>
+      <h2>Memuat Data Sensus...</h2>
+      <p style="color: var(--text-muted); margin-top: 0.5rem;">Silakan tunggu, sistem sedang memproses data.</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" style="display: none;">
+      <i data-lucide="alert-triangle"
+        style="color: var(--color-danger); width: 64px; height: 64px; margin-bottom: 1rem;"></i>
+      <h2>Gagal Memuat Data</h2>
+      <p id="error-message" style="color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 1.5rem;"></p>
+      <button class="btn btn-primary" onclick="loadData()" style="width: auto; margin: 0 auto;">Coba Lagi</button>
+    </div>
+
+    <!-- Main Content Area -->
+    <div id="main-content" style="display: none; display: flex; flex-direction: column; gap: 2rem;">
+      <!-- KPI Stats -->
+      <div class="grid-5">
+        <div class="card stat-card">
+          <div class="stat-icon">
+            <i data-lucide="users"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Total Jamaah</h3>
+            <p id="kpi-total">0</p>
+          </div>
+        </div>
+        <div class="card stat-card accent">
+          <div class="stat-icon">
+            <i data-lucide="home"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Total Keluarga (KK)</h3>
+            <p id="kpi-kk">0</p>
+          </div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-icon" style="color: #60a5fa; background: rgba(96, 165, 250, 0.1);">
+            <i data-lucide="user"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Laki-Laki</h3>
+            <p id="kpi-laki">0</p>
+          </div>
+        </div>
+        <div class="card stat-card" style="border-color: rgba(244, 63, 94, 0.2);">
+          <div class="stat-icon" style="color: #f43f5e; background: rgba(244, 63, 94, 0.1);">
+            <i data-lucide="user-plus"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Perempuan</h3>
+            <p id="kpi-perempuan">0</p>
+          </div>
+        </div>
+        <div class="card stat-card" style="border-color: rgba(217, 119, 6, 0.2);">
+          <div class="stat-icon" style="color: #d97706; background: rgba(217, 119, 6, 0.08);">
+            <i data-lucide="heart"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Lansia (≥ 57 th)</h3>
+            <p id="kpi-lansia">0</p>
+          </div>
+        </div>
+      </div>
+      <br>
+
+      <!-- Toggle Button for Analytics Dashboard -->
+      <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+        <button id="toggle-analytics-btn" class="btn btn-primary" onclick="toggleAnalyticsDashboard()" style="gap: 0.75rem; padding: 0.75rem 1.5rem; font-size: 1rem;">
+          <i id="toggle-analytics-icon" data-lucide="eye"></i>
+          <span id="toggle-analytics-text">Tampilkan Visualisasi Data</span>
+        </button>
+      </div>
+
+      <!-- High Level Visual Analytics Dashboard (Hidden by Default) -->
+      <div id="analytics-dashboard" style="display: none; display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem;">
+        <!-- Chart Card -->
+        <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column;">
+          <h3 class="section-title" style="font-size: 1.05rem; margin-bottom: 1.25rem;">
+            <i data-lucide="pie-chart" style="color: var(--color-primary); width: 18px; height: 18px;"></i>
+            <span>Proporsi Kategori Sensus (Doughnut)</span>
+          </h3>
+          <div style="flex: 1; display: flex; align-items: center; justify-content: center; position: relative; min-height: 250px;">
+            <canvas id="categoryChart"></canvas>
+            <div id="chart-no-data" style="display: none; color: var(--text-muted); font-size: 0.9rem;">Belum ada data aktif untuk divisualisasikan.</div>
+          </div>
+        </div>
+
+        <!-- Stats Details Card -->
+        <div class="card" style="padding: 1.5rem;">
+          <h3 class="section-title" style="font-size: 1.05rem; margin-bottom: 1.25rem;">
+            <i data-lucide="bar-chart-3" style="color: var(--color-accent); width: 18px; height: 18px;"></i>
+            <span>Distribusi Jumlah & Presentase Gender</span>
+          </h3>
+          <div id="visual-stats-list">
+            <!-- Dynamically populated list with dual progress bars -->
+          </div>
+        </div>
+      </div>
+      <br>
+
+      <!-- Rekapitulasi Kategori Usia (Full Width at Top) -->
+      <div class="card">
+        <h2 class="section-title">
+          <i data-lucide="bar-chart-2" style="color: var(--color-accent);"></i>
+          <span>Rekapitulasi Kategori Usia Sensus 2026</span>
+        </h2>
+        <div class="rekap-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th rowspan="2" style="text-align: center; vertical-align: middle;">JUMLAH KK</th>
+                <th colspan="3" style="text-align: center;">TOTAL GENDER</th>
+                <th colspan="2" style="text-align: center;">BALITA</th>
+                <th colspan="2" style="text-align: center;">CABERAWIT</th>
+                <th colspan="2" style="text-align: center;">PRA REMAJA</th>
+                <th colspan="2" style="text-align: center;">REMAJA</th>
+                <th colspan="2" style="text-align: center;">PRA NIKAH</th>
+                <th colspan="2" style="text-align: center;">DEWASA MENIKAH</th>
+                <th rowspan="2" style="text-align: center; vertical-align: middle;">Duda</th>
+                <th rowspan="2" style="text-align: center; vertical-align: middle;">Janda</th>
+                <th rowspan="2" style="text-align: center; vertical-align: middle;">TOTAL JAMAAH</th>
+              </tr>
+              <tr>
+                <th style="text-align: center;">Laki</th>
+                <th style="text-align: center;">Perempuan</th>
+                <th style="text-align: center;">Total</th>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="font-weight: 700; font-size: 1.05rem;">
+                <td id="rekap-kk" style="text-align: center; color: var(--color-accent);">0</td>
+                <td id="rekap-laki" style="text-align: center; color: #60a5fa;">0</td>
+                <td id="rekap-perempuan" style="text-align: center; color: #f43f5e;">0</td>
+                <td id="rekap-total-gender" style="text-align: center;">0</td>
+
+                <td id="rekap-balita-l" style="text-align: center; font-weight: normal;">0</td>
+                <td id="rekap-balita-p" style="text-align: center; font-weight: normal;">0</td>
+
+                <td id="rekap-caberawit-l" style="text-align: center; font-weight: normal;">0</td>
+                <td id="rekap-caberawit-p" style="text-align: center; font-weight: normal;">0</td>
+
+                <td id="rekap-pra-remaja-l" style="text-align: center; font-weight: normal;">0</td>
+                <td id="rekap-pra-remaja-p" style="text-align: center; font-weight: normal;">0</td>
+
+                <td id="rekap-remaja-l" style="text-align: center; font-weight: normal;">0</td>
+                <td id="rekap-remaja-p" style="text-align: center; font-weight: normal;">0</td>
+
+                <td id="rekap-pra-nikah-l" style="text-align: center; font-weight: normal;">0</td>
+                <td id="rekap-pra-nikah-p" style="text-align: center; font-weight: normal;">0</td>
+
+                <td id="rekap-dewasa-l" style="text-align: center; font-weight: normal;">0</td>
+                <td id="rekap-dewasa-p" style="text-align: center; font-weight: normal;">0</td>
+
+                <td id="rekap-duda" style="text-align: center; color: var(--color-warning);">0</td>
+                <td id="rekap-janda" style="text-align: center; color: var(--color-warning);">0</td>
+
+                <td id="rekap-total-all"
+                  style="text-align: center; color: var(--color-primary); background: rgba(16,185,129,0.08);">0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <br>
+
+      <!-- Main Layout -->
+      <div class="grid-layout">
+        <!-- Left Column: Form Input -->
+        <div class="card" id="form-container">
+          <h2 class="section-title" id="form-title">
+            <i data-lucide="user-plus" style="color: var(--color-primary);"></i>
+            <span>Tambah Jamaah Baru</span>
+          </h2>
+
+          <form id="sensus-form" onsubmit="handleFormSubmit(event)">
+            <!-- Hidden Fields for Editing -->
+            <input type="hidden" id="form-id-jamaah" name="id_jamaah">
+            <input type="hidden" id="form-is-new-keluarga" name="is_new_keluarga" value="false">
+
+            <!-- Keluarga & Nama Lengkap Row -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="form-id-keluarga">Pilih Keluarga (KK)</label>
+                <select id="form-id-keluarga" name="id_keluarga" onchange="toggleKeluargaFields()" required>
+                  <option value="">-- Pilih KK --</option>
+                  <option value="NEW" style="color: var(--color-accent); font-weight: 600;">+ Buat Keluarga (KK) Baru
+                  </option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="form-nama-lengkap">Nama Lengkap</label>
+                <input type="text" id="form-nama-lengkap" name="nama_lengkap" placeholder="Nama sesuai KTP/Akte"
+                  required>
+              </div>
+            </div>
+
+            <!-- New Keluarga Sub-form (Shown when 'NEW' selected) -->
+            <div id="new-keluarga-fields" class="new-keluarga-section" style="display: none;">
+              <h3 class="section-title" style="font-size: 0.95rem; color: var(--color-accent); margin-bottom: 0.75rem;">
+                <i data-lucide="plus-circle"></i> Detail Keluarga Baru
+              </h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="form-nama-kk">Nama Kepala Keluarga (Bapak/Ibu)</label>
+                  <input type="text" id="form-nama-kk" name="nama_kk" placeholder="Contoh: H. Sutardjo">
+                </div>
+                <div class="form-group">
+                  <label for="form-telepon">No. Telepon / WA</label>
+                  <input type="text" id="form-telepon" name="telepon" placeholder="0812...">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="form-alamat">Alamat Lengkap</label>
+                <textarea id="form-alamat" name="alamat" rows="2" placeholder="Alamat rumah..."></textarea>
+              </div>
+            </div>
+
+            <!-- Jamaah Fields Row 1 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="form-nama-absen">Nama di Absen</label>
+                <input type="text" id="form-nama-absen" name="nama_absen" placeholder="Nama panggilan" required>
+              </div>
+              <div class="form-group">
+                <label for="form-hubungan-keluarga">Hubungan Keluarga</label>
+                <select id="form-hubungan-keluarga" name="hubungan_keluarga" required>
+                  <option value="A">A - Kepala Keluarga</option>
+                  <option value="B">B - Istri</option>
+                  <option value="C" selected>C - Anak</option>
+                  <option value="D">D - Bukan Keluarga Inti</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Jamaah Fields Row 2 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="form-jenis-kelamin">Jenis Kelamin</label>
+                <select id="form-jenis-kelamin" name="jenis_kelamin" required>
+                  <option value="L">Laki-Laki</option>
+                  <option value="P">Perempuan</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="form-tahun-lahir">Tahun Lahir (TTL)</label>
+                <input type="number" id="form-tahun-lahir" name="tahun_lahir" min="1900" max="2030"
+                  placeholder="Contoh: 1997" required>
+              </div>
+            </div>
+
+            <!-- Jamaah Fields Row 3 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="form-status-nikah">Status Pernikahan (Opsional)</label>
+                <select id="form-status-nikah" name="status_nikah">
+                  <option value="" selected>-- Pilih Status (Opsional / Belum) --</option>
+                  <option value="MENIKAH">MENIKAH</option>
+                  <option value="DUDA">DUDA</option>
+                  <option value="JANDA">JANDA</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="form-status-keberadaan">Status Keberadaan</label>
+                <select id="form-status-keberadaan" name="status_keberadaan" required>
+                  <option value="Menetap" selected>Menetap</option>
+                  <option value="Mondok">Mondok</option>
+                  <option value="Tugas">Tugas</option>
+                  <option value="Kerja Luar">Kerja Luar</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Flags & Catatan Row -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pengaturan Penanda (Flags)</label>
+                <div class="form-group checkbox-group" style="margin-top: 0.75rem;">
+                  <label class="checkbox-item">
+                    <input type="checkbox" id="form-is-aktif" name="is_aktif" checked value="Y">
+                    <span>Aktif Wilayah (Lokal)</span>
+                  </label>
+                  <label class="checkbox-item">
+                    <input type="checkbox" id="form-flag-absen" name="flag_absen" checked value="Y">
+                    <span>Masuk Daftar Absen</span>
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="form-catatan">Catatan / Keterangan</label>
+                <input type="text" id="form-catatan" name="catatan" placeholder="Keterangan tambahan (opsional)"
+                  style="margin-top: 0.2rem;">
+              </div>
+            </div>
+
+            <!-- Form Action Buttons -->
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+              <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 1;">
+                <i data-lucide="save"></i>
+                <span>Simpan Data</span>
+              </button>
+              <button type="button" id="cancel-btn" class="btn btn-secondary" onclick="resetForm()"
+                style="display: none; flex: 1; margin-top: 0;">
+                Batal / Reset
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Right Column: Daftar Sensus Jamaah -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <!-- List Data Jamaah -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+              <h2 class="section-title" style="margin-bottom: 0;">
+                <i data-lucide="list" style="color: var(--color-primary);"></i>
+                <span>Daftar Sensus Jamaah</span>
+              </h2>
+              <button class="btn btn-secondary" onclick="printTable()" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; margin-top: 0; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-main);">
+                <i data-lucide="printer" style="width: 15px; height: 15px; color: var(--color-accent);"></i>
+                <span>Cetak Hasil</span>
+              </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-card">
+              <div class="search-box">
+                <i data-lucide="search" style="width: 18px; height: 18px;"></i>
+                <input type="text" id="search-input" placeholder="Cari nama jamaah atau KK..."
+                  oninput="filterAndRenderTable()">
+              </div>
+              <select id="filter-kategori" class="filter-select" onchange="filterAndRenderTable()">
+                <option value="">Semua Kategori</option>
+                <option value="BALITA-PAUD">BALITA-PAUD</option>
+                <option value="Caberawit">Caberawit</option>
+                <option value="Pra Remaja (SMP)">Pra Remaja (SMP)</option>
+                <option value="Remaja (SMA)">Remaja (SMA)</option>
+                <option value="Usia (Pra) Menikah">Usia (Pra) Menikah</option>
+                <option value="Dewasa Menikah">Dewasa Menikah</option>
+              </select>
+              <select id="filter-gender" class="filter-select" onchange="filterAndRenderTable()">
+                <option value="">Semua Gender</option>
+                <option value="L">Laki-Laki</option>
+                <option value="P">Perempuan</option>
+              </select>
+              <select id="filter-aktif" class="filter-select" onchange="filterAndRenderTable()">
+                <option value="">Semua Keaktifan</option>
+                <option value="Y">Aktif Wilayah (Y)</option>
+                <option value="N">Luar Kota (N)</option>
+              </select>
+              <select id="filter-absen" class="filter-select" onchange="filterAndRenderTable()">
+                <option value="">Semua List Absen</option>
+                <option value="Y">Masuk Absen</option>
+                <option value="N">Tidak Masuk Absen</option>
+              </select>
+            </div>
+
+            <!-- Table -->
+            <div class="list-table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 50px; text-align: center;">No</th>
+                    <th class="sortable" onclick="setSort('nama_lengkap')">Nama Lengkap <span id="sort-nama_lengkap" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
+                    <th class="sortable" onclick="setSort('hubungan_keluarga')" style="text-align: center;">Hub KK <span id="sort-hubungan_keluarga" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
+                    <th class="sortable" onclick="setSort('nama_kk')">Nama KK <span id="sort-nama_kk" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
+                    <th class="sortable" onclick="setSort('kategori_usia')">Kategori Usia <span id="sort-kategori_usia" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
+                    <th class="sortable" onclick="setSort('umur')" style="text-align: center;">Umur <span id="sort-umur" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
+                    <th style="text-align: center; width: 80px;">Aktif</th>
+                    <th style="text-align: center; width: 80px;">Absen</th>
+                    <th style="text-align: center; width: 100px;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="jamaah-table-rows">
+                  <!-- Javascript populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+    </div>
+  </div>
+
+  <script>
+    // --- Global Data Store ---
+    let appData = {
+      jamaah: [],
+      keluarga: [],
+      rekap: {}
+    };
+
+    // --- Sorting State ---
+    let sortField = '';
+    let sortOrder = 'asc';
+
+    // --- Chart State ---
+    let categoryChartInstance = null;
+
+    // --- Analytics Dashboard Toggle State ---
+    let analyticsDashboardVisible = false;
+
+    // --- Mock Data (for Local Development/Offline Mode) ---
+    const mockKeluarga = [
+      { id_keluarga: "KK-1", nama_kk: "H. Sutardjo", alamat: "Babakan Barat RT 01/02", telepon: "08123456789" },
+      { id_keluarga: "KK-2", nama_kk: "Daud Wibisono", alamat: "Babakan Barat RT 02/02", telepon: "08571234567" },
+      { id_keluarga: "KK-3", nama_kk: "H. Slamet Riyadi", alamat: "Babakan Barat RT 03/02", telepon: "08139988776" }
+    ];
+
+    const mockJamaah = [
+      { id_jamaah: "JM-1", id_keluarga: "KK-1", nama_kk: "H. Sutardjo", hubungan_keluarga: "A", nama_lengkap: "H. Sutardjo", nama_absen: "Sutardjo", jenis_kelamin: "L", tahun_lahir: 1956, umur: 70, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
+      { id_jamaah: "JM-2", id_keluarga: "KK-1", nama_kk: "H. Sutardjo", hubungan_keluarga: "B", nama_lengkap: "Sunarni", nama_absen: "Sunarni Sutardjo", jenis_kelamin: "P", tahun_lahir: 1968, umur: 58, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
+      { id_jamaah: "JM-3", id_keluarga: "KK-2", nama_kk: "Daud Wibisono", hubungan_keluarga: "A", nama_lengkap: "Daud Wibisono", nama_absen: "Daud Wibisono", jenis_kelamin: "L", tahun_lahir: 1997, umur: 29, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
+      { id_jamaah: "JM-4", id_keluarga: "KK-2", nama_kk: "Daud Wibisono", hubungan_keluarga: "B", nama_lengkap: "Amalia Istiqomah", nama_absen: "Amalia Isti Wibi", jenis_kelamin: "P", tahun_lahir: 1999, umur: 27, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
+      { id_jamaah: "JM-5", id_keluarga: "KK-2", nama_kk: "Daud Wibisono", hubungan_keluarga: "C", nama_lengkap: "Zafran Shaum Wibisono", nama_absen: "Zafran Shaum Wibisono", jenis_kelamin: "L", tahun_lahir: 2025, umur: 1, status_nikah: "BELUM", is_aktif: "Y", flag_absen: "N", status_keberadaan: "Menetap", kategori_usia: "BALITA-PAUD", catatan: "" },
+      { id_jamaah: "JM-6", id_keluarga: "KK-3", nama_kk: "H. Slamet Riyadi", hubungan_keluarga: "A", nama_lengkap: "H. Slamet Riyadi", nama_absen: "Slamet Riyadi", jenis_kelamin: "L", tahun_lahir: 1967, umur: 59, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
+      { id_jamaah: "JM-7", id_keluarga: "KK-3", nama_kk: "H. Slamet Riyadi", hubungan_keluarga: "B", nama_lengkap: "Yusrida Djamal", nama_absen: "Yusrida Djamal Slamet.R", jenis_kelamin: "P", tahun_lahir: 1964, umur: 62, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" }
+    ];
+
+    // Check if we are running in Google Apps Script or Local Browser
+    const isLocalMode = typeof google === 'undefined' || !google.script || !google.script.run;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      initApp();
+    });
+
+    function initApp() {
+      const modeBadge = document.getElementById('mode-badge');
+      if (isLocalMode) {
+        modeBadge.style.background = 'var(--color-warning)';
+        modeBadge.querySelector('span').innerText = 'Mode Simulasi (Lokal)';
+        simulateLoadData();
+      } else {
+        modeBadge.style.background = 'var(--color-primary)';
+        modeBadge.querySelector('span').innerText = 'Google Sheet Live';
+        loadData();
+      }
+    }
+
+    // --- Loading Live Data from GAS ---
+    function loadData() {
+      showLoading(true);
+      google.script.run
+        .withSuccessHandler((response) => {
+          if (response.success && response.data) {
+            appData = response.data;
+            renderAll();
+            showLoading(false);
+          } else {
+            showError(response.message || "Gagal mengambil data dari Google Sheets.");
+          }
+        })
+        .withFailureHandler((err) => {
+          showError(err.message || err.toString());
+        })
+        .getSensusData();
+    }
+
+    // --- Loading Mock Data ---
+    function simulateLoadData() {
+      showLoading(true);
+      setTimeout(() => {
+        appData.keluarga = [...mockKeluarga];
+        appData.jamaah = [...mockJamaah];
+        calculateMockRekap();
+        renderAll();
+        showLoading(false);
+      }, 500);
+    }
+
+    function calculateMockRekap() {
+      const activeJamaah = appData.jamaah.filter(j => j.is_aktif === 'Y');
+
+      const inactiveKeluargaIds = {};
+      appData.jamaah.forEach(j => {
+        if (j.hubungan_keluarga === 'A' && j.is_aktif === 'N') {
+          inactiveKeluargaIds[j.id_keluarga] = true;
+        }
+      });
+
+      const activeKkCount = appData.keluarga.filter(k => !inactiveKeluargaIds[k.id_keluarga]).length;
+
+      const rekap = {
+        total: activeJamaah.length,
+        laki: activeJamaah.filter(j => j.jenis_kelamin === 'L').length,
+        perempuan: activeJamaah.filter(j => j.jenis_kelamin === 'P').length,
+        duda: activeJamaah.filter(j => j.status_nikah === 'DUDA').length,
+        janda: activeJamaah.filter(j => j.status_nikah === 'JANDA').length,
+        lansia: activeJamaah.filter(j => j.umur >= 57 && j.is_aktif === 'Y').length,
+        kkCount: activeKkCount,
+        detail: {
+          "BALITA-PAUD": { L: 0, P: 0 },
+          "Caberawit": { L: 0, P: 0 },
+          "Pra Remaja (SMP)": { L: 0, P: 0 },
+          "Remaja (SMA)": { L: 0, P: 0 },
+          "Usia (Pra) Menikah": { L: 0, P: 0 },
+          "Dewasa Menikah": { L: 0, P: 0 }
+        }
+      };
+
+      activeJamaah.forEach(j => {
+        if (rekap.detail[j.kategori_usia]) {
+          if (j.status_nikah !== 'DUDA' && j.status_nikah !== 'JANDA') {
+            rekap.detail[j.kategori_usia][j.jenis_kelamin]++;
+          }
+        }
+      });
+
+      appData.rekap = rekap;
+    }
+
+    // --- View Rendering ---
+    function renderAll() {
+      // 5. KPI stats
+      document.getElementById('kpi-total').innerText = appData.rekap.total;
+      document.getElementById('kpi-kk').innerText = appData.rekap.kkCount;
+      document.getElementById('kpi-laki').innerText = appData.rekap.laki;
+      document.getElementById('kpi-perempuan').innerText = appData.rekap.perempuan;
+      document.getElementById('kpi-lansia').innerText = appData.rekap.lansia || 0;
+
+      // Dropdown KK
+      populateKeluargaDropdown();
+
+      // High-level visual stats
+      renderVisualStats();
+
+      // Rekap Table
+      renderRekapTable();
+
+      // Data Table
+      filterAndRenderTable();
+    }
+
+    function renderVisualStats() {
+      const rekap = appData.rekap;
+      const totalJamaah = rekap.total || 0;
+      
+      const categories = [
+        { key: "BALITA-PAUD", label: "BALITA-PAUD" },
+        { key: "Caberawit", label: "Caberawit" },
+        { key: "Pra Remaja (SMP)", label: "Pra Remaja (SMP)" },
+        { key: "Remaja (SMA)", label: "Remaja (SMA)" },
+        { key: "Usia (Pra) Menikah", label: "Usia (Pra) Menikah" },
+        { key: "Dewasa Menikah", label: "Dewasa Menikah" }
+      ];
+
+      const dudaCount = rekap.duda || 0;
+      const jandaCount = rekap.janda || 0;
+
+      const items = [];
+      categories.forEach(c => {
+        const detail = rekap.detail[c.key] || { L: 0, P: 0 };
+        const totalCat = detail.L + detail.P;
+        items.push({
+          label: c.label,
+          L: detail.L,
+          P: detail.P,
+          total: totalCat,
+          percentage: totalJamaah > 0 ? ((totalCat / totalJamaah) * 100).toFixed(1) : 0
+        });
+      });
+
+      // Add Duda
+      items.push({
+        label: "Duda",
+        L: dudaCount,
+        P: 0,
+        total: dudaCount,
+        percentage: totalJamaah > 0 ? ((dudaCount / totalJamaah) * 100).toFixed(1) : 0
+      });
+
+      // Add Janda
+      items.push({
+        label: "Janda",
+        L: 0,
+        P: jandaCount,
+        total: jandaCount,
+        percentage: totalJamaah > 0 ? ((jandaCount / totalJamaah) * 100).toFixed(1) : 0
+      });
+
+      // Render the progress bar list
+      const listEl = document.getElementById('visual-stats-list');
+      if (listEl) {
+        listEl.innerHTML = '';
+        items.forEach(item => {
+          const pctOfTotal = totalJamaah > 0 ? (item.total / totalJamaah) * 100 : 0;
+          const pctL = item.total > 0 ? (item.L / item.total) * 100 : 0;
+          const pctP = item.total > 0 ? (item.P / item.total) * 100 : 0;
+
+          const itemEl = document.createElement('div');
+          itemEl.className = 'visual-stat-item';
+          itemEl.innerHTML = `
+            <div class="visual-stat-info">
+              <span class="visual-stat-label">${item.label}</span>
+              <span class="visual-stat-value">
+                <strong>${item.total} Jiwa</strong> (${item.percentage}%) &middot; 
+                <span style="color: #60a5fa;">L: ${item.L}</span> | <span style="color: #f43f5e;">P: ${item.P}</span>
+              </span>
+            </div>
+            <div class="progress-bar-bg" style="width: 100%;">
+              <div class="progress-bar-fill-l" style="width: ${pctOfTotal * (pctL / 100)}%;"></div>
+              <div class="progress-bar-fill-p" style="width: ${pctOfTotal * (pctP / 100)}%;"></div>
+            </div>
+          `;
+          listEl.appendChild(itemEl);
+        });
+      }
+
+      // Render Chart.js Doughnut Chart
+      const ctx = document.getElementById('categoryChart');
+      const noDataEl = document.getElementById('chart-no-data');
+      if (ctx) {
+        // Destroy existing chart to avoid layout overlap errors
+        if (categoryChartInstance) {
+          categoryChartInstance.destroy();
+        }
+
+        const activeItems = items.filter(x => x.total > 0);
+        const chartLabels = activeItems.map(x => x.label);
+        const chartData = activeItems.map(x => x.total);
+        
+        // Colors palette
+        const colors = [
+          '#10b981', // BALITA - Emerald
+          '#6366f1', // Caberawit - Indigo
+          '#3b82f6', // Pra Remaja - Blue
+          '#f59e0b', // Remaja - Amber
+          '#ec4899', // Pra Nikah - Pink
+          '#8b5cf6', // Dewasa Menikah - Purple
+          '#ef4444', // Duda - Red
+          '#06b6d4'  // Janda - Cyan
+        ];
+
+        if (chartData.length === 0) {
+          categoryChartInstance = null;
+          ctx.style.display = 'none';
+          if (noDataEl) noDataEl.style.display = 'block';
+          return;
+        }
+        ctx.style.display = 'block';
+        if (noDataEl) noDataEl.style.display = 'none';
+
+        categoryChartInstance = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: chartLabels,
+            datasets: [{
+              data: chartData,
+              backgroundColor: colors.slice(0, chartLabels.length),
+              borderWidth: 2,
+              borderColor: '#ffffff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: {
+                  boxWidth: 12,
+                  font: {
+                    family: 'Outfit',
+                    size: 11
+                  },
+                  padding: 8
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const label = context.label || '';
+                    const val = context.raw || 0;
+                    const pct = totalJamaah > 0 ? ((val / totalJamaah) * 100).toFixed(1) : 0;
+                    return ` ${label}: ${val} Jiwa (${pct}%)`;
+                  }
+                }
+              }
+            },
+            cutout: '65%'
+          }
+        });
+      }
+    }
+
+    function populateKeluargaDropdown() {
+      const select = document.getElementById('form-id-keluarga');
+      // Keep only initial option + option NEW
+      select.innerHTML = `
+        <option value="">-- Pilih KK --</option>
+        <option value="NEW" style="color: var(--color-accent); font-weight: 600;">+ Buat Keluarga (KK) Baru</option>
+      `;
+      appData.keluarga.forEach(k => {
+        const option = document.createElement('option');
+        option.value = k.id_keluarga;
+        option.innerText = `${k.nama_kk} (${k.alamat})`;
+        select.appendChild(option);
+      });
+    }
+
+    function renderRekapTable() {
+      // 1. KK count
+      document.getElementById('rekap-kk').innerText = appData.rekap.kkCount || 0;
+
+      // 2. Gender counts
+      document.getElementById('rekap-laki').innerText = appData.rekap.laki || 0;
+      document.getElementById('rekap-perempuan').innerText = appData.rekap.perempuan || 0;
+      document.getElementById('rekap-total-gender').innerText = (appData.rekap.laki || 0) + (appData.rekap.perempuan || 0);
+
+      // 3. Category counts (L and P)
+      const categories = {
+        "BALITA-PAUD": "balita",
+        "Caberawit": "caberawit",
+        "Pra Remaja (SMP)": "pra-remaja",
+        "Remaja (SMA)": "remaja",
+        "Usia (Pra) Menikah": "pra-nikah",
+        "Dewasa Menikah": "dewasa"
+      };
+
+      const detailUpper = {};
+      if (appData.rekap && appData.rekap.detail) {
+        for (let k in appData.rekap.detail) {
+          detailUpper[k.toUpperCase().trim()] = appData.rekap.detail[k];
+        }
+      }
+
+      for (let key in categories) {
+        const domPrefix = categories[key];
+        const detail = detailUpper[key.toUpperCase().trim()] || { L: 0, P: 0 };
+        document.getElementById(`rekap-${domPrefix}-l`).innerText = detail.L;
+        document.getElementById(`rekap-${domPrefix}-p`).innerText = detail.P;
+      }
+
+      // 4. Duda / Janda
+      document.getElementById('rekap-duda').innerText = appData.rekap.duda || 0;
+      document.getElementById('rekap-janda').innerText = appData.rekap.janda || 0;
+
+      // 5. Grand total all
+      document.getElementById('rekap-total-all').innerText = appData.rekap.total || 0;
+    }
+
+    function setSort(field) {
+      if (sortField === field) {
+        sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
+      } else {
+        sortField = field;
+        sortOrder = 'asc';
+      }
+      filterAndRenderTable();
+      updateSortIcons();
+    }
+
+    function updateSortIcons() {
+      const fields = ['nama_lengkap', 'hubungan_keluarga', 'nama_kk', 'kategori_usia', 'umur'];
+      fields.forEach(f => {
+        const el = document.getElementById(`sort-${f}`);
+        if (!el) return;
+        
+        let iconName = 'chevrons-up-down';
+        if (sortField === f) {
+          iconName = (sortOrder === 'asc') ? 'chevron-up' : 'chevron-down';
+          el.parentElement.classList.add('sorted');
+        } else {
+          el.parentElement.classList.remove('sorted');
+        }
+        
+        el.innerHTML = `<i data-lucide="${iconName}" style="width: 14px; height: 14px;"></i>`;
+      });
+      lucide.createIcons();
+    }
+
+    function filterAndRenderTable() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const fKategori = document.getElementById('filter-kategori').value;
+      const fGender = document.getElementById('filter-gender').value;
+      const fAktif = document.getElementById('filter-aktif').value;
+      const fAbsen = document.getElementById('filter-absen').value;
+
+      const filtered = appData.jamaah.filter(j => {
+        const matchesQ = j.nama_lengkap.toLowerCase().includes(q) ||
+          j.nama_absen.toLowerCase().includes(q) ||
+          j.nama_kk.toLowerCase().includes(q);
+        const matchesKategori = !fKategori || j.kategori_usia === fKategori;
+        const matchesGender = !fGender || j.jenis_kelamin === fGender;
+        const matchesAktif = !fAktif || j.is_aktif === fAktif;
+        const matchesAbsen = !fAbsen || j.flag_absen === fAbsen;
+
+        return matchesQ && matchesKategori && matchesGender && matchesAktif && matchesAbsen;
+      });
+
+      // Sorting
+      if (sortField) {
+        filtered.sort((a, b) => {
+          let valA = a[sortField];
+          let valB = b[sortField];
+          
+          if (typeof valA === 'string') {
+            valA = valA.toLowerCase();
+            valB = valB.toLowerCase();
+          }
+          
+          if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+          if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }
+
+      const tbody = document.getElementById('jamaah-table-rows');
+      tbody.innerHTML = '';
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted);">Tidak ada data jamaah yang cocok dengan filter.</td></tr>';
+        return;
+      }
+
+      filtered.forEach((j, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="color: var(--text-muted);">${index + 1}</td>
+          <td style="font-weight: 600;">${j.nama_lengkap} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">(${j.nama_absen})</span></td>
+          <td style="text-align: center;"><span style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 0.2rem 0.4rem; border-radius: 4px;">${j.hubungan_keluarga}</span></td>
+          <td>${j.nama_kk}</td>
+          <td>${j.kategori_usia}</td>
+          <td style="text-align: center;">${j.umur} th</td>
+          <td style="text-align: center;"><span class="active-badge ${j.is_aktif === 'Y' ? 'yes' : 'no'}">${j.is_aktif}</span></td>
+          <td style="text-align: center;"><span class="active-badge ${j.flag_absen === 'Y' ? 'yes' : 'no'}">${j.flag_absen}</span></td>
+          <td>
+            <button class="edit-btn" onclick="editJamaah('${j.id_jamaah}')">
+              <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> Edit
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    function printTable() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const fKategori = document.getElementById('filter-kategori').value;
+      const fGender = document.getElementById('filter-gender').value;
+      const fAktif = document.getElementById('filter-aktif').value;
+      const fAbsen = document.getElementById('filter-absen').value;
+
+      const filtered = appData.jamaah.filter(j => {
+        const matchesQ = j.nama_lengkap.toLowerCase().includes(q) ||
+          j.nama_absen.toLowerCase().includes(q) ||
+          j.nama_kk.toLowerCase().includes(q);
+        const matchesKategori = !fKategori || j.kategori_usia === fKategori;
+        const matchesGender = !fGender || j.jenis_kelamin === fGender;
+        const matchesAktif = !fAktif || j.is_aktif === fAktif;
+        const matchesAbsen = !fAbsen || j.flag_absen === fAbsen;
+
+        return matchesQ && matchesKategori && matchesGender && matchesAktif && matchesAbsen;
+      });
+
+      if (sortField) {
+        filtered.sort((a, b) => {
+          let valA = a[sortField];
+          let valB = b[sortField];
+          if (typeof valA === 'string') {
+            valA = valA.toLowerCase();
+            valB = valB.toLowerCase();
+          }
+          if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+          if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Cetak Data Sensus Jamaah</title>
+            <style>
+              body {
+                font-family: system-ui, -apple-system, sans-serif;
+                color: #1e293b;
+                padding: 2.5rem;
+                line-height: 1.5;
+              }
+              h2 {
+                text-align: center;
+                margin-top: 0;
+                margin-bottom: 0.25rem;
+                color: #0f766e;
+                font-size: 1.6rem;
+              }
+              .sub-title {
+                text-align: center;
+                font-size: 1.1rem;
+                font-weight: 500;
+                color: #475569;
+                margin-bottom: 0.5rem;
+              }
+              .meta-info {
+                text-align: center;
+                font-size: 0.85rem;
+                color: #64748b;
+                margin-bottom: 2rem;
+                border-bottom: 2px solid #e2e8f0;
+                padding-bottom: 1rem;
+              }
+              table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.8rem;
+              }
+              th, td {
+                border: 1px solid #cbd5e1;
+                padding: 0.5rem 0.75rem;
+                text-align: left;
+              }
+              th {
+                background: #f8fafc;
+                font-weight: 600;
+                color: #334155;
+              }
+              .text-center {
+                text-align: center;
+              }
+              tr:nth-child(even) {
+                background: #f8fafc;
+              }
+            </style>
+          </head>
+          <body>
+            <h2>Sensus Jamaah Babakan Barat</h2>
+            <div class="sub-title">Daftar Hasil Pencarian Sensus</div>
+            <div class="meta-info">
+              Dicetak pada: ${new Date().toLocaleString('id-ID')} &bull; Filter Aktif: ${filtered.length} Jiwa
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 40px;" class="text-center">No</th>
+                  <th>Nama Lengkap</th>
+                  <th style="width: 80px;" class="text-center">Hub KK</th>
+                  <th>Nama KK</th>
+                  <th>Kategori Usia</th>
+                  <th style="width: 70px;" class="text-center">Umur</th>
+                  <th style="width: 60px;" class="text-center">Aktif</th>
+                  <th style="width: 60px;" class="text-center">Absen</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filtered.length === 0 ? `
+                  <tr>
+                    <td colspan="8" class="text-center" style="color: #64748b; padding: 2rem;">Tidak ada data yang cocok dengan kriteria filter.</td>
+                  </tr>
+                ` : filtered.map((j, index) => `
+                  <tr>
+                    <td class="text-center">${index + 1}</td>
+                    <td><strong>${j.nama_lengkap}</strong> (${j.nama_absen})</td>
+                    <td class="text-center" style="font-family: monospace;">${j.hubungan_keluarga}</td>
+                    <td>${j.nama_kk}</td>
+                    <td>${j.kategori_usia}</td>
+                    <td class="text-center">${j.umur} th</td>
+                    <td class="text-center">${j.is_aktif}</td>
+                    <td class="text-center">${j.flag_absen}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <script>
+              window.onload = function() {
+                window.print();
+                window.onafterprint = function() { window.close(); };
+              };
+            <\/script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+
+    // --- Form Logic ---
+    function toggleKeluargaFields() {
+      const select = document.getElementById('form-id-keluarga');
+      const container = document.getElementById('new-keluarga-fields');
+      const isNewFlag = document.getElementById('form-is-new-keluarga');
+
+      const fields = ['form-nama-kk', 'form-alamat', 'form-telepon'];
+
+      if (select.value === 'NEW') {
+        container.style.display = 'block';
+        isNewFlag.value = 'true';
+        fields.forEach(f => document.getElementById(f).setAttribute('required', 'true'));
+      } else {
+        container.style.display = 'none';
+        isNewFlag.value = 'false';
+        fields.forEach(f => {
+          document.getElementById(f).removeAttribute('required');
+          document.getElementById(f).value = '';
+        });
+      }
+    }
+
+    function editJamaah(id) {
+      const j = appData.jamaah.find(x => x.id_jamaah === id);
+      if (!j) return;
+
+      document.getElementById('form-title').querySelector('span').innerText = "Edit Detail Jamaah";
+      document.getElementById('submit-btn').querySelector('span').innerText = "Update Data";
+      document.getElementById('cancel-btn').style.display = 'block';
+
+      // Set values
+      document.getElementById('form-id-jamaah').value = j.id_jamaah;
+      document.getElementById('form-id-keluarga').value = j.id_keluarga;
+      document.getElementById('form-nama-lengkap').value = j.nama_lengkap;
+      document.getElementById('form-nama-absen').value = j.nama_absen;
+      document.getElementById('form-hubungan-keluarga').value = j.hubungan_keluarga;
+      document.getElementById('form-jenis-kelamin').value = j.jenis_kelamin;
+      document.getElementById('form-tahun-lahir').value = j.tahun_lahir;
+      document.getElementById('form-status-nikah').value = j.status_nikah;
+      document.getElementById('form-status-keberadaan').value = j.status_keberadaan;
+      document.getElementById('form-is-aktif').checked = (j.is_aktif === 'Y');
+      document.getElementById('form-flag-absen').checked = (j.flag_absen === 'Y');
+      document.getElementById('form-catatan').value = j.catatan;
+
+      // Close new keluarga section if it was open
+      toggleKeluargaFields();
+
+      // Scroll to form
+      document.getElementById('form-container').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetForm() {
+      document.getElementById('form-title').querySelector('span').innerText = "Tambah Jamaah Baru";
+      document.getElementById('submit-btn').querySelector('span').innerText = "Simpan Data";
+      document.getElementById('cancel-btn').style.display = 'none';
+
+      document.getElementById('form-id-jamaah').value = '';
+      document.getElementById('sensus-form').reset();
+      toggleKeluargaFields();
+    }
+
+    function handleFormSubmit(event) {
+      event.preventDefault();
+
+      const submitBtn = document.getElementById('submit-btn');
+      const originalText = submitBtn.querySelector('span').innerText;
+      submitBtn.disabled = true;
+      submitBtn.querySelector('span').innerText = "Menyimpan...";
+
+      const formData = {
+        id_jamaah: document.getElementById('form-id-jamaah').value || null,
+        id_keluarga: document.getElementById('form-id-keluarga').value,
+        is_new_keluarga: document.getElementById('form-is-new-keluarga').value === 'true',
+
+        // New keluarga detail
+        nama_kk: document.getElementById('form-nama-kk').value || null,
+        alamat: document.getElementById('form-alamat').value || null,
+        telepon: document.getElementById('form-telepon').value || null,
+
+        // Jamaah detail
+        nama_lengkap: document.getElementById('form-nama-lengkap').value,
+        nama_absen: document.getElementById('form-nama-absen').value,
+        hubungan_keluarga: document.getElementById('form-hubungan-keluarga').value,
+        jenis_kelamin: document.getElementById('form-jenis-kelamin').value,
+        tahun_lahir: parseInt(document.getElementById('form-tahun-lahir').value),
+        status_nikah: document.getElementById('form-status-nikah').value || "BELUM",
+        status_keberadaan: document.getElementById('form-status-keberadaan').value,
+        is_aktif: document.getElementById('form-is-aktif').checked ? 'Y' : 'N',
+        flag_absen: document.getElementById('form-flag-absen').checked ? 'Y' : 'N',
+        catatan: document.getElementById('form-catatan').value || ""
+      };
+
+      if (isLocalMode) {
+        // --- Handle submit locally (Mock) ---
+        setTimeout(() => {
+          let targetKeluargaId = formData.id_keluarga;
+          if (formData.is_new_keluarga) {
+            targetKeluargaId = "KK-" + new Date().getTime();
+            appData.keluarga.push({
+              id_keluarga: targetKeluargaId,
+              nama_kk: formData.nama_kk,
+              alamat: formData.alamat,
+              telepon: formData.telepon
+            });
+          }
+
+          const namaKK = appData.keluarga.find(k => k.id_keluarga === targetKeluargaId).nama_kk;
+          const tahunSekarang = new Date().getFullYear();
+          const umur = tahunSekarang - formData.tahun_lahir;
+
+          // Rule Engine Kategori Usia
+          let kategoriUsia = "Usia (Pra) Menikah";
+          if (formData.status_nikah === 'MENIKAH' || formData.status_nikah === 'JANDA' || formData.status_nikah === 'DUDA') {
+            kategoriUsia = "Dewasa Menikah";
+          } else if (umur <= 5) {
+            kategoriUsia = "BALITA-PAUD";
+          } else if (umur <= 12) {
+            kategoriUsia = "Caberawit";
+          } else if (umur <= 15) {
+            kategoriUsia = "Pra Remaja (SMP)";
+          } else if (umur <= 17) {
+            kategoriUsia = "Remaja (SMA)";
+          }
+
+          const calculatedJamaah = {
+            id_jamaah: formData.id_jamaah || ("JM-" + new Date().getTime()),
+            id_keluarga: targetKeluargaId,
+            nama_kk: namaKK,
+            hubungan_keluarga: formData.hubungan_keluarga,
+            nama_lengkap: formData.nama_lengkap,
+            nama_absen: formData.nama_absen,
+            jenis_kelamin: formData.jenis_kelamin,
+            tahun_lahir: formData.tahun_lahir,
+            umur: umur,
+            status_nikah: formData.status_nikah,
+            is_aktif: formData.is_aktif,
+            flag_absen: formData.flag_absen,
+            status_keberadaan: formData.status_keberadaan,
+            kategori_usia: kategoriUsia,
+            catatan: formData.catatan
+          };
+
+          if (formData.id_jamaah) {
+            // Edit existing
+            const idx = appData.jamaah.findIndex(j => j.id_jamaah === formData.id_jamaah);
+            if (idx !== -1) appData.jamaah[idx] = calculatedJamaah;
+          } else {
+            // Add new
+            appData.jamaah.push(calculatedJamaah);
+          }
+
+          calculateMockRekap();
+          renderAll();
+          resetForm();
+
+          submitBtn.disabled = false;
+          submitBtn.querySelector('span').innerText = originalText;
+          alert("Simulasi lokal: Data berhasil disimpan!");
+        }, 600);
+
+      } else {
+        // --- Live GAS API Submit ---
+        google.script.run
+          .withSuccessHandler((response) => {
+            submitBtn.disabled = false;
+            submitBtn.querySelector('span').innerText = originalText;
+            if (response.success) {
+              alert(response.message);
+              resetForm();
+              loadData(); // Reload stats and table
+            } else {
+              alert("Gagal menyimpan: " + response.message);
+            }
+          })
+          .withFailureHandler((err) => {
+            submitBtn.disabled = false;
+            submitBtn.querySelector('span').innerText = originalText;
+            alert("Error: " + err.toString());
+          })
+          .saveSensusData(formData);
+      }
+    }
+
+    // --- Helper UI Functions ---
+    function showLoading(show) {
+      document.getElementById('loading-state').style.display = show ? 'block' : 'none';
+      document.getElementById('main-content').style.display = show ? 'none' : 'block';
+      document.getElementById('error-state').style.display = 'none';
+    }
+
+    function showError(msg) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('error-state').style.display = 'block';
+      document.getElementById('error-message').innerText = msg;
+    }
+
+    // Toggle Analytics Dashboard
+    function toggleAnalyticsDashboard() {
+      analyticsDashboardVisible = !analyticsDashboardVisible;
+      const dashboard = document.getElementById('analytics-dashboard');
+      const btn = document.getElementById('toggle-analytics-btn');
+      const btnText = document.getElementById('toggle-analytics-text');
+      const btnIcon = document.getElementById('toggle-analytics-icon');
+
+      if (analyticsDashboardVisible) {
+        dashboard.style.display = 'grid';
+        btnText.innerText = 'Sembunyikan Visualisasi Data';
+        btnIcon.setAttribute('data-lucide', 'eye-off');
+        // Render the visual stats and chart when toggled on
+        renderVisualStats();
+      } else {
+        dashboard.style.display = 'none';
+        btnText.innerText = 'Tampilkan Visualisasi Data';
+        btnIcon.setAttribute('data-lucide', 'eye');
+      }
+
+      lucide.createIcons();
+    }
+  </script>
+</body>
+
+</html>
