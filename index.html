@@ -780,23 +780,21 @@
 
             <!-- Keluarga & Nama Lengkap Row -->
             <div class="form-row">
-              <div class="form-group" style="position: relative;">
+              <div class="form-group">
                 <label for="keluarga-search-input">Pilih Keluarga (KK)</label>
-                <!-- ✅ Searchable Keluarga Input -->
+                <!-- ✅ Real-time Semantic Search Input -->
                 <input 
                   type="text" 
                   id="keluarga-search-input" 
-                  placeholder="Cari nama kepala keluarga atau alamat..." 
+                  placeholder="Ketik nama KK atau alamat untuk search..." 
                   style="width: 100%; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; color: var(--text-main); font-family: var(--font-family); font-size: 0.95rem; outline: none; transition: var(--transition);"
                   oninput="filterKeluargaSearch()">
                 
-                <!-- Hidden select to store selected value -->
+                <!-- Hidden input to store selected value -->
                 <input type="hidden" id="form-id-keluarga" name="id_keluarga" required>
                 
-                <!-- Dropdown Results -->
-                <div 
-                  id="keluarga-dropdown-results" 
-                  style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid #cbd5e1; border-top: none; border-radius: 0 0 8px 8px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <!-- Results Container - shows filtered list below input -->
+                <div id="keluarga-results-container" style="margin-top: 0.5rem; max-height: 300px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; display: none;">
                   <!-- Populated by JavaScript -->
                 </div>
               </div>
@@ -1131,14 +1129,14 @@
     function filterKeluargaSearch() {
       const searchInput = document.getElementById('keluarga-search-input');
       const query = searchInput.value.toLowerCase().trim();
-      const dropdown = document.getElementById('keluarga-dropdown-results');
+      const resultsContainer = document.getElementById('keluarga-results-container');
       
       if (!query) {
-        renderKeluargaDropdown(appData.keluarga);
+        resultsContainer.style.display = 'none';
         return;
       }
       
-      // Semantic search: match nama_kk or alamat partially
+      // Semantic search: match nama_kk or alamat
       const filtered = appData.keluarga.filter(k => {
         const nama = k.nama_kk.toLowerCase();
         const alamat = k.alamat.toLowerCase();
@@ -1156,47 +1154,25 @@
         return queryIdx === query.length;
       });
       
-      renderKeluargaDropdown(filtered);
+      renderKeluargaResults(filtered);
     }
     
-    function renderKeluargaDropdown(keluargaList) {
-      const dropdown = document.getElementById('keluarga-dropdown-results');
-      if (!dropdown) return;
-      
-      // Safety check
-      if (!keluargaList) keluargaList = appData.keluarga || [];
-      
-      if (keluargaList.length === 0 && document.getElementById('keluarga-search-input').value.trim()) {
-        dropdown.innerHTML = `
-          <div style="padding: 1rem; text-align: center; color: #999;">
-            <p>Tidak ada hasil. <strong>Buat Keluarga (KK) Baru</strong></p>
-          </div>
-        `;
-        const newKKBtn = document.createElement('div');
-        newKKBtn.style.cssText = 'padding: 0.75rem 1rem; cursor: pointer; background: #667eea; color: white; text-align: center; font-weight: 600; border-radius: 0 0 8px 8px;';
-        newKKBtn.textContent = '+ Buat Keluarga (KK) Baru';
-        newKKBtn.onclick = function() { selectKeluarga('NEW', 'Buat Keluarga Baru'); };
-        dropdown.appendChild(newKKBtn);
-        dropdown.style.display = 'block';
-        return;
-      }
+    function renderKeluargaResults(keluargaList) {
+      const resultsContainer = document.getElementById('keluarga-results-container');
       
       if (keluargaList.length === 0) {
-        dropdown.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999;">Tidak ada data keluarga</div>';
-        dropdown.style.display = 'block';
+        resultsContainer.innerHTML = `
+          <div style="padding: 1rem; text-align: center; color: #999;">
+            Tidak ada hasil cocok. <a href="#" onclick="selectKeluargaBaru(); return false;" style="color: #667eea; text-decoration: underline;">Buat Keluarga Baru</a>
+          </div>
+        `;
+        resultsContainer.style.display = 'block';
         return;
       }
       
-      dropdown.innerHTML = '';
+      resultsContainer.innerHTML = '';
       
-      // Add "Buat Keluarga Baru" option at top
-      const newKKOption = document.createElement('div');
-      newKKOption.style.cssText = 'padding: 0.75rem 1rem; cursor: pointer; background: #667eea; color: white; font-weight: 600; border-bottom: 1px solid #eee;';
-      newKKOption.textContent = '+ Buat Keluarga (KK) Baru';
-      newKKOption.onclick = function() { selectKeluarga('NEW', 'Buat Keluarga Baru'); };
-      dropdown.appendChild(newKKOption);
-      
-      // Add keluarga options
+      // Show filtered keluarga options
       keluargaList.forEach(k => {
         const item = document.createElement('div');
         item.style.cssText = 'padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid #eee; transition: 0.2s;';
@@ -1207,23 +1183,27 @@
         item.onclick = function() { selectKeluarga(k.id_keluarga, k.nama_kk); };
         item.onmouseover = function() { this.style.background = '#f0f0f0'; };
         item.onmouseout = function() { this.style.background = 'transparent'; };
-        dropdown.appendChild(item);
+        resultsContainer.appendChild(item);
       });
       
-      dropdown.style.display = 'block';
+      resultsContainer.style.display = 'block';
     }
     
     function selectKeluarga(keluargaId, keluargaNama) {
       const searchInput = document.getElementById('keluarga-search-input');
       const hiddenSelect = document.getElementById('form-id-keluarga');
-      const dropdown = document.getElementById('keluarga-dropdown-results');
+      const resultsContainer = document.getElementById('keluarga-results-container');
       
       hiddenSelect.value = keluargaId;
       searchInput.value = keluargaNama;
-      dropdown.style.display = 'none';
+      resultsContainer.style.display = 'none';
       
       // Trigger change event to show/hide new keluarga fields
       toggleKeluargaFields();
+    }
+    
+    function selectKeluargaBaru() {
+      selectKeluarga('NEW', 'Buat Keluarga Baru');
     }
     
     function toggleKeluargaFields() {
@@ -1241,23 +1221,15 @@
       }
     }
     
-    // Show dropdown when keluarga search is focused
+    // Close results when clicking outside
     function setupKeluargaSearch() {
-      const searchInput = document.getElementById('keluarga-search-input');
-      if (searchInput) {
-        searchInput.addEventListener('focus', function() {
-          // Show all keluarga when focused
-          renderKeluargaDropdown(appData.keluarga);
-        });
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-          const dropdown = document.getElementById('keluarga-dropdown-results');
-          if (e.target !== searchInput && !dropdown.contains(e.target)) {
-            dropdown.style.display = 'none';
-          }
-        });
-      }
+      document.addEventListener('click', function(e) {
+        const searchInput = document.getElementById('keluarga-search-input');
+        const resultsContainer = document.getElementById('keluarga-results-container');
+        if (e.target !== searchInput && !resultsContainer.contains(e.target)) {
+          resultsContainer.style.display = 'none';
+        }
+      });
     }
 
     function renderAll() {
