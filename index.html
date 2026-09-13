@@ -1161,6 +1161,10 @@
     
     function renderKeluargaDropdown(keluargaList) {
       const dropdown = document.getElementById('keluarga-dropdown-results');
+      if (!dropdown) return;
+      
+      // Safety check
+      if (!keluargaList) keluargaList = appData.keluarga || [];
       
       if (keluargaList.length === 0 && document.getElementById('keluarga-search-input').value.trim()) {
         dropdown.innerHTML = `
@@ -1173,6 +1177,12 @@
         newKKBtn.textContent = '+ Buat Keluarga (KK) Baru';
         newKKBtn.onclick = function() { selectKeluarga('NEW', 'Buat Keluarga Baru'); };
         dropdown.appendChild(newKKBtn);
+        dropdown.style.display = 'block';
+        return;
+      }
+      
+      if (keluargaList.length === 0) {
+        dropdown.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999;">Tidak ada data keluarga</div>';
         dropdown.style.display = 'block';
         return;
       }
@@ -1236,15 +1246,15 @@
       const searchInput = document.getElementById('keluarga-search-input');
       if (searchInput) {
         searchInput.addEventListener('focus', function() {
-          if (!this.value.trim()) {
-            renderKeluargaDropdown(appData.keluarga);
-          }
+          // Show all keluarga when focused
+          renderKeluargaDropdown(appData.keluarga);
         });
         
         // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
-          if (e.target !== searchInput && e.target.id !== 'keluarga-dropdown-results') {
-            document.getElementById('keluarga-dropdown-results').style.display = 'none';
+          const dropdown = document.getElementById('keluarga-dropdown-results');
+          if (e.target !== searchInput && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
           }
         });
       }
