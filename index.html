@@ -1056,15 +1056,20 @@
       showLoading(true);
       google.script.run
         .withSuccessHandler((response) => {
+          console.log('📥 getSensusData response:', response);
           if (response.success && response.data) {
             appData = response.data;
+            console.log('✅ appData loaded:', appData);
+            console.log('📦 Total keluarga:', appData.keluarga ? appData.keluarga.length : 0);
             renderAll();
             showLoading(false);
           } else {
+            console.error('❌ Response error:', response.message);
             showError(response.message || "Gagal mengambil data dari Google Sheets.");
           }
         })
         .withFailureHandler((err) => {
+          console.error('❌ Failure:', err);
           showError(err.message || err.toString());
         })
         .getSensusData();
@@ -1131,6 +1136,16 @@
       const query = searchInput.value.toLowerCase().trim();
       const resultsContainer = document.getElementById('keluarga-results-container');
       
+      console.log('🔍 filterKeluargaSearch called. Query:', query);
+      console.log('📦 appData.keluarga:', appData.keluarga);
+      
+      if (!appData.keluarga || appData.keluarga.length === 0) {
+        console.error('❌ appData.keluarga kosong atau tidak ada!');
+        resultsContainer.innerHTML = '<div style="padding: 1rem; color: red;">Data keluarga tidak ada. Silakan refresh page.</div>';
+        resultsContainer.style.display = 'block';
+        return;
+      }
+      
       if (!query) {
         resultsContainer.style.display = 'none';
         return;
@@ -1138,8 +1153,8 @@
       
       // Semantic search: match nama_kk or alamat
       const filtered = appData.keluarga.filter(k => {
-        const nama = k.nama_kk.toLowerCase();
-        const alamat = k.alamat.toLowerCase();
+        const nama = (k.nama_kk || '').toLowerCase();
+        const alamat = (k.alamat || '').toLowerCase();
         
         // Exact match gets priority, then partial match
         if (nama.includes(query) || alamat.includes(query)) {
@@ -1154,6 +1169,7 @@
         return queryIdx === query.length;
       });
       
+      console.log('✅ Filtered results:', filtered);
       renderKeluargaResults(filtered);
     }
     
@@ -1233,6 +1249,9 @@
     }
 
     function renderAll() {
+      console.log('🎨 renderAll() called');
+      console.log('📦 appData.keluarga length:', appData.keluarga ? appData.keluarga.length : 'undefined');
+      
       // Setup keluarga search
       setupKeluargaSearch();
       
