@@ -1167,30 +1167,39 @@
           <div style="padding: 1rem; text-align: center; color: #999;">
             <p>Tidak ada hasil. <strong>Buat Keluarga (KK) Baru</strong></p>
           </div>
-          <div onclick="selectKeluarga('NEW', 'Buat Keluarga Baru')" style="padding: 0.75rem 1rem; cursor: pointer; background: #667eea; color: white; text-align: center; font-weight: 600; border-radius: 0 0 8px 8px;">
-            + Buat Keluarga (KK) Baru
-          </div>
         `;
+        const newKKBtn = document.createElement('div');
+        newKKBtn.style.cssText = 'padding: 0.75rem 1rem; cursor: pointer; background: #667eea; color: white; text-align: center; font-weight: 600; border-radius: 0 0 8px 8px;';
+        newKKBtn.textContent = '+ Buat Keluarga (KK) Baru';
+        newKKBtn.onclick = function() { selectKeluarga('NEW', 'Buat Keluarga Baru'); };
+        dropdown.appendChild(newKKBtn);
         dropdown.style.display = 'block';
         return;
       }
       
-      let html = '';
+      dropdown.innerHTML = '';
       
       // Add "Buat Keluarga Baru" option at top
-      html += `<div onclick="selectKeluarga('NEW', 'Buat Keluarga Baru')" style="padding: 0.75rem 1rem; cursor: pointer; background: #667eea; color: white; font-weight: 600; border-bottom: 1px solid #eee;">
-        + Buat Keluarga (KK) Baru
-      </div>`;
+      const newKKOption = document.createElement('div');
+      newKKOption.style.cssText = 'padding: 0.75rem 1rem; cursor: pointer; background: #667eea; color: white; font-weight: 600; border-bottom: 1px solid #eee;';
+      newKKOption.textContent = '+ Buat Keluarga (KK) Baru';
+      newKKOption.onclick = function() { selectKeluarga('NEW', 'Buat Keluarga Baru'); };
+      dropdown.appendChild(newKKOption);
       
       // Add keluarga options
       keluargaList.forEach(k => {
-        html += `<div onclick="selectKeluarga('${k.id_keluarga}', '${k.nama_kk}')" style="padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid #eee; transition: 0.2s;">
+        const item = document.createElement('div');
+        item.style.cssText = 'padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid #eee; transition: 0.2s;';
+        item.innerHTML = `
           <div style="font-weight: 600; color: #333;">${k.nama_kk}</div>
           <div style="font-size: 0.85rem; color: #999;">${k.alamat}</div>
-        </div>`;
+        `;
+        item.onclick = function() { selectKeluarga(k.id_keluarga, k.nama_kk); };
+        item.onmouseover = function() { this.style.background = '#f0f0f0'; };
+        item.onmouseout = function() { this.style.background = 'transparent'; };
+        dropdown.appendChild(item);
       });
       
-      dropdown.innerHTML = html;
       dropdown.style.display = 'block';
     }
     
@@ -1223,18 +1232,28 @@
     }
     
     // Show dropdown when keluarga search is focused
-    document.addEventListener('DOMContentLoaded', () => {
+    function setupKeluargaSearch() {
       const searchInput = document.getElementById('keluarga-search-input');
       if (searchInput) {
-        searchInput.addEventListener('focus', () => {
-          if (!document.getElementById('keluarga-search-input').value.trim()) {
+        searchInput.addEventListener('focus', function() {
+          if (!this.value.trim()) {
             renderKeluargaDropdown(appData.keluarga);
           }
         });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+          if (e.target !== searchInput && e.target.id !== 'keluarga-dropdown-results') {
+            document.getElementById('keluarga-dropdown-results').style.display = 'none';
+          }
+        });
       }
-    });
+    }
 
     function renderAll() {
+      // Setup keluarga search
+      setupKeluargaSearch();
+      
       // 5. KPI stats
       document.getElementById('kpi-total').innerText = appData.rekap.total;
       document.getElementById('kpi-kk').innerText = appData.rekap.kkCount;
