@@ -4,18 +4,38 @@
 
 ---
 
+## 🚀 Quick Start (Mulai Cepat)
+
+### Akses Sistem Sekarang
+
+**Admin (Edit Data):**
+- 🔗 Link: https://smeargle-sys.github.io/SENSUS_DASHBOARD_BBK02/
+- 📱 Atau scan QR (jika tersedia)
+- 🔑 PIN: `A21112026#!`
+
+**View (Lihat Laporan):**
+- 🔗 Link: https://smeargle-sys.github.io/SENSUS_DASHBOARD_BBK02/view.html
+- 📊 Tidak perlu login
+- 📥 Bisa export CSV & print
+
+**Tersimpan di Bookmark:**
+- Tekan **Ctrl+D** (Windows) atau **Cmd+D** (Mac) untuk save di bookmark
+
+---
+
 ## 📋 Daftar Isi
 
-1. [Intro & Akses](#intro--akses)
-2. [Login dengan PIN](#login-dengan-pin)
-3. [Dashboard Utama](#dashboard-utama)
-4. [Menambah Data Jamaah Baru](#menambah-data-jamaah-baru)
-5. [Mengedit Data Jamaah](#mengedit-data-jamaah)
-6. [Mengelola Keluarga (KK)](#mengelola-keluarga-kk)
-7. [Fitur Pencarian Semantik](#fitur-pencarian-semantik)
-8. [Lihat Laporan & Statistik](#lihat-laporan--statistik)
-9. [FAQ & Troubleshooting](#faq--troubleshooting)
-10. [Kontak Support](#kontak-support)
+1. [Quick Start](#-quick-start-mulai-cepat)
+2. [Intro & Akses](#intro--akses)
+3. [Login dengan PIN](#login-dengan-pin)
+4. [Dashboard Utama](#dashboard-utama)
+5. [Menambah Data Jamaah Baru](#menambah-data-jamaah-baru)
+6. [Mengedit Data Jamaah](#mengedit-data-jamaah)
+7. [Mengelola Keluarga (KK)](#mengelola-keluarga-kk)
+8. [Fitur Pencarian Semantik](#fitur-pencarian-semantik)
+9. [Lihat Laporan & Statistik](#lihat-laporan--statistik)
+10. [FAQ & Troubleshooting](#faq--troubleshooting)
+11. [Kontak Support](#kontak-support)
 
 ---
 
@@ -23,15 +43,38 @@
 
 ### URL Akses Sistem
 
-**Admin (Edit Data):**
+**Admin (Edit Data) - Default Login:**
+```
+https://smeargle-sys.github.io/SENSUS_DASHBOARD_BBK02/
+```
+Atau alternatif Google Apps Script:
 ```
 https://script.google.com/macros/s/AKfycbwEbPsEW0v-V832Wo9FYVMwcCs7PXurP1w5SAq8tCIw5pqx9RAKsqvH0Gjuar5pJqHB/exec
 ```
 
 **Public View (Lihat Saja):**
 ```
+https://smeargle-sys.github.io/SENSUS_DASHBOARD_BBK02/view.html
+```
+Atau alternatif Google Apps Script:
+```
 https://script.google.com/macros/s/AKfycbwEbPsEW0v-V832Wo9FYVMwcCs7PXurP1w5SAq8tCIw5pqx9RAKsqvH0Gjuar5pJqHB/exec?page=view
 ```
+
+### 📌 URL yang Direkomendasikan (GitHub Pages)
+
+Gunakan URL GitHub Pages untuk akses cepat dan stabil:
+
+| Tujuan | URL | Catatan |
+|--------|-----|---------|
+| **Admin/Edit** | https://smeargle-sys.github.io/SENSUS_DASHBOARD_BBK02/ | Default login admin |
+| **View/Laporan** | https://smeargle-sys.github.io/SENSUS_DASHBOARD_BBK02/view.html | Read-only, no login |
+
+**Catatan Teknis:**
+- GitHub Pages URL lebih cepat & stabil dari Google Apps Script
+- Gunakan GitHub Pages untuk akses sehari-hari
+- Google Apps Script URL sebagai backup jika GitHub Pages down
+- Data tetap tersimpan di Google Sheets (tidak di GitHub)
 
 ### Level Akses
 
@@ -45,18 +88,56 @@ https://script.google.com/macros/s/AKfycbwEbPsEW0v-V832Wo9FYVMwcCs7PXurP1w5SAq8t
 ## Login dengan PIN
 
 ### Step 1: Buka URL Sistem
-1. Copy URL di atas ke browser
-2. Tekan **Enter**
+
+**Untuk Edit Data (Admin):**
+```
+https://smeargle-sys.github.io/SENSUS_DASHBOARD_BBK02/
+```
+
+**Untuk Lihat Data (View):**
+```
+https://smeargle-sys.github.io/SENSUS_DASHBOARD_BBK02/view.html
+```
+
+Tekan **Enter** atau klik link di atas.
 
 ### Step 2: Masuk PIN
-1. Sistem akan meminta **PIN** saat pertama kali
-2. Masukkan PIN sesuai level akses Anda:
-   - **ADMIN:** `A21112026#!` (untuk edit data)
-   - **VIEWER:** `v21112026#?` (untuk lihat data saja)
-3. Klik **Login** atau tekan **Enter**
 
-### Step 3: Akses Dashboard
+Sistem akan meminta **PIN** saat pertama kali akses halaman admin.
+
+Masukkan PIN sesuai level akses Anda:
+- **ADMIN:** `A21112026#!` (untuk edit data)
+- **VIEWER:** `v21112026#?` (untuk lihat data saja)
+
+**Catatan:** Halaman view.html tidak perlu PIN (public access).
+
+### Step 3: Klik Login
+
+Setelah masukkan PIN:
+1. Klik tombol **"Login"**
+2. Atau tekan **Enter**
+
+### Step 4: Akses Dashboard
+
 ✅ Sekarang Anda dapat mengakses dashboard sesuai akses level Anda
+
+---
+
+## Bookmark/Simpan URL
+
+**Untuk kemudahan akses, simpan URL di bookmark browser Anda:**
+
+**Chrome/Firefox:**
+1. Buka URL admin atau view
+2. Tekan **Ctrl+D** (Windows) atau **Cmd+D** (Mac)
+3. Klik **Save** atau **Add Bookmark**
+4. Next time, tinggal klik bookmark
+
+**Mobile (Smartphone):**
+1. Buka URL di browser
+2. Tap menu (⋮ atau ≡)
+3. Tap **Add to Home screen** atau **Bookmark**
+4. Akan ada shortcut di home screen
 
 ---
 
