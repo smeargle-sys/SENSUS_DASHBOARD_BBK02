@@ -537,6 +537,7 @@
                 <button type="button" class="chip" data-chip="absen" aria-pressed="false" onclick="setChip('absen')">Masuk absen</button>
                 <button type="button" class="chip" data-chip="tidakabsen" aria-pressed="false" onclick="setChip('tidakabsen')">Tidak absen</button>
                 <button type="button" class="chip chip-help" data-chip="dibantu" aria-pressed="false" onclick="setChip('dibantu')">Perlu dibantu · <span id="chip-dibantu-count">0</span></button>
+                <button type="button" class="chip" data-chip="tanpakk" aria-pressed="false" onclick="setChip('tanpakk')" title="Jamaah mandiri / perantau yang tidak terdaftar di KK">Tanpa KK · <span id="chip-tanpakk-count">0</span></button>
                 <button type="button" class="chip chip-warn" data-chip="lengkapi" aria-pressed="false" onclick="setChip('lengkapi')" title="Jamaah yang tahun lahirnya belum diisi">Perlu dilengkapi · <span id="chip-lengkapi-count">0</span></button>
               </div>
             </div>
@@ -704,7 +705,10 @@
             <label for="keluarga-search-input">Cari keluarga</label>
             <input type="search" id="keluarga-search-input" class="input" placeholder="Ketik nama kepala keluarga atau alamat…" oninput="filterKeluargaSearch()" autocomplete="off">
             <div class="kk-results" id="keluarga-results-container" hidden></div>
-            <button type="button" class="link-btn" onclick="selectKeluargaBaru()" style="margin-top: 4px"><i data-lucide="plus"></i> Buat Keluarga (KK) baru</button>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 4px">
+              <button type="button" class="link-btn" onclick="selectKeluargaBaru()"><i data-lucide="plus"></i> Buat Keluarga (KK) baru</button>
+              <button type="button" class="link-btn" id="pick-tanpa-kk" onclick="selectTanpaKK()" style="color: var(--ink-2)"><i data-lucide="user"></i> Tanpa KK (mandiri / perantau)</button>
+            </div>
           </div>
 
           <div class="new-kk" id="new-keluarga-fields" hidden>
@@ -977,7 +981,8 @@
       ["JM-5", "KK-2", "C", "Anak Contoh Dua", "Anak Dua", "L", 2025, "BELUM", "Y", "N", "Menetap", "", "N"],
       ["JM-6", "KK-3", "A", "Bapak Contoh Tiga", "Contoh Tiga", "L", 1950, "BELUM", "Y", "Y", "Menetap", "", "Y"],
       ["JM-7", "KK-3", "C", "Anak Contoh Tiga", "Anak Tiga", "P", 2008, "BELUM", "N", "N", "Mondok", "", "N"],
-      ["JM-8", "KK-3", "C", "Anak Tanpa Tahun", "Tanpa Tahun", "L", null, "BELUM", "Y", "Y", "Menetap", "", "N"]
+      ["JM-8", "KK-3", "C", "Anak Tanpa Tahun", "Tanpa Tahun", "L", null, "BELUM", "Y", "Y", "Menetap", "", "N"],
+      ["JM-9", "", "A", "Perantau Contoh", "Perantau", "L", 2001, "BELUM", "Y", "Y", "Menetap", "", "N"]
     ];
     function buildMockJamaah() {
       const thisYear = new Date().getFullYear();
@@ -1005,7 +1010,8 @@
       const kkMap = {};
       appData.keluarga.forEach(k => { kkMap[k.id_keluarga] = k.nama_kk; });
       appData.jamaah.forEach(j => {
-        j.nama_kk = kkMap[j.id_keluarga] || 'Tidak Terdaftar';
+        j.nama_kk = !j.id_keluarga ? 'Tanpa KK (mandiri/perantau)' : (kkMap[j.id_keluarga] || 'KK tidak ditemukan');
+        j.tanpa_kk = !j.id_keluarga;
         j.kategori_usia = kategoriUsiaLokal(j.tahun_lahir, j.status_nikah, cfg);
       });
       const order = cfg.kategori.map(k => k.nama).concat([cfg.labelMenikah]);
@@ -1190,6 +1196,7 @@
       $('nav-dibantu-count').textContent = dibantu;
       $('chip-lengkapi-count').textContent = tanpaTahun;
       $('chip-dibantu-count').textContent = dibantu;
+      $('chip-tanpakk-count').textContent = jamaah.filter(j => !kkExists(j.id_keluarga)).length;
       const warns = appData.warnings || [];
       $('banner-warnings').hidden = warns.length === 0;
       $('banner-warnings-text').textContent = warns.join(' ');
@@ -1288,7 +1295,8 @@
         absen: j => j.flag_absen === 'Y',
         tidakabsen: j => j.flag_absen === 'N',
         dibantu: j => j.perlu_dibantu === 'Y',
-        lengkapi: j => !j.tahun_lahir
+        lengkapi: j => !j.tahun_lahir,
+        tanpakk: j => !kkExists(j.id_keluarga)
       }[currentChip] || (() => true);
 
       const filtered = (appData.jamaah || []).filter(j => {
@@ -1305,6 +1313,8 @@
         // Kelompok per KK: urut KK (A–Z, atau Z–A bila urutan KK menurun), lalu Kepala, Istri, Anak, Lainnya
         const kkOrder = sortField === 'nama_kk' && sortOrder === 'desc' ? -1 : 1;
         filtered.sort((a, b) => {
+          const m = (kkExists(a.id_keluarga) ? 0 : 1) - (kkExists(b.id_keluarga) ? 0 : 1); // tanpa KK di akhir
+          if (m) return m;
           const k = String(a.nama_kk).localeCompare(String(b.nama_kk), 'id') * kkOrder || String(a.id_keluarga).localeCompare(String(b.id_keluarga));
           if (k) return k;
           if (sortField && sortField !== 'nama_kk' && sortField !== 'hubungan_keluarga') {
@@ -1330,7 +1340,7 @@
     }
     function groupHeader(kkId, name, count) {
       const k = (appData.keluarga || []).find(x => x.id_keluarga === kkId);
-      return { name: name, alamat: k ? k.alamat : '', count: count };
+      return { name: kkId ? name : 'Tanpa KK (mandiri / perantau)', alamat: k ? k.alamat : '', count: count, prefix: k ? 'KK ' : '' };
     }
 
     function renderTable() {
@@ -1360,10 +1370,10 @@
           if (grouped && j.id_keluarga !== lastKK) {
             lastKK = j.id_keluarga;
             const g = groupHeader(j.id_keluarga, j.nama_kk, familyCount[j.id_keluarga]);
-            rowsHtml += `<tr class="group-row"><td colspan="7"><strong>KK ${esc(g.name)}</strong><span>${esc(g.alamat)}${g.alamat ? ' · ' : ''}${g.count} jiwa sesuai filter</span></td></tr>`;
-            cardsHtml += `<div class="m-group">KK ${esc(g.name)} <span>· ${g.count} jiwa</span></div>`;
+            rowsHtml += `<tr class="group-row"><td colspan="7"><strong>${esc(g.prefix)}${esc(g.name)}</strong><span>${esc(g.alamat)}${g.alamat ? ' · ' : ''}${g.count} jiwa sesuai filter</span></td></tr>`;
+            cardsHtml += `<div class="m-group">${esc(g.prefix)}${esc(g.name)} <span>· ${g.count} jiwa</span></div>`;
           }
-          const head = j.hubungan_keluarga === 'A' ? ' is-head' : '';
+          const head = isHead(j) ? ' is-head' : '';
           const dibantu = j.perlu_dibantu === 'Y' ? ' <span class="tag tag-help">Dibantu</span>' : '';
           rowsHtml += `<tr class="${head.trim()}">
             <td><button type="button" class="name-btn detail-btn" data-id="${esc(j.id_jamaah)}"><span class="person"><span class="avatar ${avatarClass(j.id_jamaah)}">${esc(initials(j.nama_lengkap))}</span>
@@ -1414,6 +1424,7 @@
       if (!otherFilter && currentChip === 'lengkapi') return '✓ Semua jamaah sudah punya tahun lahir. Tidak ada data yang perlu dilengkapi.';
       if (!otherFilter && currentChip === 'dibantu') return 'Belum ada jamaah yang ditandai <strong>Perlu dibantu</strong>. Tandai lewat tombol Edit → bagian “Status &amp; absen”.';
       if (!otherFilter && currentChip === 'mondok') return 'Tidak ada jamaah berstatus Mondok.';
+      if (!otherFilter && currentChip === 'tanpakk') return 'Semua jamaah terdaftar di KK. Jamaah mandiri / perantau ditambahkan dengan pilihan “Tanpa KK” di form.';
       if (q) return `Tidak ada jamaah yang cocok dengan “${esc(q)}”. <button type="button" class="link-btn" onclick="clearSearch()">Hapus pencarian</button>`;
       return 'Tidak ada jamaah yang cocok dengan filter. <button type="button" class="link-btn" onclick="resetFilters()">Tampilkan semua</button>';
     }
@@ -1511,9 +1522,12 @@
       });
       return stats;
     }
+    // Hanya untuk KK yang benar-benar ada; jamaah mandiri tidak punya "anggota keluarga"
     function familyMembers(idKeluarga) {
+      if (!kkExists(idKeluarga)) return [];
       return (appData.jamaah || []).filter(j => j.id_keluarga === idKeluarga).sort(familyOrder);
     }
+    function isHead(j) { return j.hubungan_keluarga === 'A' && kkExists(j.id_keluarga); }
     function onKkSearch() { renderKeluargaList(); }
     function clearKkSearch() { $('kk-search-input').value = ''; renderKeluargaList(); $('kk-search-input').focus(); }
 
@@ -1604,7 +1618,8 @@
       const k = (appData.keluarga || []).find(x => x.id_keluarga === j.id_keluarga) || {};
       const members = familyMembers(j.id_keluarga).filter(m => m.id_jamaah !== j.id_jamaah);
       const tags = [kategoriTag(j)];
-      if (j.hubungan_keluarga === 'A') tags.push('<span class="tag" style="background: var(--primary); color: #fff">Kepala Keluarga</span>');
+      if (isHead(j)) tags.push('<span class="tag" style="background: var(--primary); color: #fff">Kepala Keluarga</span>');
+      if (!kkExists(j.id_keluarga)) tags.push(`<span class="tag tag-warn">${j.id_keluarga ? 'KK tidak ditemukan' : 'Tanpa KK'}</span>`);
       if (j.perlu_dibantu === 'Y') tags.push('<span class="tag tag-help">Perlu dibantu</span>');
       openModal(`
         <div class="modal-head">
@@ -1671,7 +1686,7 @@
       if (!j) return;
       closeModal();
       let mode;
-      if (j.hubungan_keluarga === 'A') {
+      if (isHead(j)) {
         const n = familyMembers(j.id_keluarga).length;
         mode = await choose({
           title: `Hapus ${j.nama_lengkap}?`,
@@ -1833,7 +1848,8 @@
       box.innerHTML = filtered.map(k => {
         const s = stats[k.id_keluarga] || { total: 0 };
         return `<button type="button" class="kk-option" data-id="${esc(k.id_keluarga)}"><strong>${esc(k.nama_kk)}</strong><span>${esc(k.alamat)} · ${s.total} anggota</span></button>`;
-      }).join('') + `<button type="button" class="kk-option new" data-new="1">+ Buat Keluarga (KK) baru</button>`;
+      }).join('') + `<button type="button" class="kk-option new" data-new="1">+ Buat Keluarga (KK) baru</button>` +
+        `<button type="button" class="kk-option new" data-mandiri="1" style="color: var(--ink-2)">Tanpa KK (mandiri / perantau)</button>`;
       if (!filtered.length) box.insertAdjacentHTML('afterbegin', '<div class="kk-option" style="cursor: default"><span>Tidak ada keluarga yang cocok.</span></div>');
       box.querySelectorAll('.kk-option[data-id]').forEach(b => {
         b.onclick = () => {
@@ -1842,6 +1858,7 @@
         };
       });
       box.querySelector('.kk-option[data-new]').onclick = selectKeluargaBaru;
+      box.querySelector('.kk-option[data-mandiri]').onclick = () => selectTanpaKK();
       box.hidden = false;
     }
 
@@ -1859,6 +1876,22 @@
       $('new-keluarga-fields').hidden = true;
       clearNewKkFields();
     }
+    // Jamaah mandiri / perantau: tidak terdaftar & tidak dihitung sebagai KK
+    const TANPA_KK = 'MANDIRI';
+    function selectTanpaKK(note) {
+      $('form-id-keluarga').value = TANPA_KK;
+      $('form-is-new-keluarga').value = 'false';
+      $('keluarga-results-container').hidden = true;
+      $('keluarga-search-input').value = '';
+      $('kk-selected-name').textContent = 'Tanpa KK (mandiri / perantau)';
+      $('kk-selected-meta').textContent = note || 'Tidak terdaftar di KK mana pun dan tidak dihitung sebagai KK.';
+      $('kk-selected').hidden = false;
+      $('kk-picker').hidden = true;
+      $('new-keluarga-fields').hidden = true;
+      clearNewKkFields();
+    }
+    function kkExists(id) { return !!id && (appData.keluarga || []).some(k => k.id_keluarga === id); }
+
     function selectKeluargaBaru() {
       $('form-id-keluarga').value = 'NEW';
       $('form-is-new-keluarga').value = 'true';
@@ -1918,7 +1951,9 @@
       $('submit-btn').querySelector('span').textContent = 'Simpan Perubahan';
       $('delete-btn').hidden = false;
       $('form-id-jamaah').value = j.id_jamaah;
-      selectKeluarga(j.id_keluarga, j.nama_kk);
+      if (kkExists(j.id_keluarga)) selectKeluarga(j.id_keluarga, j.nama_kk);
+      else if (!j.id_keluarga) selectTanpaKK();
+      else selectTanpaKK('ID KK lama (' + j.id_keluarga + ') tidak ditemukan di sheet Keluarga. Pilih KK yang benar lewat "Ganti", atau simpan sebagai tanpa KK.');
       $('form-nama-lengkap').value = j.nama_lengkap || '';
       $('form-nama-absen').value = j.nama_absen === j.nama_lengkap ? '' : (j.nama_absen || '');
       $('form-no-telepon').value = j.no_telepon || '';
@@ -1971,7 +2006,7 @@
       const tahun = parseInt($('form-tahun-lahir').value, 10);
       const now = new Date().getFullYear();
       const phoneRe = /^[0-9+\-\s]{6,20}$/;
-      if (!idKeluarga) return formError('Pilih Keluarga (KK) dari hasil pencarian, atau buat KK baru.', 'keluarga-search-input');
+      if (!idKeluarga) return formError('Pilih Keluarga (KK) dari hasil pencarian, buat KK baru, atau pilih "Tanpa KK (mandiri / perantau)".', 'keluarga-search-input');
       if (isNew && !$('form-nama-kk').value.trim()) return formError('Nama kepala keluarga wajib diisi.', 'form-nama-kk');
       if (isNew && !$('form-alamat').value.trim()) return formError('Alamat KK baru wajib diisi.', 'form-alamat');
       if (isNew && $('form-telepon').value.trim() && !phoneRe.test($('form-telepon').value.trim())) return formError('No. telepon KK hanya boleh angka, spasi, + atau -.', 'form-telepon');
@@ -1986,7 +2021,8 @@
 
       const formData = {
         id_jamaah: $('form-id-jamaah').value || null,
-        id_keluarga: idKeluarga,
+        id_keluarga: idKeluarga === TANPA_KK ? '' : idKeluarga,
+        tanpa_kk: idKeluarga === TANPA_KK,
         is_new_keluarga: isNew,
         nama_kk: $('form-nama-kk').value || null,
         alamat: $('form-alamat').value || null,

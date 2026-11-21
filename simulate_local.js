@@ -519,6 +519,71 @@ test("Hapus dengan kolom Umur: arsip menyalin semua kolom", () => {
   eq(arsip.rows[0][14], 'Umur'); eq(arsip.rows[1][2], 'JM-2'); eq(arsip.rows[1][14], THIS_YEAR - 1968);
 });
 
+// --- Jamaah mandiri / perantau (tanpa KK) ---------------------------------
+function withMandiri(env) {
+  const sh = env.ss.sheets.Jamaah;
+  sh.rows.push(["JM-M1", "", "A", "Perantau Satu", "Perantau", "L", 2000, "BELUM", "Y", "Y", "Menetap", ""]);
+  sh.rows.push(["JM-M2", "", "A", "Perantau Dua", "Perantau 2", "P", 2001, "BELUM", "Y", "Y", "Menetap", ""]);
+  return sh;
+}
+
+test("Mandiri: terbaca sebagai 'Tanpa KK', dihitung jiwa tapi tidak dihitung KK", () => {
+  const env = createSandbox();
+  withMandiri(env);
+  const t = env.gs.login('246810', 'index').token;
+  const d = env.gs.getSensusData(t).data;
+  const m = d.jamaah.find(j => j.id_jamaah === 'JM-M1');
+  eq(m.tanpa_kk, true); eq(m.nama_kk, 'Tanpa KK (mandiri/perantau)');
+  eq(d.rekap.kkCount, 3, "jumlah KK tidak bertambah");
+  eq(d.rekap.total, 10, "tetap dihitung sebagai jiwa");
+});
+
+test("Mandiri: edit tersimpan tanpa KK (bug: dulu ditolak 'tidak terdaftar di KK')", () => {
+  const env = createSandbox();
+  const sh = withMandiri(env);
+  const t = env.gs.login('246810', 'index').token;
+  const r = env.gs.saveSensusData(t, validJamaah({ id_jamaah: 'JM-M1', id_keluarga: '', tanpa_kk: true, hubungan_keluarga: 'A', nama_lengkap: 'Perantau Satu Diedit', tahun_lahir: 2000 }));
+  eq(r.success, true, r.message);
+  const row = sh.rows.find(x => x[0] === 'JM-M1');
+  eq(row[1], '', "ID Keluarga tetap kosong"); eq(row[3], 'Perantau Satu Diedit');
+});
+
+test("Mandiri: tambah jamaah baru tanpa KK", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const beforeK = env.ss.sheets.Keluarga.getLastRow();
+  const r = env.gs.saveSensusData(t, validJamaah({ id_keluarga: '', tanpa_kk: true, nama_lengkap: 'Perantau Baru' }));
+  eq(r.success, true, r.message);
+  eq(env.ss.sheets.Keluarga.getLastRow(), beforeK, "tidak membuat KK");
+  eq(env.ss.sheets.Jamaah.rows.find(x => x[3] === 'Perantau Baru')[1], '');
+});
+
+test("Tanpa penanda tanpa_kk, KK kosong tetap ditolak (mencegah lupa pilih KK)", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const r = env.gs.saveSensusData(t, validJamaah({ id_keluarga: '' }));
+  eq(r.success, false); assert(/Pilih Keluarga/.test(r.message), r.message);
+});
+
+test("Mandiri: 'hapus seluruh KK' ditolak supaya tidak menghapus semua jamaah mandiri", () => {
+  const env = createSandbox();
+  const sh = withMandiri(env);
+  const t = env.gs.login('246810', 'index').token;
+  const r = env.gs.deleteJamaah(t, 'JM-M1', 'kk');
+  eq(r.success, false); assert(/hapus per orang/.test(r.message), r.message);
+  eq(sh.rows.filter(x => String(x[0]).startsWith('JM-M')).length, 2, "tidak ada yang terhapus");
+  eq(env.gs.deleteJamaah(t, 'JM-M1', 'single').success, true);
+  eq(sh.rows.filter(x => String(x[0]).startsWith('JM-M')).length, 1);
+});
+
+test("Mandiri di halaman pengurus: tanpa ID asli, grup_kk 0", () => {
+  const env = createSandbox();
+  withMandiri(env);
+  const tv = env.gs.login('135790', 'view').token;
+  const j = env.gs.getSensusData(tv).data.jamaah.find(x => x.nama_lengkap === 'Perantau Satu');
+  eq(j.grup_kk, 0); eq(j.nama_kk, 'Tanpa KK (mandiri/perantau)');
+});
+
 // --- Hapus ------------------------------------------------------------------
 test("Hapus jamaah (single): hanya baris itu, dipindah ke Arsip_Jamaah", () => {
   const env = createSandbox();

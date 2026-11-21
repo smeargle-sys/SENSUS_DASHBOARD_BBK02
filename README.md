@@ -30,6 +30,7 @@ Datanya disimpan di **Google Sheets**, logika server berjalan di **Google Apps S
 - **Detail jamaah:** klik nama untuk melihat data lengkap, nomor telepon (tombol WhatsApp), dan anggota keluarga lainnya. Dari sini bisa langsung **Edit** atau **Hapus**.
 - **Tambah / edit jamaah:** panel 3 langkah (Keluarga → Data diri → Status & absen), pratinjau kategori usia saat tahun lahir diisi, Duda/Janda menyesuaikan jenis kelamin.
 - **Daftar Keluarga (KK):** jumlah anggota aktif, detail anggota, tambah anggota, dan hapus KK.
+- **Jamaah tanpa KK (mandiri / perantau):** pilih **"Tanpa KK (mandiri / perantau)"** di langkah Keluarga pada form. Mereka dihitung sebagai jiwa, tetapi **tidak dihitung sebagai KK**, punya filter **Tanpa KK** sendiri, dan dikelompokkan di bagian akhir saat **Kelompokkan per KK** aktif.
 - **Perlu Dibantu:** penanda jamaah penerima santunan/bantuan kelompok, dengan menu dan filter tersendiri (hanya terlihat admin).
 - **Pengaturan Kategori:** atur nama dan rentang umur kategori, termasuk Lansia (lihat bagian *Aturan kategori usia*).
 - **Hapus dengan arsip:** data yang dihapus dipindah ke sheet arsip, bukan hilang (lihat bagian *Arsip & pemulihan*).
@@ -94,6 +95,8 @@ Bawaan rentang umur:
 - **Kolom tambahan milik Anda** setelah kolom L (misalnya `Umur` berisi rumus) aman: tidak akan ditimpa saat menyimpan, menghapus, atau migrasi.
 - Kalau isi kolom `No Telepon` ternyata bukan nomor telepon (misalnya angka umur), nilainya tidak ditampilkan dan admin mendapat peringatan. Biasanya ini berarti header kolom itu salah nama: kembalikan header ke nama aslinya.
 
+**Jamaah tanpa KK:** kolom `ID Keluarga` dibiarkan **kosong**. Kalau isinya ID yang tidak ada di sheet `Keluarga`, aplikasi menampilkan "KK tidak ditemukan"; saat diedit, admin bisa memilih KK yang benar atau menyimpannya sebagai Tanpa KK.
+
 **Kode isian:**
 - `Hubungan Keluarga`: `A` Kepala, `B` Istri, `C` Anak, `D` Lainnya
 - `Jenis Kelamin`: `L` / `P`
@@ -114,6 +117,7 @@ Tiap baris arsip berisi **kolom A** Waktu Hapus, **kolom B** Keterangan, lalu **
 Aturan hapus:
 - **Anggota biasa:** hanya orang itu yang dihapus.
 - **Kepala Keluarga:** admin memilih **hapus kepalanya saja** (KK dan anggota lain tetap ada) atau **hapus seluruh KK** beserta semua anggotanya.
+- **Jamaah tanpa KK:** selalu dihapus per orang.
 - **Dari Daftar Keluarga:** tombol hapus menghapus KK beserta semua anggotanya.
 
 **Cara memulihkan data yang salah hapus:**

@@ -529,7 +529,8 @@
         [2, "Bapak Contoh Dua", "A", "Bapak Contoh Dua", "Contoh Dua", "L", 1997, "MENIKAH", "080000000021"],
         [2, "Bapak Contoh Dua", "B", "Ibu Contoh Dua", "Ibu Dua", "P", 1999, "MENIKAH", ""],
         [3, "Bapak Contoh Tiga", "A", "Bapak Contoh Tiga", "Contoh Tiga", "L", 1950, "BELUM", ""],
-        [3, "Bapak Contoh Tiga", "C", "Anak Contoh Tiga", "Anak Tiga", "P", 2012, "BELUM", ""]
+        [3, "Bapak Contoh Tiga", "C", "Anak Contoh Tiga", "Anak Tiga", "P", 2012, "BELUM", ""],
+        [0, "Tanpa KK (mandiri/perantau)", "A", "Perantau Contoh", "Perantau", "L", 2001, "BELUM", ""]
       ];
       const all = rows.map(r => ({
         grup_kk: r[0], nama_kk: r[1], hubungan_keluarga: r[2], nama_lengkap: r[3], nama_absen: r[4], jenis_kelamin: r[5],
@@ -745,7 +746,7 @@
         .filter(j => (!fGender || j.jenis_kelamin === fGender) && (!fKategori || j.kategori_usia === fKategori));
       if ($('group-kk').checked) {
         const kkOrder = field === 'nama_kk' && order === 'desc' ? -1 : 1;
-        list.sort((a, b) => String(a.nama_kk).localeCompare(String(b.nama_kk), 'id') * kkOrder || (a.grup_kk - b.grup_kk) ||
+        list.sort((a, b) => ((a.grup_kk ? 0 : 1) - (b.grup_kk ? 0 : 1)) || String(a.nama_kk).localeCompare(String(b.nama_kk), 'id') * kkOrder || (a.grup_kk - b.grup_kk) ||
           (field !== 'nama_kk' && field !== 'nama_absen' && field !== 'nama_lengkap' ? compareBy(field, order)(a, b) : 0) || familyOrder(a, b));
       } else {
         list.sort(compareBy(field, order));
@@ -781,11 +782,12 @@
         pageRows.forEach((j, i) => {
           if (grouped && j.grup_kk !== lastGroup) {
             lastGroup = j.grup_kk;
-            rows += `<tr class="group-row"><td colspan="6">KK ${esc(j.nama_kk)}<span>${famCount[j.grup_kk]} jiwa</span></td></tr>`;
-            cards += `<div class="m-group">KK ${esc(j.nama_kk)} · ${famCount[j.grup_kk]} jiwa</div>`;
+            const gName = (j.grup_kk ? 'KK ' : '') + j.nama_kk;
+            rows += `<tr class="group-row"><td colspan="6">${esc(gName)}<span>${famCount[j.grup_kk]} jiwa</span></td></tr>`;
+            cards += `<div class="m-group">${esc(gName)} · ${famCount[j.grup_kk]} jiwa</div>`;
           }
           const idx = list.indexOf(j);
-          const head = j.hubungan_keluarga === 'A' ? 'is-head' : '';
+          const head = j.hubungan_keluarga === 'A' && j.grup_kk ? 'is-head' : '';
           rows += `<tr class="${head}">
             <td style="color: var(--muted)">${start + i + 1}</td>
             <td><button type="button" class="name-btn" data-idx="${idx}">${esc(j.nama_absen)}</button></td>
@@ -835,7 +837,7 @@
       if (!j) return;
       const family = (appData.jamaah || []).filter(m => m.grup_kk && m.grup_kk === j.grup_kk && m !== j).sort(familyOrder);
       const tags = [`<span class="tag">${esc(j.kategori_usia)}</span>`];
-      if (j.hubungan_keluarga === 'A') tags.push('<span class="tag" style="background: var(--primary); color: #fff">Kepala Keluarga</span>');
+      if (j.hubungan_keluarga === 'A' && j.grup_kk) tags.push('<span class="tag" style="background: var(--primary); color: #fff">Kepala Keluarga</span>');
       $('modal').innerHTML = `
         <div class="modal-head">
           <span class="avatar">${esc(initials(j.nama_lengkap))}</span>

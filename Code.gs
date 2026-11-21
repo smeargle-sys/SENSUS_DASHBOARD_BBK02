@@ -220,6 +220,9 @@ var HEADER_JAMAAH = [
   "No Telepon", "Perlu Dibantu"
 ];
 var JAMAAH_CORE_COLS = 12; // kolom A–L selalu berurutan seperti HEADER_JAMAAH
+// Jamaah mandiri / perantau: kolom "ID Keluarga" dikosongkan; tidak dihitung sebagai KK
+var LABEL_TANPA_KK = "Tanpa KK (mandiri/perantau)";
+var LABEL_KK_HILANG = "KK tidak ditemukan";
 var HEADER_KATEGORI = ["Urutan", "Nama Kategori", "Umur Min", "Umur Maks", "Penanda"];
 
 function getSpreadsheet_() {
@@ -577,7 +580,8 @@ function readSensus_() {
       jamaahList.push({
         id_jamaah: String(jRow[0]),
         id_keluarga: idKeluarga,
-        nama_kk: keluargaMap[idKeluarga] || "Tidak Terdaftar",
+        nama_kk: !idKeluarga ? LABEL_TANPA_KK : (keluargaMap[idKeluarga] || LABEL_KK_HILANG),
+        tanpa_kk: !idKeluarga,
         hubungan_keluarga: hubKeluarga,
         nama_lengkap: String(jRow[3]),
         nama_absen: String(jRow[4]),
@@ -695,9 +699,9 @@ function saveSensusData(token, formData) {
     var shKeluarga = sheets.keluarga;
     var shJamaah = sheets.jamaah;
 
-    // Validasi KK yang dipilih benar-benar ada
+    // Validasi KK yang dipilih benar-benar ada (kecuali jamaah mandiri / tanpa KK)
     var idKeluarga = d.id_keluarga;
-    if (!d.is_new_keluarga) {
+    if (!d.is_new_keluarga && !d.tanpa_kk) {
       if (!findRowById_(shKeluarga, idKeluarga)) {
         throw new Error("Keluarga (KK) yang dipilih tidak ditemukan. Pilih ulang dari daftar.");
       }
@@ -777,6 +781,7 @@ function validateFormData_(f) {
   var d = {
     id_jamaah: f.id_jamaah ? text(f.id_jamaah, 64) : null,
     is_new_keluarga: f.is_new_keluarga === true || f.is_new_keluarga === 'true',
+    tanpa_kk: f.tanpa_kk === true || f.tanpa_kk === 'true',
     id_keluarga: text(f.id_keluarga, 64),
     nama_kk: text(f.nama_kk, 100),
     alamat: text(f.alamat, 300),
@@ -799,6 +804,8 @@ function validateFormData_(f) {
     if (!d.nama_kk) errors.push("Nama Kepala Keluarga wajib diisi.");
     if (!d.alamat) errors.push("Alamat KK baru wajib diisi.");
     if (d.telepon && !phoneRe.test(d.telepon)) errors.push("No. telepon KK hanya boleh angka, spasi, + atau -.");
+  } else if (d.tanpa_kk) {
+    d.id_keluarga = ""; // mandiri / perantau: tidak terdaftar di KK mana pun
   } else if (!d.id_keluarga || d.id_keluarga === "NEW") {
     errors.push("Pilih Keluarga (KK) dari daftar, atau buat KK baru.");
   }
@@ -850,7 +857,9 @@ function deleteJamaah(token, idJamaah, mode) {
     if (!row) throw new Error("Data jamaah tidak ditemukan (mungkin sudah dihapus).");
 
     if (mode === 'kk') {
-      var idKeluarga = String(sheets.jamaah.getRange(row, 2, 1, 1).getValues()[0][0]);
+      var idKeluarga = String(sheets.jamaah.getRange(row, 2, 1, 1).getValues()[0][0]).trim();
+      // Tanpa ID KK, "hapus seluruh KK" akan mengenai SEMUA jamaah mandiri -> tolak
+      if (!idKeluarga) throw new Error("Jamaah ini tidak terdaftar di KK mana pun. Gunakan hapus per orang.");
       var res = deleteKeluargaRows_(ss, sheets, idKeluarga, "Hapus seluruh KK (dari jamaah " + idJamaah + ")");
       return { success: true, message: "Keluarga beserta " + res.jamaah + " anggota dihapus dan disimpan di arsip.", deleted: res };
     }
