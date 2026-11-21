@@ -16,7 +16,7 @@ const crypto = require('crypto');
 class MockSheet {
   constructor(name, headers, rows) {
     this.name = name;
-    this.rows = [headers, ...rows];
+    this.rows = headers ? [headers, ...rows] : [];
     this.formats = {}; // "row,col" -> number format
   }
   getName() { return this.name; }
@@ -25,7 +25,7 @@ class MockSheet {
     while (last > 0 && (!this.rows[last - 1] || this.rows[last - 1].every(v => v === '' || v === undefined))) last--;
     return last;
   }
-  getLastColumn() { return this.rows[0] ? this.rows[0].length : 0; }
+  getLastColumn() { return this.rows[0] ? Math.max(...this.rows.map(r => (r || []).length)) : 0; }
   getRange(row, col, numRows = 1, numCols = 1) {
     const self = this;
     const r0 = row - 1, c0 = col - 1;
@@ -68,7 +68,8 @@ class MockSheet {
     };
     return range;
   }
-  appendRow(values) { this.rows.push(values.slice()); return this; }
+  appendRow(values) { this.rows.splice(this.getLastRow(), 0, values.slice()); return this; }
+  deleteRow(r) { this.rows.splice(r - 1, 1); return this; }
   copyTo(ss) {
     const copy = new MockSheet(this.name + ' (copy)', this.rows[0].slice(), this.rows.slice(1).map(r => r.slice()));
     copy.setName = (n) => { delete ss.sheets[copy.name]; copy.name = n; ss.sheets[n] = copy; return copy; };
@@ -103,7 +104,7 @@ class MockSpreadsheet {
     };
   }
   getSheetByName(name) { return this.sheets[name] || null; }
-  insertSheet(name) { if (!this.sheets[name]) this.sheets[name] = new MockSheet(name, [], []); return this.sheets[name]; }
+  insertSheet(name) { if (!this.sheets[name]) this.sheets[name] = new MockSheet(name, null, []); return this.sheets[name]; }
 }
 
 function createSandbox() {
@@ -178,6 +179,14 @@ const validJamaah = (over = {}) => Object.assign({
   status_keberadaan: "Menetap", catatan: ""
 }, over);
 
+const CUSTOM_CFG = {
+  labelMenikah: 'Sudah Menikah',
+  kategori: [
+    { nama: 'Anak', min: 0, max: 12 }, { nama: 'Remaja', min: 13, max: 20 },
+    { nama: 'Dewasa', min: 21, max: 59 }, { nama: 'Lansia', min: 60, max: null, lansia: true }
+  ]
+};
+
 console.log("================= UJI BACKEND Code.gs (LOCAL) =================\n");
 
 // --- Autentikasi ---------------------------------------------------------
@@ -245,11 +254,19 @@ test("doPost: tanpa token ditolak (authError)", () => {
 test("doPost: fungsi di luar daftar (migrasi, internal) tidak bisa dipanggil", () => {
   const env = createSandbox();
   env.session.active = env.session.owner; // bahkan bila pemilik
-  ['jalankanMigrasiSensus', 'readSensus_', 'toString', '__proto__', 'constructor'].forEach(a => {
+  ['jalankanMigrasiSensus', 'readSensus_', 'archiveAndDeleteRows_', 'writeKategoriSheet_', 'toString', '__proto__', 'constructor'].forEach(a => {
     const r = post(env.gs, { action: a, args: [] });
     eq(r.success, false, a); assert(/tidak dikenal/.test(r.message), r.message);
   });
   eq(env.ss.sheets.Jamaah.getLastRow(), 10, "data harus utuh");
+});
+
+test("doPost: hapus & simpan pengaturan lewat API", () => {
+  const env = createSandbox();
+  const tok = post(env.gs, { action: 'login', args: ['246810', 'index'] }).token;
+  eq(post(env.gs, { action: 'deleteJamaah', args: [tok, 'JM-5', 'single'] }).success, true);
+  eq(post(env.gs, { action: 'saveKategoriConfig', args: [tok, CUSTOM_CFG] }).success, true);
+  eq(post(env.gs, { action: 'deleteKeluarga', args: [tok, 'KK-C'] }).success, true);
 });
 
 test("doPost: body rusak tidak membuat server error", () => {
@@ -301,12 +318,79 @@ test("Rekap: total aktif, KK aktif, lansia, dan tahun lahir kosong tidak jadi BA
   eq(r.rekap.tanpaTahunLahir, 1);
 });
 
-test("Rule engine: batas kategori usia", () => {
+test("Rule engine: batas kategori usia default (termasuk Lansia)", () => {
   const { gs } = createSandbox();
   const cases = [[5, 'BALITA-PAUD'], [6, 'Caberawit'], [12, 'Caberawit'], [13, 'Pra Remaja (SMP)'],
-    [15, 'Pra Remaja (SMP)'], [16, 'Remaja (SMA)'], [17, 'Remaja (SMA)'], [18, 'Usia (Pra) Menikah']];
+    [15, 'Pra Remaja (SMP)'], [16, 'Remaja (SMA)'], [17, 'Remaja (SMA)'], [18, 'Usia (Pra) Menikah'],
+    [56, 'Usia (Pra) Menikah'], [57, 'Lansia'], [90, 'Lansia']];
   cases.forEach(([umur, kat]) => eq(gs.dapatkanKategoriUsia(THIS_YEAR - umur, 'BELUM'), kat, `umur ${umur}`));
   eq(gs.dapatkanKategoriUsia(THIS_YEAR - 20, 'JANDA'), 'Dewasa Menikah');
+  eq(gs.dapatkanKategoriUsia(THIS_YEAR - 70, 'MENIKAH'), 'Dewasa Menikah', "status nikah diutamakan di atas Lansia");
+});
+
+// --- Pengaturan kategori ----------------------------------------------------
+
+test("Sheet Pengaturan_Kategori dibuat otomatis dengan nilai default", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const r = env.gs.getSensusData(t);
+  assert(env.ss.sheets.Pengaturan_Kategori, "sheet tidak dibuat");
+  eq(env.ss.sheets.Pengaturan_Kategori.getLastRow(), 8, "header + 6 kategori + label menikah");
+  eq(r.data.rekap.kategoriOrder.join('|'), 'BALITA-PAUD|Caberawit|Pra Remaja (SMP)|Remaja (SMA)|Usia (Pra) Menikah|Lansia|Dewasa Menikah');
+  eq(r.data.rekap.batasLansia, 57);
+});
+
+test("Simpan pengaturan kategori: rekap & batas lansia ikut berubah", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const s = env.gs.saveKategoriConfig(t, CUSTOM_CFG);
+  eq(s.success, true, s.message);
+  const r = env.gs.getSensusData(t).data;
+  eq(r.rekap.kategoriOrder.join('|'), 'Anak|Remaja|Dewasa|Lansia|Sudah Menikah');
+  eq(r.rekap.batasLansia, 60);
+  const lansiaExpected = [1956, 1968, 1967, 1964].filter(y => THIS_YEAR - y >= 60).length;
+  eq(r.rekap.lansia, lansiaExpected, "lansia dengan batas 60");
+  eq(r.jamaah.find(j => j.id_jamaah === 'JM-1').kategori_usia, 'Sudah Menikah');
+  eq(r.jamaah.find(j => j.id_jamaah === 'JM-5').kategori_usia, 'Anak');
+});
+
+const badCfgs = [
+  ["tidak mulai dari 0", { labelMenikah: 'M', kategori: [{ nama: 'A', min: 1, max: null }] }, /mulai dari umur 0/],
+  ["rentang bolong", { labelMenikah: 'M', kategori: [{ nama: 'A', min: 0, max: 10 }, { nama: 'B', min: 12, max: null }] }, /bersambung/],
+  ["rentang tumpang tindih", { labelMenikah: 'M', kategori: [{ nama: 'A', min: 0, max: 10 }, { nama: 'B', min: 8, max: null }] }, /bersambung/],
+  ["terakhir punya batas atas", { labelMenikah: 'M', kategori: [{ nama: 'A', min: 0, max: 10 }] }, /tanpa batas atas/],
+  ["nama ganda", { labelMenikah: 'M', kategori: [{ nama: 'A', min: 0, max: 10 }, { nama: 'a', min: 11, max: null }] }, /lebih dari sekali/],
+  ["dua penanda lansia", { labelMenikah: 'M', kategori: [{ nama: 'A', min: 0, max: 10, lansia: true }, { nama: 'B', min: 11, max: null, lansia: true }] }, /Lansia hanya/],
+  ["nama sistem", { labelMenikah: 'M', kategori: [{ nama: 'Janda', min: 0, max: null }] }, /dipakai sistem/],
+  ["label menikah kosong", { labelMenikah: ' ', kategori: [{ nama: 'A', min: 0, max: null }] }, /sudah menikah/]
+];
+badCfgs.forEach(([name, cfg, re]) => {
+  test(`Pengaturan kategori ditolak: ${name}`, () => {
+    const env = createSandbox();
+    const t = env.gs.login('246810', 'index').token;
+    env.gs.getSensusData(t);
+    const before = JSON.stringify(env.ss.sheets.Pengaturan_Kategori.rows);
+    const r = env.gs.saveKategoriConfig(t, cfg);
+    eq(r.success, false); assert(re.test(r.message), r.message);
+    eq(JSON.stringify(env.ss.sheets.Pengaturan_Kategori.rows), before, "sheet tidak boleh berubah");
+  });
+});
+
+test("Pengaturan kategori: VIEWER tidak boleh menyimpan", () => {
+  const { gs } = createSandbox();
+  const t = gs.login('135790', 'view').token;
+  eq(gs.saveKategoriConfig(t, CUSTOM_CFG).authError, true);
+});
+
+test("Sheet Pengaturan_Kategori rusak (diedit manual) -> memakai default, aplikasi tetap jalan", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  env.gs.getSensusData(t);
+  env.ss.sheets.Pengaturan_Kategori.rows[2][2] = 99; // Caberawit mulai 99 -> tidak bersambung
+  const r = env.gs.getSensusData(t);
+  eq(r.success, true);
+  assert(r.data.kategoriConfig.invalid, "harus menandai konfigurasi tidak valid");
+  eq(r.data.rekap.kategoriOrder[0], 'BALITA-PAUD');
 });
 
 // --- Penyimpanan & validasi -------------------------------------------------
@@ -318,6 +402,95 @@ test("Simpan jamaah baru valid", () => {
   const saved = env.gs.getSensusData(t).data.jamaah.find(j => j.nama_lengkap === 'Anak Contoh Baru');
   assert(saved, "data tidak ditemukan");
   eq(saved.id_keluarga, 'KK-A'); eq(saved.kategori_usia, 'Usia (Pra) Menikah');
+});
+
+test("No. telepon jamaah & perlu dibantu tersimpan; telepon sebagai teks", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const r = env.gs.saveSensusData(t, validJamaah({ no_telepon: '081299990000', perlu_dibantu: 'Y' }));
+  eq(r.success, true, r.message);
+  const sh = env.ss.sheets.Jamaah, row = sh.getLastRow();
+  eq(sh.rows[row - 1][12], '081299990000'); eq(sh.formats[`${row},13`], '@');
+  eq(sh.rows[row - 1][13], 'Y');
+  eq(sh.rows[0][12], 'No Telepon', "header kolom baru ditambahkan");
+  const d = env.gs.getSensusData(t).data;
+  eq(d.rekap.perluDibantu, 1);
+  const saved = d.jamaah.find(j => j.nama_lengkap === 'Anak Contoh Baru');
+  eq(saved.no_telepon, '081299990000'); eq(saved.perlu_dibantu, 'Y');
+});
+
+test("VIEWER menerima no. telepon, tapi tidak menerima penanda perlu dibantu", () => {
+  const env = createSandbox();
+  const ta = env.gs.login('246810', 'index').token;
+  env.gs.saveSensusData(ta, validJamaah({ id_jamaah: 'JM-3', id_keluarga: 'KK-B', hubungan_keluarga: 'A', nama_lengkap: 'Bapak Contoh Dua', status_nikah: 'MENIKAH', tahun_lahir: 1997, no_telepon: '081100002222', perlu_dibantu: 'Y' }));
+  const tv = env.gs.login('135790', 'view').token;
+  const d = env.gs.getSensusData(tv).data;
+  const j = d.jamaah.find(x => x.nama_lengkap === 'Bapak Contoh Dua');
+  eq(j.no_telepon, '081100002222');
+  assert(!('perlu_dibantu' in j), "perlu_dibantu bocor ke viewer");
+  assert(!('perluDibantu' in d.rekap), "jumlah perlu dibantu bocor ke viewer");
+  assert(typeof j.grup_kk === 'number' && j.grup_kk > 0, "grup_kk untuk pengelompokan");
+});
+
+test("Validasi menolak telepon jamaah berisi huruf", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const r = env.gs.saveSensusData(t, validJamaah({ no_telepon: 'telp 0812' }));
+  eq(r.success, false); assert(/telepon jamaah/.test(r.message), r.message);
+});
+
+// --- Hapus ------------------------------------------------------------------
+test("Hapus jamaah (single): hanya baris itu, dipindah ke Arsip_Jamaah", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const r = env.gs.deleteJamaah(t, 'JM-5', 'single');
+  eq(r.success, true, r.message);
+  eq(env.ss.sheets.Jamaah.getLastRow(), 9);
+  assert(!env.ss.sheets.Jamaah.rows.some(x => x[0] === 'JM-5'), "JM-5 masih ada");
+  const arsip = env.ss.sheets.Arsip_Jamaah;
+  eq(arsip.rows[0][0], 'Waktu Hapus'); eq(arsip.rows[1][2], 'JM-5'); eq(arsip.rows[1][1], 'Hapus jamaah');
+  eq(env.ss.sheets.Keluarga.getLastRow(), 4, "KK tidak ikut terhapus");
+});
+
+test("Hapus kepala keluarga saja (single): KK & anggota lain tetap", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  eq(env.gs.deleteJamaah(t, 'JM-3', 'single').success, true);
+  eq(env.ss.sheets.Jamaah.rows.filter(x => x[1] === 'KK-B').length, 3);
+  eq(env.ss.sheets.Keluarga.getLastRow(), 4);
+});
+
+test("Hapus seluruh KK lewat kepala keluarga (mode kk): semua anggota + KK ke arsip", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const r = env.gs.deleteJamaah(t, 'JM-3', 'kk');
+  eq(r.success, true, r.message);
+  eq(r.deleted.jamaah, 4); eq(r.deleted.keluarga, 1);
+  assert(!env.ss.sheets.Jamaah.rows.some(x => x[1] === 'KK-B'), "anggota KK-B masih ada");
+  assert(!env.ss.sheets.Keluarga.rows.some(x => x[0] === 'KK-B'), "KK-B masih ada");
+  eq(env.ss.sheets.Arsip_Jamaah.getLastRow(), 5);
+  eq(env.ss.sheets.Arsip_Keluarga.rows[1][2], 'KK-B');
+  eq(env.ss.sheets.Jamaah.getLastRow(), 6, "anggota KK lain utuh");
+});
+
+test("Hapus KK dari daftar keluarga (deleteKeluarga)", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const r = env.gs.deleteKeluarga(t, 'KK-A');
+  eq(r.success, true, r.message);
+  eq(r.deleted.jamaah, 2);
+  assert(!env.ss.sheets.Jamaah.rows.some(x => x[1] === 'KK-A'));
+});
+
+test("Hapus: VIEWER & tanpa token ditolak, ID tidak ada & mode salah ditolak", () => {
+  const env = createSandbox();
+  const tv = env.gs.login('135790', 'view').token;
+  eq(env.gs.deleteJamaah(tv, 'JM-1', 'single').authError, true);
+  eq(env.gs.deleteKeluarga(undefined, 'KK-A').authError, true);
+  const t = env.gs.login('246810', 'index').token;
+  eq(env.gs.deleteJamaah(t, 'JM-404', 'single').success, false);
+  eq(env.gs.deleteJamaah(t, 'JM-1', 'semua').success, false);
+  eq(env.ss.sheets.Jamaah.getLastRow(), 10, "tidak ada yang terhapus");
 });
 
 const invalidCases = [

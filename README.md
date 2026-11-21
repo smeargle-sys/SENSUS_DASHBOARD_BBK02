@@ -6,12 +6,17 @@ Aplikasi ini menggunakan **Google Sheets** sebagai database utama (back-end) dan
 ---
 
 ## 🚀 Fitur Utama
-1. **Otomatisasi Kategori Usia (Rule Engine)**: Kategori usia (BALITA-PAUD, CABERAWIT, PRA REMAJA, REMAJA, PRA NIKAH, DEWASA MENIKAH) dihitung secara dinamis dari **Tahun Lahir** dan **Status Pernikahan** saat data dimuat.
-2. **Kalkulasi Lansia Otomatis**: Menampilkan jumlah jamaah Lansia (usia $\ge 57$ tahun) secara real-time pada dashboard statistik atas.
+1. **Kategori Usia yang Bisa Diatur**: kategori dihitung dari **Tahun Lahir** dan **Status Pernikahan**. Rentang umur, nama kategori (termasuk **Lansia**), dan nama kategori untuk yang menikah diatur dari menu **Pengaturan Kategori** di halaman admin (tersimpan di sheet `Pengaturan_Kategori`). Status nikah diutamakan: yang menikah masuk kategori menikah; Duda/Janda dihitung di kolom tersendiri; kategori umur berlaku untuk yang belum menikah.
+2. **Hitungan Lansia**: kartu Lansia menghitung semua jamaah aktif dengan umur ≥ umur awal kategori yang diberi tanda Lansia (default 57).
 3. **Database Relasional & Ramping**: Menghilangkan puluhan kolom centang manual di spreadsheet asal dengan memisahkan data menjadi dua tab sheet relasional (`Keluarga` dan `Jamaah`).
 4. **Form Input Interaktif**: Form pembuatan Kartu Keluarga (KK) baru atau penambahan anggota jamaah baru dengan validasi instan.
 5. **Daftar & Filter Multi-Dimensi**: Pencarian jamaah secara instan dan filter berdasarkan Kategori Usia, Gender, Keaktifan Wilayah, serta Daftar Kehadiran (Absen).
 6. **Script Migrasi Instan**: Memindahkan data dari format spreadsheet lama ke format relasional baru secara otomatis (dengan backup otomatis).
+9. **Hapus data dengan arsip**: hapus jamaah per orang; bila yang dihapus Kepala Keluarga, admin memilih hapus kepalanya saja atau seluruh KK. Data terhapus dipindah ke sheet `Arsip_Jamaah` / `Arsip_Keluarga` (bisa disalin balik bila salah hapus).
+10. **Telepon & WhatsApp**: kolom No. Telepon per jamaah; nomor bisa diklik untuk membuka WhatsApp (admin & pengurus).
+11. **Perlu Dibantu**: penanda jamaah penerima santunan, dengan menu & filter tersendiri (hanya admin).
+12. **Daftar lebih mudah dipakai**: pencarian tepat di atas daftar dengan tombol hapus pencarian, urutan berdasarkan kolom, opsi **Kelompokkan per KK** (juga saat cetak), baris Kepala Keluarga diberi latar hijau, halaman bernomor (pertama/terakhir/lompat), filter Mondok/Keberadaan, dan detail jamaah saat nama diklik.
+8. **Tampilan baru (revamp)**: dashboard admin dengan menu samping, kartu angka, komposisi kategori usia, kartu keberadaan, filter cepat (Aktif, Luar kota, Absen, *Perlu dilengkapi*), halaman per 25 baris, daftar Keluarga (KK) dengan tombol tambah anggota, panel tambah/edit 3 langkah dengan pratinjau kategori usia, ekspor CSV; tampilan HP dengan kartu, tombol Tambah, dan navigasi bawah. Halaman ringkasan punya tabel rekap format laporan, daftar absen, ekspor CSV, cetak, dan tab di HP.
 7. **Akses dengan PIN**: Halaman editor hanya bisa dibuka dengan **PIN Admin**; halaman ringkasan (`?page=view`) dengan **PIN Pengurus** (atau PIN Admin). Data kontak (alamat, telepon, catatan) tidak pernah dikirim ke halaman ringkasan.
 
 ---
@@ -49,8 +54,10 @@ Untuk menguji logika backend (`Code.gs`) secara offline di komputer Anda:
 3. Tulis header berikut pada baris pertama masing-masing sheet:
    *   **Sheet `Keluarga`** (Kolom A-D):
        `ID Keluarga` | `Nama KK` | `Alamat` | `No Telepon`
-   *   **Sheet `Jamaah`** (Kolom A-L):
-       `ID Jamaah` | `ID Keluarga` | `Hubungan Keluarga` | `Nama Lengkap` | `Nama Absen` | `Jenis Kelamin` | `Tahun Lahir` | `Status Nikah` | `Status Keaktifan` | `Flag Absen` | `Status Keberadaan` | `Catatan`
+   *   **Sheet `Jamaah`** (Kolom A-N):
+       `ID Jamaah` | `ID Keluarga` | `Hubungan Keluarga` | `Nama Lengkap` | `Nama Absen` | `Jenis Kelamin` | `Tahun Lahir` | `Status Nikah` | `Status Keaktifan` | `Flag Absen` | `Status Keberadaan` | `Catatan` | `No Telepon` | `Perlu Dibantu`
+   *   Sheet lama yang baru punya kolom A-L tidak perlu diubah: header kolom M & N ditambahkan otomatis saat aplikasi pertama kali dibuka.
+   *   Sheet `Pengaturan_Kategori`, `Arsip_Jamaah`, dan `Arsip_Keluarga` dibuat otomatis oleh aplikasi.
 4. Salin **URL Google Spreadsheet** tersebut dari browser.
 
 ### Langkah 2: Buat Google Apps Script

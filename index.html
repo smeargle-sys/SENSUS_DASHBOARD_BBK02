@@ -59,25 +59,18 @@
     .brand-mark svg.lucide { width: 26px; height: 26px; }
     .login-band h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
     .login-band p { margin: 4px 0 0; color: var(--deep-muted); font-size: 15px; }
-    .login-card { width: calc(100% - 40px); max-width: 400px; margin-top: -56px; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 24px 22px; box-shadow: 0 10px 30px rgba(13, 43, 36, .10); display: flex; flex-direction: column; gap: 18px; }
+    .login-card { width: calc(100% - 40px); max-width: 400px; margin-top: -56px; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 24px 22px; box-shadow: 0 10px 30px rgba(13, 43, 36, .10); display: flex; flex-direction: column; gap: 16px; }
     .login-head { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
     .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 5px 12px; }
     .pill svg.lucide { width: 14px; height: 14px; }
     .pill-green { color: var(--primary-ink); background: var(--primary-soft); }
     .login-head h2 { margin: 6px 0 0; font-size: 19px; font-weight: 700; }
     .login-head p { margin: 0; font-size: 13px; color: var(--muted); }
-    .pin-field { position: relative; display: flex; justify-content: center; gap: 10px; }
-    #pin-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; font-size: 16px; }
-    .pin-box { width: 40px; height: 48px; border-radius: 12px; border: 2px solid var(--line-2); background: #fff; display: flex; align-items: center; justify-content: center; }
-    .pin-box.filled { border-color: var(--primary); background: var(--primary-soft); }
-    .pin-box.filled::after { content: ''; width: 12px; height: 12px; border-radius: 999px; background: var(--primary); }
-    .pin-box.current { border-color: var(--mint); }
-    .pin-field:focus-within .pin-box.current { box-shadow: 0 0 0 3px rgba(18, 163, 131, .25); }
-    .keypad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-    .key { height: 56px; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); font-size: 22px; font-weight: 700; }
-    .key:hover { background: var(--track); }
-    .key-ghost { background: transparent; border-color: transparent; color: var(--muted); display: flex; align-items: center; justify-content: center; }
-    .key-ghost svg.lucide { width: 24px; height: 24px; }
+    .pin-wrap { position: relative; }
+    #pin-input { width: 100%; height: 54px; border-radius: 14px; border: 1px solid var(--line-3); padding: 0 56px 0 16px; font-size: 22px; letter-spacing: .3em; background: #fff; }
+    #pin-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(11, 110, 91, .15); }
+    #pin-toggle { position: absolute; right: 5px; top: 5px; width: 44px; height: 44px; border: 0; background: transparent; color: var(--muted); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    #pin-toggle:hover { background: var(--soft); }
     #login-btn { height: 52px; font-size: 16px; border-radius: 14px; }
     #login-error { margin: 0; min-height: 20px; text-align: center; color: var(--danger); font-size: 14px; font-weight: 600; }
     .login-note { width: calc(100% - 56px); max-width: 372px; margin: 18px 0 40px; display: flex; gap: 10px; font-size: 13px; color: var(--muted); }
@@ -250,21 +243,121 @@
     .toggle input { width: 22px; height: 22px; accent-color: var(--primary); }
     .form-error { padding: 12px 14px; border-radius: 12px; background: var(--danger-bg); color: var(--danger); font-size: 14px; font-weight: 600; }
 
+    /* ---------- List toolbar, search, grouping ---------- */
+    .list-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--soft); }
+    .list-tools .search { flex: 1 1 320px; max-width: 460px; height: 42px; }
+    .search { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 6px 0 14px; background: var(--surface); border: 1px solid var(--line-2); border-radius: 12px; min-width: 200px; color: var(--muted); }
+    .search:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(11, 110, 91, .12); }
+    .search input { border: 0; outline: none; font-size: 14px; flex: 1; min-width: 0; background: transparent; color: var(--ink); }
+    .search input::-webkit-search-cancel-button { display: none; }
+    .search-clear { width: 32px; height: 32px; border: 0; border-radius: 8px; background: var(--track); color: var(--ink-2); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+    .search-clear:hover { background: var(--line-2); }
+    .search-clear svg.lucide { width: 16px; height: 16px; }
+    .result-info { font-size: 13px; color: var(--muted); }
+    .result-info strong { color: var(--ink); }
+    .switch { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--surface); font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+    .switch input { width: 18px; height: 18px; accent-color: var(--primary); margin: 0; }
+    .switch:has(input:checked) { border-color: var(--primary); color: var(--primary-ink); background: var(--primary-tint); }
+    .chip-help { background: #FDEBDD; border-color: #F4C9A8; color: #9A3412; font-weight: 700; }
+    .chip-help[aria-pressed="true"] { background: #9A3412; border-color: #9A3412; color: #fff; }
+
+    tr.group-row td { background: var(--deep) !important; color: #fff; font-size: 13px; padding: 9px 14px; }
+    tr.group-row td span { color: var(--deep-muted); font-weight: 500; margin-left: 8px; }
+    tr.is-head td { background: #DCEFE7; }
+    table.data tr.is-head:hover td { background: #D2EADF; }
+    .name-btn { border: 0; background: none; padding: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+    .name-btn:hover strong { color: var(--primary); text-decoration: underline; }
+    .wa { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 999px; background: #E7F8EE; color: #136C3A; font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+    .wa:hover { background: #D3F2E0; }
+    .wa svg.lucide { width: 15px; height: 15px; }
+    .muted { color: var(--muted); }
+    .tag-help { color: #9A3412; background: #FDEBDD; font-weight: 700; font-size: 11px; padding: 2px 8px; }
+    .status-stack { display: flex; flex-direction: column; gap: 4px; }
+    .status-stack .status { font-size: 12px; }
+    .stat-line.clickable { border: 0; width: 100%; text-align: left; cursor: pointer; }
+    .stat-line.clickable:hover { background: var(--track); }
+    .stat-line.clickable[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--primary); }
+
+    .m-group { margin: 6px 2px 0; padding: 8px 12px; border-radius: 10px; background: var(--deep); color: #fff; font-size: 13px; font-weight: 700; }
+    .m-group span { color: var(--deep-muted); font-weight: 500; }
+    .m-card.is-head { background: #DCEFE7; border-color: #B9D8CE; }
+
+    /* ---------- Pager ---------- */
+    .pager { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .pager button { min-width: 38px; height: 38px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--surface); font-size: 13px; font-weight: 600; color: var(--ink-2); display: inline-flex; align-items: center; justify-content: center; }
+    .pager button:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .pager button[aria-current="page"] { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .pager button:disabled { opacity: .45; cursor: not-allowed; }
+    .pager .gap { padding: 0 4px; color: var(--muted); }
+    .pager svg.lucide { width: 16px; height: 16px; }
+
+    /* ---------- Modal (detail & konfirmasi) ---------- */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(13, 43, 36, .5); z-index: 70; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal { background: var(--surface); border-radius: 20px; width: min(560px, 100%); max-height: calc(100vh - 40px); display: flex; flex-direction: column; box-shadow: 0 24px 60px rgba(13, 43, 36, .3); }
+    .modal-sm { width: min(440px, 100%); }
+    .modal-head { display: flex; align-items: flex-start; gap: 14px; padding: 22px 22px 16px; }
+    .modal-head .titles { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .modal-head h2 { margin: 0; font-size: 20px; font-weight: 800; }
+    .modal-head p { margin: 0; color: var(--muted); font-size: 14px; }
+    .modal-body { padding: 0 22px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; font-size: 14px; }
+    .modal-foot { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; padding: 16px 22px; border-top: 1px solid var(--line); }
+    .modal-foot .btn { flex: 1 1 auto; }
+    .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; font-weight: 700; }
+    .btn-danger:hover { background: #8F1B12; border-color: #8F1B12; }
+    .btn-danger-ghost { color: var(--danger); border-color: #F3C3BE; }
+    .btn-danger-ghost:hover { background: var(--danger-bg); border-color: var(--danger); }
+    .avatar-lg { width: 56px; height: 56px; font-size: 18px; }
+    .detail-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; }
+    .detail-grid div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .detail-grid dt { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .detail-grid dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+    .detail-grid .full { grid-column: 1 / -1; }
+    dl.detail-grid { margin: 0; }
+    .family { display: flex; flex-direction: column; gap: 6px; }
+    .family h3 { margin: 0; font-size: 13px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+    .family button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); text-align: left; font-size: 14px; }
+    .family button:hover { border-color: var(--primary); }
+    .family button.is-head { background: #DCEFE7; border-color: #B9D8CE; }
+    .family button span.grow { flex: 1; min-width: 0; }
+    .family .avatar { width: 30px; height: 30px; font-size: 11px; }
+    .choice { display: flex; flex-direction: column; gap: 10px; }
+    .choice button { text-align: left; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--surface); display: flex; flex-direction: column; gap: 4px; }
+    .choice button strong { font-size: 15px; }
+    .choice button span { font-size: 13px; color: var(--muted); }
+    .choice button:hover { border-color: var(--primary); background: var(--primary-tint); }
+    .choice button.danger:hover { border-color: var(--danger); background: var(--danger-bg); }
+    .choice button.danger strong { color: var(--danger); }
+
+    /* ---------- Pengaturan kategori ---------- */
+    .settings { padding: 22px 24px; display: flex; flex-direction: column; gap: 18px; }
+    .settings p.lead { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .cfg-table { width: 100%; border-collapse: collapse; }
+    .cfg-table th { font-size: 12px; color: var(--muted); text-align: left; padding: 8px 8px; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; white-space: nowrap; }
+    .cfg-table td { padding: 6px 8px; vertical-align: middle; }
+    .cfg-table .input { height: 42px; font-size: 14px; }
+    .cfg-table .num-input { width: 96px; }
+    .cfg-table .c { text-align: center; }
+    .cfg-table input[type="radio"] { width: 20px; height: 20px; accent-color: var(--primary); }
+    .cfg-preview { display: flex; flex-wrap: wrap; gap: 8px; }
+    .cfg-preview span { font-size: 13px; padding: 6px 10px; border-radius: 999px; background: var(--soft); border: 1px solid var(--line); }
+    .cfg-preview strong { color: var(--primary-ink); }
+    .note-box { padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+
     /* ---------- States & toast ---------- */
     .state { max-width: 460px; margin: 18vh auto; text-align: center; padding: 0 20px; }
     .spinner { width: 44px; height: 44px; border: 4px solid var(--primary-soft); border-top-color: var(--primary); border-radius: 50%; margin: 0 auto 18px; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .state h2 { margin: 0 0 6px; font-size: 20px; }
     .state p { margin: 0 0 18px; color: var(--muted); }
-    #toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 60; background: var(--deep); color: #fff; padding: 12px 18px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(13, 43, 36, .25); max-width: calc(100% - 32px); display: flex; align-items: center; gap: 10px; }
+    #toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 80; background: var(--deep); color: #fff; padding: 12px 18px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(13, 43, 36, .25); max-width: calc(100% - 32px); display: flex; align-items: center; gap: 10px; }
     #toast.err { background: var(--danger); }
 
     /* ---------- Mobile ---------- */
     @media (max-width: 860px) {
       .sidebar { display: none; }
       .content { padding: 16px 16px 112px; gap: 16px; }
-      .page-head .page-title, .page-head > .btn-primary { display: none; }
-      .search { flex: 1 1 100%; }
+      .page-head { display: none; }
       .mobile-top { display: flex; flex-direction: column; gap: 14px; background: var(--deep); color: #fff; padding: 20px 20px 18px; }
       .mobile-top-row { display: flex; align-items: center; gap: 12px; }
       .mobile-top-row div { flex: 1; display: flex; flex-direction: column; }
@@ -278,16 +371,25 @@
       .bar-row { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; }
       .bar-row .bar-track { grid-column: 1 / -1; grid-row: 2; height: 8px; }
       .section-head { padding: 14px; }
+      .list-tools { padding: 12px; }
+      .list-tools .search { flex: 1 1 100%; max-width: none; }
       .chips-scroll { display: flex; gap: 8px; overflow-x: auto; width: 100%; padding-bottom: 2px; }
       table.data { display: none; }
       .cards { display: flex; }
-      .bottom-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; height: 72px; background: var(--surface); border-top: 1px solid var(--line); z-index: 30; }
+      .table-foot { justify-content: center; }
+      .table-foot > span { flex-basis: 100%; text-align: center; }
+      .bottom-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; height: 72px; background: var(--surface); border-top: 1px solid var(--line); z-index: 30; }
       .bottom-nav button { border: 0; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--muted); font-size: 12px; font-weight: 600; }
       .bottom-nav button[aria-current="page"] { color: var(--primary); font-weight: 700; }
       .bottom-nav svg.lucide { width: 22px; height: 22px; }
       .fab { display: flex; align-items: center; gap: 8px; position: fixed; right: 18px; bottom: 92px; height: 56px; padding: 0 22px; border-radius: 18px; border: 0; background: var(--primary); color: #fff; font-weight: 700; font-size: 15px; box-shadow: 0 10px 24px rgba(11, 110, 91, .35); z-index: 31; }
       .drawer { width: 100%; border-left: 0; }
       .seg-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .modal-backdrop { align-items: flex-end; padding: 0; }
+      .modal { width: 100%; border-radius: 20px 20px 0 0; max-height: 92vh; }
+      .detail-grid { grid-template-columns: minmax(0, 1fr); }
+      .settings { padding: 16px; }
+      .cfg-scroll { overflow-x: auto; }
       #toast { bottom: 96px; }
     }
     @media (min-width: 861px) { .chips-scroll { display: contents; } }
@@ -312,24 +414,12 @@
         <h2>Masukkan PIN</h2>
         <p>PIN dari pengelola aplikasi (minimal 6 digit)</p>
       </div>
-      <div class="pin-field" onclick="document.getElementById('pin-input').focus()">
+      <div class="field">
         <label for="pin-input" class="sr-only">PIN</label>
-        <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" oninput="onPinInput()">
-        <div id="pin-boxes" style="display: contents" aria-hidden="true"></div>
-      </div>
-      <div class="keypad" aria-label="Papan angka">
-        <button type="button" class="key" onclick="pressKey('1')">1</button>
-        <button type="button" class="key" onclick="pressKey('2')">2</button>
-        <button type="button" class="key" onclick="pressKey('3')">3</button>
-        <button type="button" class="key" onclick="pressKey('4')">4</button>
-        <button type="button" class="key" onclick="pressKey('5')">5</button>
-        <button type="button" class="key" onclick="pressKey('6')">6</button>
-        <button type="button" class="key" onclick="pressKey('7')">7</button>
-        <button type="button" class="key" onclick="pressKey('8')">8</button>
-        <button type="button" class="key" onclick="pressKey('9')">9</button>
-        <span></span>
-        <button type="button" class="key" onclick="pressKey('0')">0</button>
-        <button type="button" class="key key-ghost" onclick="pressKey('back')" aria-label="Hapus satu digit"><i data-lucide="delete"></i></button>
+        <div class="pin-wrap">
+          <input id="pin-input" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="••••••" oninput="this.value = this.value.replace(/\D/g, ''); document.getElementById('login-error').textContent = ''">
+          <button type="button" id="pin-toggle" onclick="togglePin()" aria-label="Tampilkan PIN" aria-pressed="false"><i data-lucide="eye"></i></button>
+        </div>
       </div>
       <button type="submit" id="login-btn" class="btn btn-primary"><span>Masuk</span></button>
       <p id="login-error" role="alert"></p>
@@ -371,9 +461,11 @@
           <div class="brand-text"><strong>Sensus BBK02</strong><span>Kelompok Babakan Barat</span></div>
         </div>
         <div class="nav">
-          <button type="button" class="nav-item" data-nav="data" onclick="setView('data')"><i data-lucide="layout-dashboard"></i> Dashboard &amp; Data Jamaah</button>
+          <button type="button" class="nav-item" data-nav="data" onclick="goData()"><i data-lucide="layout-dashboard"></i> Dashboard &amp; Data Jamaah</button>
           <button type="button" class="nav-item" data-nav="kk" onclick="setView('kk')"><i data-lucide="home"></i> Keluarga (KK)</button>
-          <button type="button" class="nav-item" data-nav="lengkapi" onclick="showPerluDilengkapi()"><i data-lucide="triangle-alert"></i> Perlu Dilengkapi <span class="nav-badge" id="nav-lengkapi-count" hidden>0</span></button>
+          <button type="button" class="nav-item" data-nav="dibantu" onclick="showChip('dibantu')"><i data-lucide="hand-heart"></i> Perlu Dibantu <span class="nav-badge" id="nav-dibantu-count" hidden>0</span></button>
+          <button type="button" class="nav-item" data-nav="lengkapi" onclick="showChip('lengkapi')"><i data-lucide="triangle-alert"></i> Perlu Dilengkapi <span class="nav-badge" id="nav-lengkapi-count" hidden>0</span></button>
+          <button type="button" class="nav-item" data-nav="pengaturan" onclick="setView('pengaturan')"><i data-lucide="sliders-horizontal"></i> Pengaturan Kategori</button>
         </div>
         <div class="session-box">
           <div class="session-user">
@@ -390,11 +482,6 @@
             <h1 id="page-title">Data Jamaah</h1>
             <p id="sync-info">Sensus Jiwa Kelompok Babakan Barat</p>
           </div>
-          <label class="search">
-            <i data-lucide="search"></i>
-            <span class="sr-only">Cari</span>
-            <input type="search" id="search-input" placeholder="Cari nama, nama absen, atau KK…" oninput="onSearch()">
-          </label>
           <button type="button" class="btn btn-primary" onclick="openDrawer()"><i data-lucide="plus"></i> Tambah Jamaah</button>
         </div>
 
@@ -405,13 +492,18 @@
             <div class="card kpi"><span class="kpi-label">Keluarga (KK) aktif</span><span class="kpi-value num" id="kpi-kk">0</span><span class="kpi-hint" id="kpi-kk-hint"></span></div>
             <div class="card kpi"><span class="kpi-label">Laki-laki</span><span class="kpi-value num" id="kpi-laki" style="color: var(--male-ink)">0</span><span class="kpi-hint" id="kpi-laki-hint"></span></div>
             <div class="card kpi"><span class="kpi-label">Perempuan</span><span class="kpi-value num" id="kpi-perempuan" style="color: var(--female-ink)">0</span><span class="kpi-hint" id="kpi-perempuan-hint"></span></div>
-            <div class="card kpi"><span class="kpi-label">Lansia ≥ 57 th</span><span class="kpi-value num" id="kpi-lansia" style="color: var(--primary)">0</span><span class="kpi-hint">termasuk dalam kategori</span></div>
+            <div class="card kpi"><span class="kpi-label" id="kpi-lansia-label">Lansia</span><span class="kpi-value num" id="kpi-lansia" style="color: var(--primary)">0</span><span class="kpi-hint">semua status nikah</span></div>
           </section>
 
           <div class="banner" id="banner-lengkapi" role="status" hidden>
             <i data-lucide="triangle-alert"></i>
-            <span><strong id="banner-lengkapi-count">0 jamaah</strong> belum punya tahun lahir, sehingga belum masuk kategori usia mana pun.</span>
-            <button type="button" class="link-btn" onclick="showPerluDilengkapi()">Lengkapi sekarang →</button>
+            <span><strong id="banner-lengkapi-count">0 jamaah</strong> belum punya tahun lahir, sehingga umur &amp; kategorinya belum bisa dihitung.</span>
+            <button type="button" class="link-btn" onclick="showChip('lengkapi')">Lengkapi sekarang →</button>
+          </div>
+          <div class="banner" id="banner-config" role="status" hidden>
+            <i data-lucide="triangle-alert"></i>
+            <span id="banner-config-text"></span>
+            <button type="button" class="link-btn" onclick="setView('pengaturan')">Buka pengaturan →</button>
           </div>
 
           <section class="row-wrap" id="rekap-section">
@@ -430,27 +522,51 @@
             </div>
           </section>
 
-          <section class="card" aria-labelledby="daftar-title">
+          <section class="card" aria-labelledby="daftar-title" id="daftar-section">
             <div class="section-head">
               <h2 id="daftar-title">Daftar Jamaah</h2>
               <div class="chips-scroll" id="chips">
                 <button type="button" class="chip" data-chip="semua" aria-pressed="true" onclick="setChip('semua')">Semua</button>
                 <button type="button" class="chip" data-chip="aktif" aria-pressed="false" onclick="setChip('aktif')">Aktif wilayah</button>
                 <button type="button" class="chip" data-chip="luar" aria-pressed="false" onclick="setChip('luar')">Luar kota</button>
+                <button type="button" class="chip" data-chip="mondok" aria-pressed="false" onclick="setChip('mondok')">Mondok</button>
                 <button type="button" class="chip" data-chip="absen" aria-pressed="false" onclick="setChip('absen')">Masuk absen</button>
                 <button type="button" class="chip" data-chip="tidakabsen" aria-pressed="false" onclick="setChip('tidakabsen')">Tidak absen</button>
+                <button type="button" class="chip chip-help" data-chip="dibantu" aria-pressed="false" onclick="setChip('dibantu')">Perlu dibantu</button>
                 <button type="button" class="chip chip-warn" data-chip="lengkapi" aria-pressed="false" onclick="setChip('lengkapi')">Perlu dilengkapi</button>
               </div>
+            </div>
+            <div class="list-tools">
+              <label class="search">
+                <i data-lucide="search"></i>
+                <span class="sr-only">Cari jamaah</span>
+                <input type="search" id="search-input" placeholder="Cari nama, nama absen, KK, atau no. telepon…" oninput="onSearch()" autocomplete="off">
+                <button type="button" class="search-clear" id="search-clear" onclick="clearSearch()" aria-label="Hapus pencarian" hidden><i data-lucide="x"></i></button>
+              </label>
+              <span class="result-info" id="result-info"></span>
               <span class="spacer"></span>
+              <label class="select-label">Urutkan
+                <select id="sort-select" class="select" onchange="onSortSelect()">
+                  <option value="">Sesuai sheet</option>
+                  <option value="nama_lengkap:asc">Nama A–Z</option>
+                  <option value="nama_lengkap:desc">Nama Z–A</option>
+                  <option value="nama_kk:asc">Keluarga (KK) A–Z</option>
+                  <option value="kategori_usia:asc">Kategori</option>
+                  <option value="umur:asc">Umur termuda</option>
+                  <option value="umur:desc">Umur tertua</option>
+                </select>
+              </label>
+              <label class="switch"><input type="checkbox" id="group-kk" onchange="resetPageAndRender()"> Kelompokkan per KK</label>
               <label class="select-label">Kategori
-                <select id="filter-kategori" class="select" onchange="resetPageAndRender()">
+                <select id="filter-kategori" class="select" onchange="resetPageAndRender()"></select>
+              </label>
+              <label class="select-label">Keberadaan
+                <select id="filter-keberadaan" class="select" onchange="resetPageAndRender()">
                   <option value="">Semua</option>
-                  <option value="BALITA-PAUD">BALITA-PAUD</option>
-                  <option value="Caberawit">Caberawit</option>
-                  <option value="Pra Remaja (SMP)">Pra Remaja (SMP)</option>
-                  <option value="Remaja (SMA)">Remaja (SMA)</option>
-                  <option value="Usia (Pra) Menikah">Usia (Pra) Menikah</option>
-                  <option value="Dewasa Menikah">Dewasa Menikah</option>
+                  <option value="Menetap">Menetap</option>
+                  <option value="Mondok">Mondok</option>
+                  <option value="Tugas">Tugas</option>
+                  <option value="Kerja Luar">Kerja Luar</option>
                 </select>
               </label>
               <label class="select-label">Gender
@@ -472,8 +588,8 @@
                     <th scope="col"><button type="button" class="th-sort" data-sort="hubungan_keluarga" onclick="setSort('hubungan_keluarga')">Hubungan <i data-lucide="chevrons-up-down"></i></button></th>
                     <th scope="col"><button type="button" class="th-sort" data-sort="kategori_usia" onclick="setSort('kategori_usia')">Kategori <i data-lucide="chevrons-up-down"></i></button></th>
                     <th scope="col" style="text-align: right"><button type="button" class="th-sort" data-sort="umur" onclick="setSort('umur')">Umur <i data-lucide="chevrons-up-down"></i></button></th>
-                    <th scope="col">Wilayah</th>
-                    <th scope="col">Absen</th>
+                    <th scope="col">Kontak</th>
+                    <th scope="col">Status</th>
                     <th scope="col"><span class="sr-only">Aksi</span></th>
                   </tr>
                 </thead>
@@ -483,8 +599,7 @@
             <div class="cards" id="jamaah-cards"></div>
             <div class="table-foot">
               <span id="page-info"></span>
-              <button type="button" class="btn btn-sm" id="prev-page" onclick="changePage(-1)">Sebelumnya</button>
-              <button type="button" class="btn btn-sm" id="next-page" onclick="changePage(1)" style="border-color: var(--primary); color: var(--primary)">Berikutnya</button>
+              <div class="pager" id="pager" aria-label="Halaman"></div>
             </div>
           </section>
         </div>
@@ -494,26 +609,65 @@
           <div class="section-head">
             <h2 id="kk-title">Daftar Keluarga (KK)</h2>
             <span class="spacer"></span>
-            <span style="font-size: 13px; color: var(--muted)" id="kk-info"></span>
+            <span class="result-info" id="kk-info"></span>
+          </div>
+          <div class="list-tools">
+            <label class="search">
+              <i data-lucide="search"></i>
+              <span class="sr-only">Cari keluarga</span>
+              <input type="search" id="kk-search-input" placeholder="Cari nama kepala keluarga atau alamat…" oninput="onKkSearch()" autocomplete="off">
+              <button type="button" class="search-clear" id="kk-search-clear" onclick="clearKkSearch()" aria-label="Hapus pencarian" hidden><i data-lucide="x"></i></button>
+            </label>
           </div>
           <div class="table-wrap">
             <table class="data">
               <thead>
-                <tr><th scope="col">Kepala Keluarga</th><th scope="col">Alamat</th><th scope="col">Telepon</th><th scope="col" style="text-align: right">Anggota aktif</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Aksi</span></th></tr>
+                <tr><th scope="col">Kepala Keluarga</th><th scope="col">Alamat</th><th scope="col">Telepon KK</th><th scope="col" style="text-align: right">Anggota aktif</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Aksi</span></th></tr>
               </thead>
               <tbody id="kk-table-rows"></tbody>
             </table>
           </div>
           <div class="cards" id="kk-cards"></div>
         </section>
+
+        <!-- ===== VIEW: PENGATURAN ===== -->
+        <section id="view-pengaturan" class="card" hidden aria-labelledby="cfg-title">
+          <div class="section-head"><h2 id="cfg-title">Pengaturan Kategori Usia</h2></div>
+          <div class="settings">
+            <p class="lead">Kategori dihitung otomatis dari <strong>tahun lahir</strong> dan <strong>status nikah</strong>. Jamaah yang <strong>menikah</strong> masuk kategori menikah di bawah; <strong>Duda/Janda</strong> dihitung di kolom tersendiri. Yang <strong>belum menikah</strong> dicocokkan ke rentang umur di tabel ini. Rentang harus bersambung mulai umur 0, dan kategori terakhir dibiarkan tanpa batas atas.</p>
+            <div class="cfg-scroll">
+              <table class="cfg-table">
+                <thead><tr><th scope="col">Nama kategori</th><th scope="col">Umur dari</th><th scope="col">Umur sampai</th><th scope="col" class="c">Lansia</th><th scope="col"><span class="sr-only">Hapus baris</span></th></tr></thead>
+                <tbody id="cfg-rows"></tbody>
+              </table>
+            </div>
+            <div><button type="button" class="btn btn-sm" onclick="addCfgRow()"><i data-lucide="plus"></i> Tambah kategori</button></div>
+            <div class="field" style="max-width: 360px">
+              <label for="cfg-menikah">Nama kategori untuk yang sudah menikah</label>
+              <input id="cfg-menikah" class="input" type="text" maxlength="40" oninput="renderCfgPreview()">
+            </div>
+            <div class="note-box">Kategori yang diberi tanda <strong>Lansia</strong>: umur awalnya juga dipakai untuk angka <strong>Lansia</strong> di dashboard (menghitung semua status nikah). Contoh: Lansia mulai 57 th → kartu “Lansia ≥ 57 th”.</div>
+            <div>
+              <div class="field-label" style="margin-bottom: 8px">Pratinjau aturan</div>
+              <div class="cfg-preview" id="cfg-preview"></div>
+            </div>
+            <div class="form-error" id="cfg-error" role="alert" hidden></div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px">
+              <button type="button" class="btn btn-primary" id="cfg-save" onclick="saveCfg()"><span>Simpan pengaturan</span></button>
+              <button type="button" class="btn" onclick="resetCfgDraft()">Batalkan perubahan</button>
+              <button type="button" class="btn" onclick="useDefaultCfg()">Kembalikan ke bawaan</button>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
 
     <button type="button" class="fab" onclick="openDrawer()"><i data-lucide="plus"></i> Tambah</button>
     <nav class="bottom-nav" aria-label="Navigasi bawah">
-      <button type="button" data-nav="data" onclick="setView('data')"><i data-lucide="users"></i> Jamaah</button>
+      <button type="button" data-nav="data" onclick="goData()"><i data-lucide="users"></i> Jamaah</button>
       <button type="button" data-nav="kk" onclick="setView('kk')"><i data-lucide="home"></i> Keluarga</button>
-      <button type="button" data-nav="rekap" onclick="goRekap()"><i data-lucide="chart-column"></i> Rekap</button>
+      <button type="button" data-nav="dibantu" onclick="showChip('dibantu')"><i data-lucide="hand-heart"></i> Dibantu</button>
+      <button type="button" data-nav="pengaturan" onclick="setView('pengaturan')"><i data-lucide="sliders-horizontal"></i> Pengaturan</button>
     </nav>
   </div>
 
@@ -554,7 +708,7 @@
             <div class="new-kk-head">Keluarga (KK) baru <button type="button" class="link-btn" onclick="clearKeluarga()" style="font-size: 13px">Batal</button></div>
             <div class="field"><label for="form-nama-kk">Nama kepala keluarga *</label><input id="form-nama-kk" class="input" type="text" maxlength="100"></div>
             <div class="field"><label for="form-alamat">Alamat *</label><textarea id="form-alamat" class="input" rows="2" maxlength="300"></textarea></div>
-            <div class="field"><label for="form-telepon">No. telepon / WA</label><input id="form-telepon" class="input" type="tel" inputmode="tel" maxlength="20" placeholder="08…"></div>
+            <div class="field"><label for="form-telepon">No. telepon rumah / KK</label><input id="form-telepon" class="input" type="tel" inputmode="tel" maxlength="20" placeholder="08…"></div>
           </div>
         </fieldset>
 
@@ -565,6 +719,11 @@
             <label for="form-nama-absen">Nama di absen</label>
             <input id="form-nama-absen" class="input" type="text" maxlength="100" placeholder="Nama panggilan">
             <span class="help">Kosongkan bila sama dengan nama lengkap</span>
+          </div>
+          <div class="field">
+            <label for="form-no-telepon">No. telepon / WhatsApp</label>
+            <input id="form-no-telepon" class="input" type="tel" inputmode="tel" maxlength="20" placeholder="08…">
+            <span class="help">Dipakai untuk tombol WhatsApp di halaman admin &amp; pengurus</span>
           </div>
           <div class="field">
             <span class="field-label" id="lbl-hub">Hubungan dalam KK *</span>
@@ -613,23 +772,30 @@
           </div>
           <label class="toggle"><div><strong>Aktif di wilayah</strong><span>Dihitung dalam rekap sensus</span></div><input type="checkbox" id="form-is-aktif" checked></label>
           <label class="toggle"><div><strong>Masuk daftar absen</strong><span>Wajib hadir pengajian rutin</span></div><input type="checkbox" id="form-flag-absen" checked></label>
+          <label class="toggle"><div><strong>Perlu dibantu</strong><span>Penerima santunan / bantuan kelompok (hanya terlihat admin)</span></div><input type="checkbox" id="form-perlu-dibantu"></label>
           <div class="field"><label for="form-catatan">Catatan</label><textarea id="form-catatan" class="input" rows="2" maxlength="500" placeholder="Keterangan tambahan (opsional)"></textarea></div>
         </fieldset>
 
         <div class="form-error" id="form-error" role="alert" hidden></div>
       </div>
       <div class="drawer-foot">
+        <button type="button" id="delete-btn" class="btn btn-danger-ghost" onclick="deleteFromForm()" hidden><i data-lucide="trash-2"></i> Hapus</button>
         <button type="button" id="cancel-btn" class="btn" style="flex: 1" onclick="closeDrawer()">Batal</button>
         <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 2"><span>Simpan Jamaah</span></button>
       </div>
     </form>
   </aside>
 
+  <!-- ================= MODAL (detail & konfirmasi) ================= -->
+  <div class="modal-backdrop" id="modal-backdrop" hidden onclick="if (event.target === this) closeModal()">
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"></div>
+  </div>
+
   <div id="toast" role="status" aria-live="polite" hidden></div>
 
   <script>
     // ================= STATE =================
-    let appData = { jamaah: [], keluarga: [], rekap: {} };
+    let appData = { jamaah: [], keluarga: [], rekap: {}, kategoriConfig: null };
     let currentView = 'data';
     let currentChip = 'semua';
     let sortField = '';
@@ -637,12 +803,25 @@
     let currentPage = 1;
     const PAGE_SIZE = 25;
     let lastSync = null;
+    let cfgDraft = null;
 
     const TOKEN_KEY = 'sensus_token_admin';
     let authToken = null;
 
-    const KATEGORI = ["BALITA-PAUD", "Caberawit", "Pra Remaja (SMP)", "Remaja (SMA)", "Usia (Pra) Menikah", "Dewasa Menikah"];
+    const DEFAULT_CFG = {
+      kategori: [
+        { nama: "BALITA-PAUD", min: 0, max: 5, lansia: false },
+        { nama: "Caberawit", min: 6, max: 12, lansia: false },
+        { nama: "Pra Remaja (SMP)", min: 13, max: 15, lansia: false },
+        { nama: "Remaja (SMA)", min: 16, max: 17, lansia: false },
+        { nama: "Usia (Pra) Menikah", min: 18, max: 56, lansia: false },
+        { nama: "Lansia", min: 57, max: null, lansia: true }
+      ],
+      labelMenikah: "Dewasa Menikah"
+    };
     const HUB_LABEL = { A: 'Kepala', B: 'Istri', C: 'Anak', D: 'Lainnya' };
+    const HUB_ORDER = { A: 0, B: 1, C: 2, D: 3 };
+    const NIKAH_LABEL = { BELUM: 'Belum menikah', MENIKAH: 'Menikah', DUDA: 'Duda', JANDA: 'Janda' };
     const KEBERADAAN = [
       { key: 'Menetap', color: '#0B6E5B' }, { key: 'Mondok', color: '#2563EB' },
       { key: 'Tugas', color: '#F59E5B' }, { key: 'Kerja Luar', color: '#94A3A0' }
@@ -672,6 +851,19 @@
       return '"' + s.replace(/"/g, '""') + '"';
     }
 
+    // Nomor HP Indonesia -> format wa.me (0812… / +62812… / 812… -> 62812…)
+    function waNumber(raw) {
+      let d = String(raw || '').replace(/\D/g, '');
+      if (d.startsWith('0')) d = '62' + d.slice(1);
+      else if (d.startsWith('8')) d = '62' + d;
+      return d.length >= 9 && d.length <= 15 ? d : '';
+    }
+    function waHtml(raw, opts) {
+      const n = waNumber(raw);
+      if (!n) return raw ? `<span class="muted">${esc(raw)}</span>` : '<span class="muted">–</span>';
+      return `<a class="wa" href="https://wa.me/${n}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp ${esc(raw)}${opts && opts.name ? ' (' + esc(opts.name) + ')' : ''}"><i data-lucide="message-circle"></i>${esc(raw)}</a>`;
+    }
+
     let toastTimer = null;
     function showToast(msg, isError) {
       const t = $('toast');
@@ -689,16 +881,52 @@
     }
     function loadToken() { try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; } }
 
-    // Rule engine lokal: untuk pratinjau di form & Mode Simulasi. Data live tetap dihitung di server.
-    function kategoriUsiaLokal(tahunLahir, statusNikah) {
+    // ================= KATEGORI =================
+    function getCfg() { return appData.kategoriConfig || DEFAULT_CFG; }
+    function lansiaMin(cfg) { const k = (cfg || getCfg()).kategori.find(x => x.lansia); return k ? k.min : 57; }
+    function kategoriOrder() { return (appData.rekap && appData.rekap.kategoriOrder) || getCfg().kategori.map(k => k.nama).concat([getCfg().labelMenikah]); }
+
+    // Rule engine lokal: pratinjau di form & Mode Simulasi. Data live tetap dihitung di server.
+    function kategoriUsiaLokal(tahunLahir, statusNikah, cfg) {
+      cfg = cfg || getCfg();
       const s = (statusNikah || '').toUpperCase();
-      if (s === 'MENIKAH' || s === 'DUDA' || s === 'JANDA') return 'Dewasa Menikah';
+      if (s === 'MENIKAH' || s === 'DUDA' || s === 'JANDA') return cfg.labelMenikah;
+      if (!tahunLahir) return 'Tanpa Tahun Lahir';
       const umur = new Date().getFullYear() - tahunLahir;
-      if (umur <= 5) return 'BALITA-PAUD';
-      if (umur <= 12) return 'Caberawit';
-      if (umur <= 15) return 'Pra Remaja (SMP)';
-      if (umur <= 17) return 'Remaja (SMA)';
-      return 'Usia (Pra) Menikah';
+      const k = cfg.kategori.find(x => umur >= x.min && (x.max === null || umur <= x.max));
+      return k ? k.nama : 'Di Luar Kategori';
+    }
+
+    // Sama dengan validasi server (server tetap memeriksa ulang)
+    function validateCfgLocal(input) {
+      const label = String(input.labelMenikah || '').replace(/\s+/g, ' ').trim();
+      if (!label) throw new Error('Nama kategori untuk yang sudah menikah wajib diisi.');
+      if (!input.kategori.length || input.kategori.length > 12) throw new Error('Jumlah kategori umur harus 1 sampai 12.');
+      const reserved = ['DUDA', 'JANDA', 'TANPA TAHUN LAHIR', 'DI LUAR KATEGORI'];
+      const seen = new Set([label.toUpperCase()]);
+      if (reserved.includes(label.toUpperCase())) throw new Error(`Nama '${label}' dipakai sistem, gunakan nama lain.`);
+      const list = input.kategori.map((k, i) => {
+        const nama = String(k.nama || '').replace(/\s+/g, ' ').trim();
+        const no = `Baris ${i + 1}: `;
+        if (!nama) throw new Error(no + 'nama kategori wajib diisi.');
+        if (reserved.includes(nama.toUpperCase())) throw new Error(no + `nama '${nama}' dipakai sistem.`);
+        if (seen.has(nama.toUpperCase())) throw new Error(no + `nama '${nama}' dipakai lebih dari sekali.`);
+        seen.add(nama.toUpperCase());
+        const min = k.min === '' || k.min === null || k.min === undefined ? NaN : Number(k.min);
+        const max = k.max === '' || k.max === null || k.max === undefined ? null : Number(k.max);
+        if (!(Number.isInteger(min) && min >= 0 && min <= 150)) throw new Error(no + 'umur "dari" harus angka bulat 0–150.');
+        if (max !== null && !(Number.isInteger(max) && max >= min && max <= 150)) throw new Error(no + 'umur "sampai" harus angka bulat ≥ umur "dari".');
+        return { nama, min, max, lansia: !!k.lansia };
+      }).sort((a, b) => a.min - b.min);
+      if (list[0].min !== 0) throw new Error('Kategori pertama harus mulai dari umur 0.');
+      for (let i = 1; i < list.length; i++) {
+        const p = list[i - 1], c = list[i];
+        if (p.max === null) throw new Error(`Hanya kategori dengan umur terbesar yang boleh tanpa batas atas ('${p.nama}').`);
+        if (c.min !== p.max + 1) throw new Error(`Rentang umur harus bersambung: '${p.nama}' sampai ${p.max} th, maka '${c.nama}' harus mulai ${p.max + 1} th.`);
+      }
+      if (list[list.length - 1].max !== null) throw new Error(`Kategori terakhir ('${list[list.length - 1].nama}') harus tanpa batas atas (kosongkan "sampai").`);
+      if (list.filter(k => k.lansia).length > 1) throw new Error('Penanda Lansia hanya boleh di satu kategori.');
+      return { kategori: list, labelMenikah: label };
     }
 
     // ================= KONEKSI SERVER =================
@@ -730,71 +958,83 @@
     }
 
     // ================= MODE SIMULASI (data fiktif) =================
-    const mockKeluarga = [
+    const mockKeluargaSeed = [
       { id_keluarga: "KK-1", nama_kk: "Bapak Contoh Satu", alamat: "Alamat Contoh RT 01", telepon: "080000000001" },
       { id_keluarga: "KK-2", nama_kk: "Bapak Contoh Dua", alamat: "Alamat Contoh RT 02", telepon: "080000000002" },
-      { id_keluarga: "KK-3", nama_kk: "Bapak Contoh Tiga", alamat: "Alamat Contoh RT 03", telepon: "080000000003" }
+      { id_keluarga: "KK-3", nama_kk: "Bapak Contoh Tiga", alamat: "Alamat Contoh RT 03", telepon: "" }
     ];
     const mockJamaahSeed = [
-      ["JM-1", "KK-1", "A", "Bapak Contoh Satu", "Contoh Satu", "L", 1956, "MENIKAH", "Y", "Y", "Menetap"],
-      ["JM-2", "KK-1", "B", "Ibu Contoh Satu", "Ibu Satu", "P", 1968, "MENIKAH", "Y", "Y", "Menetap"],
-      ["JM-3", "KK-2", "A", "Bapak Contoh Dua", "Contoh Dua", "L", 1997, "MENIKAH", "Y", "Y", "Menetap"],
-      ["JM-4", "KK-2", "B", "Ibu Contoh Dua", "Ibu Dua", "P", 1999, "MENIKAH", "Y", "Y", "Menetap"],
-      ["JM-5", "KK-2", "C", "Anak Contoh Dua", "Anak Dua", "L", 2025, "BELUM", "Y", "N", "Menetap"],
-      ["JM-6", "KK-3", "A", "Bapak Contoh Tiga", "Contoh Tiga", "L", 1967, "MENIKAH", "Y", "Y", "Menetap"],
-      ["JM-7", "KK-3", "B", "Ibu Contoh Tiga", "Ibu Tiga", "P", 1964, "MENIKAH", "Y", "Y", "Menetap"],
-      ["JM-8", "KK-3", "C", "Anak Contoh Tiga", "Anak Tiga", "P", 2008, "BELUM", "N", "N", "Mondok"],
-      ["JM-9", "KK-3", "C", "Anak Tanpa Tahun", "Tanpa Tahun", "L", null, "BELUM", "Y", "Y", "Menetap"]
+      ["JM-1", "KK-1", "A", "Bapak Contoh Satu", "Contoh Satu", "L", 1956, "MENIKAH", "Y", "Y", "Menetap", "080000000011", "N"],
+      ["JM-2", "KK-1", "B", "Ibu Contoh Satu", "Ibu Satu", "P", 1968, "MENIKAH", "Y", "Y", "Menetap", "", "N"],
+      ["JM-3", "KK-2", "A", "Bapak Contoh Dua", "Contoh Dua", "L", 1997, "MENIKAH", "Y", "Y", "Menetap", "080000000021", "N"],
+      ["JM-4", "KK-2", "B", "Ibu Contoh Dua", "Ibu Dua", "P", 1999, "MENIKAH", "Y", "Y", "Menetap", "", "N"],
+      ["JM-5", "KK-2", "C", "Anak Contoh Dua", "Anak Dua", "L", 2025, "BELUM", "Y", "N", "Menetap", "", "N"],
+      ["JM-6", "KK-3", "A", "Bapak Contoh Tiga", "Contoh Tiga", "L", 1950, "BELUM", "Y", "Y", "Menetap", "", "Y"],
+      ["JM-7", "KK-3", "C", "Anak Contoh Tiga", "Anak Tiga", "P", 2008, "BELUM", "N", "N", "Mondok", "", "N"],
+      ["JM-8", "KK-3", "C", "Anak Tanpa Tahun", "Tanpa Tahun", "L", null, "BELUM", "Y", "Y", "Menetap", "", "N"]
     ];
     function buildMockJamaah() {
       const thisYear = new Date().getFullYear();
       return mockJamaahSeed.map(r => ({
-        id_jamaah: r[0], id_keluarga: r[1],
-        nama_kk: (mockKeluarga.find(k => k.id_keluarga === r[1]) || {}).nama_kk || 'Tidak Terdaftar',
+        id_jamaah: r[0], id_keluarga: r[1], nama_kk: '',
         hubungan_keluarga: r[2], nama_lengkap: r[3], nama_absen: r[4], jenis_kelamin: r[5],
         tahun_lahir: r[6], umur: r[6] ? thisYear - r[6] : null, status_nikah: r[7], is_aktif: r[8], flag_absen: r[9],
-        status_keberadaan: r[10], kategori_usia: r[6] || r[7] !== 'BELUM' ? kategoriUsiaLokal(r[6], r[7]) : 'Tanpa Tahun Lahir', catatan: ""
+        status_keberadaan: r[10], kategori_usia: '', catatan: '', no_telepon: r[11], perlu_dibantu: r[12]
       }));
     }
     function simulateLoadData() {
       showState('loading');
       setTimeout(() => {
-        appData.keluarga = mockKeluarga.map(k => Object.assign({}, k));
+        appData.keluarga = mockKeluargaSeed.map(k => Object.assign({}, k));
         appData.jamaah = buildMockJamaah();
+        appData.kategoriConfig = JSON.parse(JSON.stringify(DEFAULT_CFG));
         calculateMockRekap();
         lastSync = new Date();
         showState('app');
         renderAll();
-      }, 400);
+      }, 300);
     }
     function calculateMockRekap() {
+      const cfg = getCfg();
+      const kkMap = {};
+      appData.keluarga.forEach(k => { kkMap[k.id_keluarga] = k.nama_kk; });
+      appData.jamaah.forEach(j => {
+        j.nama_kk = kkMap[j.id_keluarga] || 'Tidak Terdaftar';
+        j.kategori_usia = kategoriUsiaLokal(j.tahun_lahir, j.status_nikah, cfg);
+      });
+      const order = cfg.kategori.map(k => k.nama).concat([cfg.labelMenikah]);
       const active = appData.jamaah.filter(j => j.is_aktif === 'Y');
       const inactiveKK = {};
       appData.jamaah.forEach(j => { if (j.hubungan_keluarga === 'A' && j.is_aktif === 'N') inactiveKK[j.id_keluarga] = true; });
-      const rekap = {
+      const detail = {};
+      order.forEach(k => { detail[k] = { L: 0, P: 0 }; });
+      active.forEach(j => {
+        if (detail[j.kategori_usia] && (j.jenis_kelamin === 'L' || j.jenis_kelamin === 'P') &&
+            j.status_nikah !== 'DUDA' && j.status_nikah !== 'JANDA') detail[j.kategori_usia][j.jenis_kelamin]++;
+      });
+      appData.rekap = {
         total: active.length,
         laki: active.filter(j => j.jenis_kelamin === 'L').length,
         perempuan: active.filter(j => j.jenis_kelamin === 'P').length,
         duda: active.filter(j => j.status_nikah === 'DUDA').length,
         janda: active.filter(j => j.status_nikah === 'JANDA').length,
-        lansia: active.filter(j => j.umur !== null && j.umur >= 57).length,
+        lansia: active.filter(j => j.umur !== null && j.umur >= lansiaMin(cfg)).length,
+        batasLansia: lansiaMin(cfg),
         kkCount: appData.keluarga.filter(k => !inactiveKK[k.id_keluarga]).length,
-        tanpaTahunLahir: active.filter(j => !j.tahun_lahir).length,
-        detail: {}
+        perluDibantu: appData.jamaah.filter(j => j.perlu_dibantu === 'Y').length,
+        kategoriOrder: order,
+        detail: detail
       };
-      KATEGORI.forEach(k => { rekap.detail[k] = { L: 0, P: 0 }; });
-      active.forEach(j => {
-        if (rekap.detail[j.kategori_usia] && (j.jenis_kelamin === 'L' || j.jenis_kelamin === 'P') &&
-            j.status_nikah !== 'DUDA' && j.status_nikah !== 'JANDA') rekap.detail[j.kategori_usia][j.jenis_kelamin]++;
-      });
-      appData.rekap = rekap;
     }
 
     // ================= INIT & STATES =================
     window.addEventListener('DOMContentLoaded', () => {
-      renderPinBoxes();
       icons();
-      document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('form-drawer').hidden) closeDrawer(); });
+      document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if (!$('modal-backdrop').hidden) closeModal();
+        else if (!$('form-drawer').hidden) closeDrawer();
+      });
       document.addEventListener('click', e => {
         const box = $('keluarga-results-container');
         if (!box.hidden && e.target !== $('keluarga-search-input') && !box.contains(e.target)) box.hidden = true;
@@ -821,39 +1061,28 @@
     }
 
     // ================= LOGIN =================
-    function renderPinBoxes() {
-      const len = $('pin-input').value.length;
-      const slots = Math.max(6, len + (len >= 6 && len < 12 ? 1 : 0));
-      let html = '';
-      for (let i = 0; i < slots; i++) {
-        html += `<span class="pin-box${i < len ? ' filled' : ''}${i === len ? ' current' : ''}"></span>`;
-      }
-      $('pin-boxes').innerHTML = html;
-    }
-    function onPinInput() {
-      const el = $('pin-input');
-      el.value = el.value.replace(/\D/g, '').slice(0, 12);
-      $('login-error').textContent = '';
-      renderPinBoxes();
-    }
-    function pressKey(k) {
-      const el = $('pin-input');
-      if (k === 'back') el.value = el.value.slice(0, -1);
-      else if (el.value.length < 12) el.value += k;
-      onPinInput();
+    function togglePin() {
+      const el = $('pin-input'), btn = $('pin-toggle');
+      const show = el.type === 'password';
+      el.type = show ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+      btn.setAttribute('aria-label', show ? 'Sembunyikan PIN' : 'Tampilkan PIN');
+      btn.innerHTML = `<i data-lucide="${show ? 'eye-off' : 'eye'}"></i>`;
+      icons();
+      el.focus();
     }
     function showLogin(message) {
+      closeModal();
       closeDrawer(true);
       showState('login');
       $('login-error').textContent = message || '';
       $('pin-input').value = '';
-      renderPinBoxes();
       $('pin-input').focus();
     }
     function handleLogin(event) {
       event.preventDefault();
       const btn = $('login-btn');
-      const pin = $('pin-input').value;
+      const pin = $('pin-input').value.trim();
       if (!pin) { $('login-error').textContent = 'Masukkan PIN terlebih dahulu.'; return; }
       btn.disabled = true;
       btn.querySelector('span').textContent = 'Memeriksa…';
@@ -868,7 +1097,6 @@
             loadData();
           } else {
             $('pin-input').value = '';
-            renderPinBoxes();
             $('login-error').textContent = (res && res.message) || 'PIN salah.';
           }
         }, err => {
@@ -880,9 +1108,9 @@
     function handleLogout() {
       const t = authToken;
       saveToken(null);
-      appData = { jamaah: [], keluarga: [], rekap: {} };
-      if (!isLocalMode && t) callApi('logout', t).catch(() => {});
       if (isLocalMode) { showToast('Mode Simulasi tidak memakai PIN.'); return; }
+      appData = { jamaah: [], keluarga: [], rekap: {}, kategoriConfig: null };
+      if (t) callApi('logout', t).catch(() => {});
       showLogin('Anda sudah keluar.');
     }
     // Dipanggil saat server menolak token (kedaluwarsa / tidak valid)
@@ -896,7 +1124,7 @@
     }
 
     // ================= DATA =================
-    // silent = muat ulang di belakang layar (setelah simpan) tanpa layar loading
+    // silent = muat ulang di belakang layar (setelah simpan/hapus) tanpa layar loading
     function loadData(silent) {
       if (isLocalMode) { simulateLoadData(); return; }
       if (silent !== true) showState('loading');
@@ -929,6 +1157,7 @@
       const jamaah = appData.jamaah || [];
       const aktif = jamaah.filter(j => j.is_aktif === 'Y');
       const tanpaTahun = jamaah.filter(j => !j.tahun_lahir).length;
+      const dibantu = jamaah.filter(j => j.perlu_dibantu === 'Y').length;
 
       $('sync-info').textContent = 'Sensus Jiwa Kelompok Babakan Barat · diperbarui ' +
         (lastSync ? lastSync.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-');
@@ -943,23 +1172,39 @@
       $('kpi-perempuan').textContent = fmt(r.perempuan);
       $('kpi-perempuan-hint').textContent = pct(r.perempuan, r.total) + ' jiwa aktif';
       $('kpi-lansia').textContent = fmt(r.lansia);
+      $('kpi-lansia-label').textContent = 'Lansia ≥ ' + (r.batasLansia || lansiaMin()) + ' th';
 
       $('banner-lengkapi').hidden = tanpaTahun === 0;
       $('banner-lengkapi-count').textContent = fmt(tanpaTahun) + ' jamaah';
       $('nav-lengkapi-count').hidden = tanpaTahun === 0;
       $('nav-lengkapi-count').textContent = tanpaTahun;
+      $('nav-dibantu-count').hidden = dibantu === 0;
+      $('nav-dibantu-count').textContent = dibantu;
+      const invalid = appData.kategoriConfig && appData.kategoriConfig.invalid;
+      $('banner-config').hidden = !invalid;
+      if (invalid) $('banner-config-text').textContent = 'Sheet Pengaturan_Kategori tidak valid, sementara memakai kategori bawaan. (' + invalid + ')';
 
+      renderKategoriFilter();
       renderKategoriBars();
       renderKeberadaan(jamaah, aktif);
       renderTable();
       renderKeluargaList();
+      if (currentView === 'pengaturan' && !cfgDraft) resetCfgDraft();
       updateNav();
       icons();
     }
 
+    function renderKategoriFilter() {
+      const sel = $('filter-kategori');
+      const prev = sel.value;
+      const opts = kategoriOrder().concat(['Tanpa Tahun Lahir']);
+      sel.innerHTML = '<option value="">Semua</option>' + opts.map(k => `<option value="${esc(k)}">${esc(k)}</option>`).join('');
+      if (opts.includes(prev)) sel.value = prev;
+    }
+
     function renderKategoriBars() {
       const r = appData.rekap || {};
-      const items = KATEGORI.map(k => {
+      const items = kategoriOrder().map(k => {
         const d = (r.detail && r.detail[k]) || { L: 0, P: 0 };
         return { label: k, L: d.L, P: d.P };
       });
@@ -978,99 +1223,166 @@
     }
 
     function renderKeberadaan(jamaah, aktif) {
+      const current = $('filter-keberadaan').value;
       $('keberadaan-list').innerHTML = KEBERADAAN.map(k => {
         const n = jamaah.filter(j => (j.status_keberadaan || 'Menetap') === k.key).length;
-        return `<div class="stat-line"><span class="dot" style="background: ${k.color}"></span><span>${esc(k.key)}</span><strong class="num">${fmt(n)}</strong></div>`;
+        return `<button type="button" class="stat-line clickable" data-keberadaan="${esc(k.key)}" aria-pressed="${current === k.key}" title="Tampilkan jamaah ${esc(k.key)}">
+          <span class="dot" style="background: ${k.color}"></span><span>${esc(k.key)}</span><strong class="num">${fmt(n)}</strong></button>`;
       }).join('');
-      $('absen-count').textContent = fmt(aktif.filter(j => j.flag_absen === 'Y').length) + ' jiwa';
+      document.querySelectorAll('#keberadaan-list .stat-line').forEach(b => {
+        b.onclick = () => {
+          const v = b.dataset.keberadaan;
+          $('filter-keberadaan').value = $('filter-keberadaan').value === v ? '' : v;
+          resetPageAndRender();
+          renderKeberadaan(appData.jamaah || [], []);
+          $('absen-count').textContent = fmt((appData.jamaah || []).filter(j => j.is_aktif === 'Y' && j.flag_absen === 'Y').length) + ' jiwa';
+          scrollToList();
+        };
+      });
+      $('absen-count').textContent = fmt(jamaah.filter(j => j.is_aktif === 'Y' && j.flag_absen === 'Y').length) + ' jiwa';
     }
 
-    // ---- Filter, sort, page ----
+    // ---- Filter, sort, kelompok ----
+    function compareBy(field, order) {
+      return (a, b) => {
+        let valA = a[field], valB = b[field];
+        if (valA === null || valA === undefined || valA === '') return 1;
+        if (valB === null || valB === undefined || valB === '') return -1;
+        if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = String(valB).toLowerCase(); }
+        if (valA < valB) return order === 'asc' ? -1 : 1;
+        if (valA > valB) return order === 'asc' ? 1 : -1;
+        return 0;
+      };
+    }
+    function familyOrder(a, b) {
+      const h = (HUB_ORDER[a.hubungan_keluarga] ?? 9) - (HUB_ORDER[b.hubungan_keluarga] ?? 9);
+      if (h) return h;
+      return (b.umur ?? -1) - (a.umur ?? -1);
+    }
+    function isGrouped() { return $('group-kk').checked; }
+
     function getFilteredJamaah() {
       const q = $('search-input').value.toLowerCase().trim();
+      const qDigits = q.replace(/\D/g, '');
       const fKategori = $('filter-kategori').value;
+      const fKeberadaan = $('filter-keberadaan').value;
       const fGender = $('filter-gender').value;
       const chipFn = {
         semua: () => true,
         aktif: j => j.is_aktif === 'Y',
         luar: j => j.is_aktif === 'N',
+        mondok: j => j.status_keberadaan === 'Mondok',
         absen: j => j.flag_absen === 'Y',
         tidakabsen: j => j.flag_absen === 'N',
+        dibantu: j => j.perlu_dibantu === 'Y',
         lengkapi: j => !j.tahun_lahir
       }[currentChip] || (() => true);
 
       const filtered = (appData.jamaah || []).filter(j => {
         const matchesQ = !q || String(j.nama_lengkap).toLowerCase().includes(q) ||
-          String(j.nama_absen).toLowerCase().includes(q) || String(j.nama_kk).toLowerCase().includes(q);
+          String(j.nama_absen).toLowerCase().includes(q) || String(j.nama_kk).toLowerCase().includes(q) ||
+          (qDigits.length >= 3 && String(j.no_telepon || '').replace(/\D/g, '').includes(qDigits));
         return matchesQ && chipFn(j) &&
           (!fKategori || j.kategori_usia === fKategori) &&
+          (!fKeberadaan || (j.status_keberadaan || 'Menetap') === fKeberadaan) &&
           (!fGender || j.jenis_kelamin === fGender);
       });
 
-      if (sortField) {
+      if (isGrouped()) {
+        // Kelompok per KK: urut KK (A–Z, atau Z–A bila urutan KK menurun), lalu Kepala, Istri, Anak, Lainnya
+        const kkOrder = sortField === 'nama_kk' && sortOrder === 'desc' ? -1 : 1;
         filtered.sort((a, b) => {
-          let valA = a[sortField], valB = b[sortField];
-          if (valA === null || valA === undefined) return 1;
-          if (valB === null || valB === undefined) return -1;
-          if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = String(valB).toLowerCase(); }
-          if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-          if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
-          return 0;
+          const k = String(a.nama_kk).localeCompare(String(b.nama_kk), 'id') * kkOrder || String(a.id_keluarga).localeCompare(String(b.id_keluarga));
+          if (k) return k;
+          if (sortField && sortField !== 'nama_kk' && sortField !== 'hubungan_keluarga') {
+            const s = compareBy(sortField, sortOrder)(a, b);
+            if (s) return s;
+          }
+          return familyOrder(a, b);
         });
+      } else if (sortField) {
+        filtered.sort(compareBy(sortField, sortOrder));
       }
       return filtered;
     }
 
+    function kategoriTag(j) {
+      if (j.kategori_usia === 'Tanpa Tahun Lahir') return '<span class="tag tag-warn">Tanpa tahun lahir</span>';
+      if (j.kategori_usia === 'Di Luar Kategori') return '<span class="tag tag-warn">Di luar kategori</span>';
+      return `<span class="tag">${esc(j.kategori_usia)}</span>`;
+    }
+    function statusStack(j, short) {
+      return `<span class="status ${j.is_aktif === 'Y' ? 'on' : ''}">${j.is_aktif === 'Y' ? 'Aktif' : 'Luar kota'}</span>
+              <span class="status ${j.flag_absen === 'Y' ? 'on' : ''}">${j.flag_absen === 'Y' ? (short ? 'Absen' : 'Masuk absen') : 'Tidak absen'}</span>`;
+    }
+    function groupHeader(kkId, name, count) {
+      const k = (appData.keluarga || []).find(x => x.id_keluarga === kkId);
+      return { name: name, alamat: k ? k.alamat : '', count: count };
+    }
+
     function renderTable() {
       const filtered = getFilteredJamaah();
+      const grouped = isGrouped();
       const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
       if (currentPage > pages) currentPage = pages;
+      if (currentPage < 1) currentPage = 1;
       const start = (currentPage - 1) * PAGE_SIZE;
       const pageRows = filtered.slice(start, start + PAGE_SIZE);
+      const familyCount = {};
+      if (grouped) filtered.forEach(j => { familyCount[j.id_keluarga] = (familyCount[j.id_keluarga] || 0) + 1; });
+
+      const q = $('search-input').value.trim();
+      $('search-clear').hidden = !q;
+      $('result-info').innerHTML = q || currentChip !== 'semua' || $('filter-kategori').value || $('filter-keberadaan').value || $('filter-gender').value
+        ? `<strong>${fmt(filtered.length)}</strong> jamaah cocok`
+        : `${fmt(filtered.length)} jamaah`;
 
       if (pageRows.length === 0) {
-        $('jamaah-table-rows').innerHTML = '<tr><td colspan="8" class="empty">Tidak ada jamaah yang cocok dengan filter.</td></tr>';
-        $('jamaah-cards').innerHTML = '<div class="empty">Tidak ada jamaah yang cocok dengan filter.</div>';
+        $('jamaah-table-rows').innerHTML = '<tr><td colspan="8" class="empty">Tidak ada jamaah yang cocok dengan pencarian / filter.</td></tr>';
+        $('jamaah-cards').innerHTML = '<div class="empty">Tidak ada jamaah yang cocok dengan pencarian / filter.</div>';
       } else {
-        $('jamaah-table-rows').innerHTML = pageRows.map(j => {
-          const kategori = j.tahun_lahir || j.status_nikah !== 'BELUM'
-            ? `<span class="tag">${esc(j.kategori_usia)}</span>` : '<span class="tag tag-warn">Tanpa tahun lahir</span>';
-          return `<tr>
-            <td><div class="person"><span class="avatar ${avatarClass(j.id_jamaah)}">${esc(initials(j.nama_lengkap))}</span>
-              <div class="person-text"><strong>${esc(j.nama_lengkap)}</strong><span>Absen: ${esc(j.nama_absen)}</span></div></div></td>
+        let rowsHtml = '', cardsHtml = '', lastKK = null;
+        pageRows.forEach(j => {
+          if (grouped && j.id_keluarga !== lastKK) {
+            lastKK = j.id_keluarga;
+            const g = groupHeader(j.id_keluarga, j.nama_kk, familyCount[j.id_keluarga]);
+            rowsHtml += `<tr class="group-row"><td colspan="8"><strong>KK ${esc(g.name)}</strong><span>${esc(g.alamat)}${g.alamat ? ' · ' : ''}${g.count} jiwa sesuai filter</span></td></tr>`;
+            cardsHtml += `<div class="m-group">KK ${esc(g.name)} <span>· ${g.count} jiwa</span></div>`;
+          }
+          const head = j.hubungan_keluarga === 'A' ? ' is-head' : '';
+          const dibantu = j.perlu_dibantu === 'Y' ? ' <span class="tag tag-help">Dibantu</span>' : '';
+          rowsHtml += `<tr class="${head.trim()}">
+            <td><button type="button" class="name-btn detail-btn" data-id="${esc(j.id_jamaah)}"><span class="person"><span class="avatar ${avatarClass(j.id_jamaah)}">${esc(initials(j.nama_lengkap))}</span>
+              <span class="person-text"><strong>${esc(j.nama_lengkap)}</strong><span>Absen: ${esc(j.nama_absen)}${dibantu}</span></span></span></button></td>
             <td style="color: var(--ink-2)">${esc(j.nama_kk)}</td>
             <td><span class="hub"><code>${esc(j.hubungan_keluarga)}</code>${esc(HUB_LABEL[j.hubungan_keluarga] || '')}</span></td>
-            <td>${kategori}</td>
+            <td>${kategoriTag(j)}</td>
             <td class="num" style="text-align: right">${esc(umurText(j.umur))}</td>
-            <td><span class="status ${j.is_aktif === 'Y' ? 'on' : ''}">${j.is_aktif === 'Y' ? 'Aktif' : 'Luar kota'}</span></td>
-            <td><span class="status ${j.flag_absen === 'Y' ? 'on' : ''}">${j.flag_absen === 'Y' ? 'Masuk' : 'Tidak'}</span></td>
+            <td>${waHtml(j.no_telepon, { name: j.nama_lengkap })}</td>
+            <td><div class="status-stack">${statusStack(j)}</div></td>
             <td style="text-align: right"><button type="button" class="icon-btn edit-btn" data-id="${esc(j.id_jamaah)}" aria-label="Edit ${esc(j.nama_lengkap)}"><i data-lucide="pencil"></i></button></td>
           </tr>`;
-        }).join('');
-
-        $('jamaah-cards').innerHTML = pageRows.map(j => {
-          const kategori = j.tahun_lahir || j.status_nikah !== 'BELUM'
-            ? `<span class="tag">${esc(j.kategori_usia)}</span>` : '<span class="tag tag-warn">Tanpa tahun lahir</span>';
-          return `<button type="button" class="m-card edit-btn" data-id="${esc(j.id_jamaah)}" aria-label="Edit ${esc(j.nama_lengkap)}">
-            <span class="avatar ${avatarClass(j.id_jamaah)}" style="width: 42px; height: 42px">${esc(initials(j.nama_lengkap))}</span>
-            <span class="person-text"><strong>${esc(j.nama_lengkap)}</strong>
-              <span class="ell">${esc(HUB_LABEL[j.hubungan_keluarga] || '')} · ${esc(j.nama_kk)}</span>
-              <span class="m-meta">${kategori}<span>${j.umur === null || j.umur === undefined ? '' : esc(j.umur + ' th')}</span></span></span>
-            <span class="m-status"><span class="status ${j.is_aktif === 'Y' ? 'on' : ''}">${j.is_aktif === 'Y' ? 'Aktif' : 'Luar kota'}</span>
-              <span class="status ${j.flag_absen === 'Y' ? 'on' : ''}">${j.flag_absen === 'Y' ? 'Absen' : 'Tidak absen'}</span></span>
-          </button>`;
-        }).join('');
+          cardsHtml += `<div class="m-card${head}">
+            <button type="button" class="name-btn detail-btn" data-id="${esc(j.id_jamaah)}" style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0">
+              <span class="avatar ${avatarClass(j.id_jamaah)}" style="width: 42px; height: 42px">${esc(initials(j.nama_lengkap))}</span>
+              <span class="person-text"><strong>${esc(j.nama_lengkap)}</strong>
+                <span class="ell">${esc(HUB_LABEL[j.hubungan_keluarga] || '')} · ${esc(j.nama_kk)}</span>
+                <span class="m-meta">${kategoriTag(j)}<span>${j.umur === null || j.umur === undefined ? '' : esc(j.umur + ' th')}</span>${dibantu}</span></span>
+            </button>
+            <span class="m-status">${statusStack(j, true)}</span>
+          </div>`;
+        });
+        $('jamaah-table-rows').innerHTML = rowsHtml;
+        $('jamaah-cards').innerHTML = cardsHtml;
       }
 
-      document.querySelectorAll('#jamaah-table-rows .edit-btn, #jamaah-cards .edit-btn').forEach(b => {
-        b.onclick = () => editJamaah(b.dataset.id);
-      });
+      document.querySelectorAll('#jamaah-table-rows .edit-btn').forEach(b => { b.onclick = () => editJamaah(b.dataset.id); });
+      document.querySelectorAll('#jamaah-table-rows .detail-btn, #jamaah-cards .detail-btn').forEach(b => { b.onclick = () => openDetail(b.dataset.id); });
 
       $('page-info').textContent = filtered.length
         ? `Menampilkan ${start + 1}–${start + pageRows.length} dari ${fmt(filtered.length)} jamaah`
         : '0 jamaah';
-      $('prev-page').disabled = currentPage <= 1;
-      $('next-page').disabled = currentPage >= pages;
+      renderPager($('pager'), pages, currentPage, p => { currentPage = p; renderTable(); scrollToList(); });
 
       document.querySelectorAll('.th-sort').forEach(b => {
         const active = b.dataset.sort === sortField;
@@ -1078,54 +1390,87 @@
         b.querySelector('svg, i')?.remove();
         b.insertAdjacentHTML('beforeend', `<i data-lucide="${active ? (sortOrder === 'asc' ? 'chevron-up' : 'chevron-down') : 'chevrons-up-down'}"></i>`);
       });
+      const sv = sortField ? `${sortField}:${sortOrder}` : '';
+      $('sort-select').value = [...$('sort-select').options].some(o => o.value === sv) ? sv : '';
       icons();
     }
+
+    // Pager: « ‹ 1 … 4 5 6 … 20 › »
+    function renderPager(el, pages, page, go) {
+      if (pages <= 1) { el.innerHTML = ''; return; }
+      const nums = new Set([1, pages, page - 1, page, page + 1]);
+      if (page <= 3) [2, 3, 4].forEach(n => nums.add(n));
+      if (page >= pages - 2) [pages - 1, pages - 2, pages - 3].forEach(n => nums.add(n));
+      const list = [...nums].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
+      let html = `<button type="button" data-p="1" ${page === 1 ? 'disabled' : ''} aria-label="Halaman pertama"><i data-lucide="chevrons-left"></i></button>`;
+      html += `<button type="button" data-p="${page - 1}" ${page === 1 ? 'disabled' : ''} aria-label="Halaman sebelumnya"><i data-lucide="chevron-left"></i></button>`;
+      let prev = 0;
+      list.forEach(n => {
+        if (n - prev > 1) html += '<span class="gap">…</span>';
+        html += `<button type="button" data-p="${n}" ${n === page ? 'aria-current="page"' : ''} aria-label="Halaman ${n}">${n}</button>`;
+        prev = n;
+      });
+      html += `<button type="button" data-p="${page + 1}" ${page === pages ? 'disabled' : ''} aria-label="Halaman berikutnya"><i data-lucide="chevron-right"></i></button>`;
+      html += `<button type="button" data-p="${pages}" ${page === pages ? 'disabled' : ''} aria-label="Halaman terakhir"><i data-lucide="chevrons-right"></i></button>`;
+      el.innerHTML = html;
+      el.querySelectorAll('button[data-p]').forEach(b => { b.onclick = () => go(Number(b.dataset.p)); });
+      icons();
+    }
+
+    function scrollToList() { $('daftar-section').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
     function setSort(field) {
       if (sortField === field) sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
       else { sortField = field; sortOrder = 'asc'; }
-      renderTable();
+      resetPageAndRender();
+    }
+    function onSortSelect() {
+      const v = $('sort-select').value;
+      if (!v) { sortField = ''; sortOrder = 'asc'; }
+      else { [sortField, sortOrder] = v.split(':'); }
+      resetPageAndRender();
     }
     function setChip(chip) {
       currentChip = chip;
       document.querySelectorAll('#chips .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.chip === chip ? 'true' : 'false'));
       resetPageAndRender();
+      updateNav();
     }
     function resetPageAndRender() { currentPage = 1; renderTable(); }
-    function changePage(d) { currentPage += d; renderTable(); $('daftar-title').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-    function onSearch() { if (currentView === 'kk') renderKeluargaList(); else resetPageAndRender(); }
+    function onSearch() { resetPageAndRender(); }
+    function clearSearch() { $('search-input').value = ''; resetPageAndRender(); $('search-input').focus(); }
 
-    function showPerluDilengkapi() {
-      setView('data');
-      setChip('lengkapi');
-      $('daftar-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    function goRekap() {
-      setView('data');
-      $('rekap-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    function goData() { setChip('semua'); setView('data'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function showChip(chip) { setView('data'); setChip(chip); scrollToList(); }
 
     // ---- Views ----
     function setView(view) {
       currentView = view;
       $('view-data').hidden = view !== 'data';
       $('view-kk').hidden = view !== 'kk';
-      const title = view === 'kk' ? 'Keluarga (KK)' : 'Data Jamaah';
+      $('view-pengaturan').hidden = view !== 'pengaturan';
+      const title = { kk: 'Keluarga (KK)', pengaturan: 'Pengaturan Kategori', data: 'Data Jamaah' }[view];
       $('page-title').textContent = title;
       $('mobile-title').textContent = title;
-      $('search-input').placeholder = view === 'kk' ? 'Cari nama kepala keluarga atau alamat…' : 'Cari nama, nama absen, atau KK…';
-      if (view === 'kk') renderKeluargaList(); else renderTable();
+      if (view === 'kk') renderKeluargaList();
+      if (view === 'pengaturan') resetCfgDraft();
       updateNav();
-      if (view === 'data') window.scrollTo({ top: 0 });
+      if (view !== 'data') window.scrollTo({ top: 0 });
+      icons();
     }
     function updateNav() {
       document.querySelectorAll('[data-nav]').forEach(b => {
-        const on = b.dataset.nav === currentView && !(currentChip === 'lengkapi' && b.dataset.nav === 'data' && b.classList.contains('nav-item'));
-        const lengkapiOn = b.dataset.nav === 'lengkapi' && currentView === 'data' && currentChip === 'lengkapi';
-        if (on || lengkapiOn) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+        let on = false;
+        if (currentView === 'data') {
+          if (b.dataset.nav === 'dibantu') on = currentChip === 'dibantu';
+          else if (b.dataset.nav === 'lengkapi') on = currentChip === 'lengkapi';
+          else on = b.dataset.nav === 'data' && currentChip !== 'dibantu' && currentChip !== 'lengkapi';
+        } else on = b.dataset.nav === currentView;
+        if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
       });
     }
 
+    // ================= KELUARGA =================
     function keluargaStats() {
       const stats = {};
       (appData.keluarga || []).forEach(k => { stats[k.id_keluarga] = { total: 0, aktif: 0, headInactive: false }; });
@@ -1138,9 +1483,15 @@
       });
       return stats;
     }
+    function familyMembers(idKeluarga) {
+      return (appData.jamaah || []).filter(j => j.id_keluarga === idKeluarga).sort(familyOrder);
+    }
+    function onKkSearch() { renderKeluargaList(); }
+    function clearKkSearch() { $('kk-search-input').value = ''; renderKeluargaList(); $('kk-search-input').focus(); }
 
     function renderKeluargaList() {
-      const q = currentView === 'kk' ? $('search-input').value.toLowerCase().trim() : '';
+      const q = $('kk-search-input').value.toLowerCase().trim();
+      $('kk-search-clear').hidden = !q;
       const stats = keluargaStats();
       const list = (appData.keluarga || [])
         .filter(k => !q || String(k.nama_kk).toLowerCase().includes(q) || String(k.alamat).toLowerCase().includes(q))
@@ -1157,42 +1508,239 @@
         return `<tr>
           <td><div class="person"><span class="avatar ${avatarClass(k.id_keluarga)}">${esc(initials(k.nama_kk))}</span><div class="person-text"><strong>${esc(k.nama_kk)}</strong></div></div></td>
           <td style="white-space: normal; min-width: 200px; color: var(--ink-2)">${esc(k.alamat)}</td>
-          <td class="num">${esc(k.telepon || '–')}</td>
+          <td>${waHtml(k.telepon, { name: k.nama_kk })}</td>
           <td class="num" style="text-align: right"><strong>${s.aktif}</strong> / ${s.total}</td>
           <td><span class="status ${s.headInactive ? '' : 'on'}">${s.headInactive ? 'Luar kota' : 'Aktif'}</span></td>
-          <td style="text-align: right"><button type="button" class="btn btn-sm add-member" data-id="${esc(k.id_keluarga)}"><i data-lucide="user-plus"></i> Anggota</button></td>
+          <td style="text-align: right"><div style="display: flex; gap: 8px; justify-content: flex-end">
+            <button type="button" class="btn btn-sm view-members" data-id="${esc(k.id_keluarga)}"><i data-lucide="users"></i> Anggota</button>
+            <button type="button" class="btn btn-sm add-member" data-id="${esc(k.id_keluarga)}"><i data-lucide="user-plus"></i> Tambah</button>
+            <button type="button" class="btn btn-sm btn-danger-ghost del-kk" data-id="${esc(k.id_keluarga)}" aria-label="Hapus KK ${esc(k.nama_kk)}"><i data-lucide="trash-2"></i></button>
+          </div></td>
         </tr>`;
       }).join('');
       $('kk-cards').innerHTML = list.map(k => {
         const s = stats[k.id_keluarga] || { total: 0, aktif: 0 };
-        return `<button type="button" class="m-card add-member" data-id="${esc(k.id_keluarga)}" aria-label="Tambah anggota ke ${esc(k.nama_kk)}">
-          <span class="avatar ${avatarClass(k.id_keluarga)}" style="width: 42px; height: 42px">${esc(initials(k.nama_kk))}</span>
-          <span class="person-text"><strong>${esc(k.nama_kk)}</strong><span class="ell">${esc(k.alamat)}</span>
-          <span class="m-meta">${s.aktif} aktif dari ${s.total} anggota${k.telepon ? ' · ' + esc(k.telepon) : ''}</span></span>
-          <i data-lucide="user-plus" style="color: var(--primary)"></i>
-        </button>`;
+        return `<div class="m-card">
+          <button type="button" class="name-btn view-members" data-id="${esc(k.id_keluarga)}" style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0">
+            <span class="avatar ${avatarClass(k.id_keluarga)}" style="width: 42px; height: 42px">${esc(initials(k.nama_kk))}</span>
+            <span class="person-text"><strong>${esc(k.nama_kk)}</strong><span class="ell">${esc(k.alamat)}</span>
+            <span class="m-meta">${s.aktif} aktif dari ${s.total} anggota</span></span>
+          </button>
+          <button type="button" class="icon-btn add-member" data-id="${esc(k.id_keluarga)}" aria-label="Tambah anggota ke ${esc(k.nama_kk)}" style="color: var(--primary)"><i data-lucide="user-plus"></i></button>
+        </div>`;
       }).join('');
       document.querySelectorAll('.add-member').forEach(b => { b.onclick = () => openDrawer({ keluargaId: b.dataset.id }); });
+      document.querySelectorAll('.view-members').forEach(b => { b.onclick = () => openKeluargaDetail(b.dataset.id); });
+      document.querySelectorAll('.del-kk').forEach(b => { b.onclick = () => askDeleteKeluarga(b.dataset.id); });
       icons();
+    }
+
+    // ================= MODAL: DETAIL & KONFIRMASI =================
+    let modalResolve = null;
+    function openModal(html, small) {
+      const m = $('modal');
+      m.className = 'modal' + (small ? ' modal-sm' : '');
+      m.innerHTML = html;
+      $('modal-backdrop').hidden = false;
+      document.body.style.overflow = 'hidden';
+      icons();
+      const f = m.querySelector('[data-autofocus]') || m.querySelector('button');
+      if (f) f.focus();
+    }
+    function closeModal(value) {
+      if ($('modal-backdrop').hidden) return;
+      $('modal-backdrop').hidden = true;
+      $('modal').innerHTML = '';
+      if ($('form-drawer').hidden) document.body.style.overflow = '';
+      if (modalResolve) { const r = modalResolve; modalResolve = null; r(value === undefined ? null : value); }
+    }
+    // Pilihan bertombol; mengembalikan Promise berisi value yang dipilih (null bila batal)
+    function choose(opts) {
+      return new Promise(resolve => {
+        openModal(`
+          <div class="modal-head"><div class="titles"><h2 id="modal-title">${esc(opts.title)}</h2><p>${esc(opts.text || '')}</p></div>
+            <button type="button" class="icon-btn" onclick="closeModal()" aria-label="Tutup"><i data-lucide="x"></i></button></div>
+          <div class="modal-body"><div class="choice">
+            ${opts.options.map((o, i) => `<button type="button" data-i="${i}" class="${o.danger ? 'danger' : ''}"><strong>${esc(o.label)}</strong>${o.desc ? `<span>${esc(o.desc)}</span>` : ''}</button>`).join('')}
+          </div></div>
+          <div class="modal-foot"><button type="button" class="btn" data-autofocus onclick="closeModal()">Batal</button></div>`, true);
+        modalResolve = resolve;
+        document.querySelectorAll('#modal .choice button').forEach(b => {
+          b.onclick = () => closeModal(opts.options[Number(b.dataset.i)].value);
+        });
+      });
+    }
+
+    function openDetail(id) {
+      const j = (appData.jamaah || []).find(x => x.id_jamaah === id);
+      if (!j) return;
+      const k = (appData.keluarga || []).find(x => x.id_keluarga === j.id_keluarga) || {};
+      const members = familyMembers(j.id_keluarga).filter(m => m.id_jamaah !== j.id_jamaah);
+      const tags = [kategoriTag(j)];
+      if (j.hubungan_keluarga === 'A') tags.push('<span class="tag" style="background: var(--primary); color: #fff">Kepala Keluarga</span>');
+      if (j.perlu_dibantu === 'Y') tags.push('<span class="tag tag-help">Perlu dibantu</span>');
+      openModal(`
+        <div class="modal-head">
+          <span class="avatar avatar-lg ${avatarClass(j.id_jamaah)}">${esc(initials(j.nama_lengkap))}</span>
+          <div class="titles"><h2 id="modal-title">${esc(j.nama_lengkap)}</h2><p>Nama di absen: ${esc(j.nama_absen)}</p><div class="detail-tags">${tags.join('')}</div></div>
+          <button type="button" class="icon-btn" onclick="closeModal()" aria-label="Tutup"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <dl class="detail-grid">
+            <div class="full"><dt>Keluarga (KK)</dt><dd>${esc(j.nama_kk)}${k.alamat ? `<br><span class="muted" style="font-weight: 500">${esc(k.alamat)}</span>` : ''}</dd></div>
+            <div><dt>Hubungan</dt><dd>${esc(j.hubungan_keluarga)} · ${esc(HUB_LABEL[j.hubungan_keluarga] || '-')}</dd></div>
+            <div><dt>Jenis kelamin</dt><dd>${j.jenis_kelamin === 'P' ? 'Perempuan' : 'Laki-laki'}</dd></div>
+            <div><dt>Tahun lahir</dt><dd>${j.tahun_lahir ? esc(j.tahun_lahir) + ' (' + esc(umurText(j.umur)) + ')' : '<span class="tag tag-warn">Belum diisi</span>'}</dd></div>
+            <div><dt>Status nikah</dt><dd>${esc(NIKAH_LABEL[j.status_nikah] || j.status_nikah)}</dd></div>
+            <div><dt>Keberadaan</dt><dd>${esc(j.status_keberadaan || 'Menetap')}</dd></div>
+            <div><dt>Status</dt><dd><div class="status-stack">${statusStack(j)}</div></dd></div>
+            <div><dt>Telepon jamaah</dt><dd>${waHtml(j.no_telepon, { name: j.nama_lengkap })}</dd></div>
+            <div><dt>Telepon KK</dt><dd>${waHtml(k.telepon, { name: j.nama_kk })}</dd></div>
+            <div class="full"><dt>Catatan</dt><dd style="font-weight: 500; white-space: pre-line">${j.catatan ? esc(j.catatan) : '<span class="muted">–</span>'}</dd></div>
+          </dl>
+          ${members.length ? `<div class="family"><h3>Anggota keluarga lain (${members.length})</h3>
+            ${members.map(m => `<button type="button" data-id="${esc(m.id_jamaah)}" class="${m.hubungan_keluarga === 'A' ? 'is-head' : ''}">
+              <span class="avatar ${avatarClass(m.id_jamaah)}">${esc(initials(m.nama_lengkap))}</span>
+              <span class="grow"><strong>${esc(m.nama_lengkap)}</strong> <span class="muted">· ${esc(HUB_LABEL[m.hubungan_keluarga] || '')} · ${esc(umurText(m.umur))}</span></span>
+              <i data-lucide="chevron-right"></i></button>`).join('')}</div>` : ''}
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-danger-ghost" id="detail-delete"><i data-lucide="trash-2"></i> Hapus</button>
+          <button type="button" class="btn btn-primary" id="detail-edit" data-autofocus><i data-lucide="pencil"></i> Edit data</button>
+        </div>`);
+      document.querySelectorAll('#modal .family button').forEach(b => { b.onclick = () => openDetail(b.dataset.id); });
+      $('detail-edit').onclick = () => { closeModal(); editJamaah(j.id_jamaah); };
+      $('detail-delete').onclick = () => askDeleteJamaah(j.id_jamaah);
+    }
+
+    function openKeluargaDetail(idKeluarga) {
+      const k = (appData.keluarga || []).find(x => x.id_keluarga === idKeluarga);
+      if (!k) return;
+      const members = familyMembers(idKeluarga);
+      openModal(`
+        <div class="modal-head">
+          <span class="avatar avatar-lg ${avatarClass(k.id_keluarga)}">${esc(initials(k.nama_kk))}</span>
+          <div class="titles"><h2 id="modal-title">KK ${esc(k.nama_kk)}</h2><p>${esc(k.alamat)}</p><div class="detail-tags">${waHtml(k.telepon, { name: k.nama_kk })}</div></div>
+          <button type="button" class="icon-btn" onclick="closeModal()" aria-label="Tutup"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body"><div class="family"><h3>Anggota (${members.length})</h3>
+          ${members.length ? members.map(m => `<button type="button" data-id="${esc(m.id_jamaah)}" class="${m.hubungan_keluarga === 'A' ? 'is-head' : ''}">
+            <span class="avatar ${avatarClass(m.id_jamaah)}">${esc(initials(m.nama_lengkap))}</span>
+            <span class="grow"><strong>${esc(m.nama_lengkap)}</strong> <span class="muted">· ${esc(HUB_LABEL[m.hubungan_keluarga] || '')} · ${esc(umurText(m.umur))}</span></span>
+            <i data-lucide="chevron-right"></i></button>`).join('') : '<p class="muted" style="margin: 0">Belum ada anggota.</p>'}
+        </div></div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-danger-ghost" id="kk-delete"><i data-lucide="trash-2"></i> Hapus KK</button>
+          <button type="button" class="btn btn-primary" id="kk-add" data-autofocus><i data-lucide="user-plus"></i> Tambah anggota</button>
+        </div>`);
+      document.querySelectorAll('#modal .family button').forEach(b => { b.onclick = () => openDetail(b.dataset.id); });
+      $('kk-add').onclick = () => { closeModal(); openDrawer({ keluargaId: idKeluarga }); };
+      $('kk-delete').onclick = () => askDeleteKeluarga(idKeluarga);
+    }
+
+    // ================= HAPUS =================
+    async function askDeleteJamaah(id) {
+      const j = (appData.jamaah || []).find(x => x.id_jamaah === id);
+      if (!j) return;
+      closeModal();
+      let mode;
+      if (j.hubungan_keluarga === 'A') {
+        const n = familyMembers(j.id_keluarga).length;
+        mode = await choose({
+          title: `Hapus ${j.nama_lengkap}?`,
+          text: 'Jamaah ini adalah Kepala Keluarga. Pilih yang ingin dihapus:',
+          options: [
+            { value: 'single', label: 'Hapus kepala keluarga saja', desc: `Data KK dan ${n - 1} anggota lain tetap ada.` },
+            { value: 'kk', label: `Hapus seluruh KK (${n} jiwa)`, desc: 'Kepala keluarga, semua anggota, dan data KK ikut dihapus.', danger: true }
+          ]
+        });
+      } else {
+        mode = await choose({
+          title: `Hapus ${j.nama_lengkap}?`,
+          text: 'Hanya data jamaah ini yang dihapus. Datanya disimpan di sheet Arsip_Jamaah.',
+          options: [{ value: 'single', label: 'Ya, hapus jamaah ini', danger: true }]
+        });
+      }
+      if (!mode) return;
+      runDelete(() => isLocalMode ? mockDeleteJamaah(id, mode) : callApi('deleteJamaah', authToken, id, mode));
+    }
+
+    async function askDeleteKeluarga(idKeluarga) {
+      const k = (appData.keluarga || []).find(x => x.id_keluarga === idKeluarga);
+      if (!k) return;
+      closeModal();
+      const n = familyMembers(idKeluarga).length;
+      const ok = await choose({
+        title: `Hapus KK ${k.nama_kk}?`,
+        text: `Data KK beserta ${n} anggota akan dihapus dan disimpan di sheet arsip.`,
+        options: [{ value: 'kk', label: `Ya, hapus KK & ${n} anggota`, danger: true }]
+      });
+      if (!ok) return;
+      runDelete(() => isLocalMode ? mockDeleteKeluarga(idKeluarga) : callApi('deleteKeluarga', authToken, idKeluarga));
+    }
+
+    function deleteFromForm() {
+      const id = $('form-id-jamaah').value;
+      if (id) askDeleteJamaah(id);
+    }
+
+    function runDelete(fn) {
+      Promise.resolve().then(fn).then(res => {
+        if (handleAuthError(res)) return;
+        if (res && res.success) {
+          closeDrawer();
+          showToast(res.message);
+          loadData(true);
+        } else {
+          showToast((res && res.message) || 'Gagal menghapus.', true);
+        }
+      }, err => showToast('Error: ' + (err.message || err), true));
+    }
+
+    function mockDeleteJamaah(id, mode) {
+      const j = appData.jamaah.find(x => x.id_jamaah === id);
+      if (mode === 'kk') return mockDeleteKeluarga(j.id_keluarga);
+      appData.jamaah = appData.jamaah.filter(x => x.id_jamaah !== id);
+      calculateMockRekap(); renderAll();
+      return { success: true, message: 'Simulasi: data jamaah dihapus.' };
+    }
+    function mockDeleteKeluarga(idKeluarga) {
+      const n = appData.jamaah.filter(x => x.id_keluarga === idKeluarga).length;
+      appData.jamaah = appData.jamaah.filter(x => x.id_keluarga !== idKeluarga);
+      appData.keluarga = appData.keluarga.filter(x => x.id_keluarga !== idKeluarga);
+      calculateMockRekap(); renderAll();
+      return { success: true, message: `Simulasi: KK beserta ${n} anggota dihapus.` };
     }
 
     // ================= PRINT & CSV =================
     function printTable() {
       const filtered = getFilteredJamaah();
+      const grouped = isGrouped();
       const w = window.open('', '_blank');
       if (!w) { showToast('Pop-up diblokir browser. Izinkan pop-up untuk mencetak.', true); return; }
+      let body = '', lastKK = null, no = 0;
+      filtered.forEach(j => {
+        if (grouped && j.id_keluarga !== lastKK) {
+          lastKK = j.id_keluarga;
+          body += `<tr class="g"><td colspan="9">KK ${esc(j.nama_kk)}</td></tr>`;
+        }
+        no++;
+        body += `<tr class="${j.hubungan_keluarga === 'A' ? 'h' : ''}"><td class="c">${no}</td><td><strong>${esc(j.nama_lengkap)}</strong></td><td>${esc(j.nama_absen)}</td><td class="c">${esc(j.hubungan_keluarga)}</td><td>${esc(j.nama_kk)}</td><td>${esc(j.kategori_usia)}</td><td class="c">${esc(umurText(j.umur))}</td><td>${esc(j.no_telepon || '')}</td><td class="c">${esc(j.is_aktif)}/${esc(j.flag_absen)}</td></tr>`;
+      });
       w.document.write(`<html><head><title>Cetak Data Sensus Jamaah</title><style>
         body{font-family:system-ui,-apple-system,sans-serif;color:#13211D;padding:2rem;line-height:1.45}
         h2{text-align:center;margin:0 0 .25rem;color:#0B6E5B}
         .meta{text-align:center;font-size:.85rem;color:#5B6B66;margin-bottom:1.5rem;border-bottom:2px solid #E3E8E6;padding-bottom:1rem}
         table{width:100%;border-collapse:collapse;font-size:.8rem}th,td{border:1px solid #C9D3CF;padding:.45rem .6rem;text-align:left}
-        th{background:#F6F8F7}.c{text-align:center}tr:nth-child(even){background:#F6F8F7}
+        th{background:#F6F8F7}.c{text-align:center}
+        tr.h td{background:#DCEFE7;font-weight:600}
+        tr.g td{background:#0D2B24;color:#fff;font-weight:700}
+        *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
       </style></head><body>
         <h2>Sensus Jamaah Babakan Barat</h2>
-        <div class="meta">Dicetak ${esc(new Date().toLocaleString('id-ID'))} · ${filtered.length} jiwa sesuai filter</div>
-        <table><thead><tr><th class="c">No</th><th>Nama Lengkap</th><th>Nama Absen</th><th class="c">Hub</th><th>Nama KK</th><th>Kategori</th><th class="c">Umur</th><th class="c">Aktif</th><th class="c">Absen</th></tr></thead><tbody>
-        ${filtered.length ? filtered.map((j, i) => `<tr><td class="c">${i + 1}</td><td><strong>${esc(j.nama_lengkap)}</strong></td><td>${esc(j.nama_absen)}</td><td class="c">${esc(j.hubungan_keluarga)}</td><td>${esc(j.nama_kk)}</td><td>${esc(j.kategori_usia)}</td><td class="c">${esc(umurText(j.umur))}</td><td class="c">${esc(j.is_aktif)}</td><td class="c">${esc(j.flag_absen)}</td></tr>`).join('')
-          : '<tr><td colspan="9" class="c" style="padding:2rem">Tidak ada data yang cocok dengan filter.</td></tr>'}
+        <div class="meta">Dicetak ${esc(new Date().toLocaleString('id-ID'))} · ${filtered.length} jiwa sesuai filter${grouped ? ' · dikelompokkan per KK' : ''} · baris hijau = Kepala Keluarga</div>
+        <table><thead><tr><th class="c">No</th><th>Nama Lengkap</th><th>Nama Absen</th><th class="c">Hub</th><th>Nama KK</th><th>Kategori</th><th class="c">Umur</th><th>Telepon</th><th class="c">Aktif/Absen</th></tr></thead><tbody>
+        ${filtered.length ? body : '<tr><td colspan="9" class="c" style="padding:2rem">Tidak ada data yang cocok dengan filter.</td></tr>'}
         </tbody></table>
         <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
       </body></html>`);
@@ -1203,12 +1751,13 @@
       const rows = getFilteredJamaah();
       const kkMap = {};
       (appData.keluarga || []).forEach(k => { kkMap[k.id_keluarga] = k; });
-      const header = ['No', 'Nama Lengkap', 'Nama Absen', 'Nama KK', 'Alamat', 'Telepon', 'Hubungan', 'Jenis Kelamin', 'Tahun Lahir', 'Umur', 'Kategori', 'Status Nikah', 'Aktif', 'Absen', 'Keberadaan', 'Catatan'];
+      const header = ['No', 'Nama Lengkap', 'Nama Absen', 'Nama KK', 'Alamat', 'Telepon KK', 'Telepon Jamaah', 'Hubungan', 'Jenis Kelamin', 'Tahun Lahir', 'Umur', 'Kategori', 'Status Nikah', 'Aktif', 'Absen', 'Keberadaan', 'Perlu Dibantu', 'Catatan'];
       const lines = rows.map((j, i) => {
         const k = kkMap[j.id_keluarga] || {};
-        return [i + 1, csvCell(j.nama_lengkap), csvCell(j.nama_absen), csvCell(j.nama_kk), csvCell(k.alamat), csvCell(k.telepon),
+        return [i + 1, csvCell(j.nama_lengkap), csvCell(j.nama_absen), csvCell(j.nama_kk), csvCell(k.alamat), csvCell(k.telepon), csvCell(j.no_telepon),
           csvCell(j.hubungan_keluarga), csvCell(j.jenis_kelamin), j.tahun_lahir || '', j.umur === null || j.umur === undefined ? '' : j.umur,
-          csvCell(j.kategori_usia), csvCell(j.status_nikah), csvCell(j.is_aktif), csvCell(j.flag_absen), csvCell(j.status_keberadaan), csvCell(j.catatan)].join(',');
+          csvCell(j.kategori_usia), csvCell(j.status_nikah), csvCell(j.is_aktif), csvCell(j.flag_absen), csvCell(j.status_keberadaan),
+          csvCell(j.perlu_dibantu), csvCell(j.catatan)].join(',');
       });
       const blob = new Blob(['﻿' + [header.join(','), ...lines].join('\n')], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a');
@@ -1221,6 +1770,7 @@
     // ================= DRAWER / FORM =================
     function openDrawer(opts) {
       opts = opts || {};
+      closeModal();
       resetForm();
       if (opts.keluargaId) {
         const k = (appData.keluarga || []).find(x => x.id_keluarga === opts.keluargaId);
@@ -1235,7 +1785,7 @@
     function closeDrawer(silent) {
       $('drawer-backdrop').hidden = true;
       $('form-drawer').hidden = true;
-      document.body.style.overflow = '';
+      if ($('modal-backdrop').hidden) document.body.style.overflow = '';
       if (!silent) resetForm();
     }
 
@@ -1339,10 +1889,12 @@
       openDrawer({ focus: 'form-nama-lengkap' });
       $('form-title').textContent = 'Edit Jamaah';
       $('submit-btn').querySelector('span').textContent = 'Simpan Perubahan';
+      $('delete-btn').hidden = false;
       $('form-id-jamaah').value = j.id_jamaah;
       selectKeluarga(j.id_keluarga, j.nama_kk);
       $('form-nama-lengkap').value = j.nama_lengkap || '';
       $('form-nama-absen').value = j.nama_absen === j.nama_lengkap ? '' : (j.nama_absen || '');
+      $('form-no-telepon').value = j.no_telepon || '';
       setRadio('hubungan', j.hubungan_keluarga || 'C');
       setRadio('jk', j.jenis_kelamin === 'P' ? 'P' : 'L');
       $('form-tahun-lahir').value = j.tahun_lahir || '';
@@ -1350,13 +1902,16 @@
       $('form-status-keberadaan').value = j.status_keberadaan || 'Menetap';
       $('form-is-aktif').checked = j.is_aktif === 'Y';
       $('form-flag-absen').checked = j.flag_absen === 'Y';
+      $('form-perlu-dibantu').checked = j.perlu_dibantu === 'Y';
       $('form-catatan').value = j.catatan || '';
       syncNikahOptions();
+      icons();
     }
 
     function resetForm() {
       $('form-title').textContent = 'Tambah Jamaah';
       $('submit-btn').querySelector('span').textContent = 'Simpan Jamaah';
+      $('delete-btn').hidden = true;
       $('sensus-form').reset();
       // form.reset() TIDAK mengosongkan <input type="hidden">, jadi dikosongkan manual
       $('form-id-jamaah').value = '';
@@ -1388,10 +1943,13 @@
       const isNew = $('form-is-new-keluarga').value === 'true';
       const tahun = parseInt($('form-tahun-lahir').value, 10);
       const now = new Date().getFullYear();
+      const phoneRe = /^[0-9+\-\s]{6,20}$/;
       if (!idKeluarga) return formError('Pilih Keluarga (KK) dari hasil pencarian, atau buat KK baru.', 'keluarga-search-input');
       if (isNew && !$('form-nama-kk').value.trim()) return formError('Nama kepala keluarga wajib diisi.', 'form-nama-kk');
       if (isNew && !$('form-alamat').value.trim()) return formError('Alamat KK baru wajib diisi.', 'form-alamat');
+      if (isNew && $('form-telepon').value.trim() && !phoneRe.test($('form-telepon').value.trim())) return formError('No. telepon KK hanya boleh angka, spasi, + atau -.', 'form-telepon');
       if (!$('form-nama-lengkap').value.trim()) return formError('Nama lengkap wajib diisi.', 'form-nama-lengkap');
+      if ($('form-no-telepon').value.trim() && !phoneRe.test($('form-no-telepon').value.trim())) return formError('No. telepon jamaah hanya boleh angka, spasi, + atau - (6–20 karakter).', 'form-no-telepon');
       if (!(tahun >= 1900 && tahun <= now)) return formError(`Tahun lahir wajib diisi (1900–${now}).`, 'form-tahun-lahir');
 
       const submitBtn = $('submit-btn');
@@ -1408,6 +1966,7 @@
         telepon: $('form-telepon').value || null,
         nama_lengkap: $('form-nama-lengkap').value,
         nama_absen: $('form-nama-absen').value.trim() || $('form-nama-lengkap').value,
+        no_telepon: $('form-no-telepon').value.trim(),
         hubungan_keluarga: radioValue('hubungan'),
         jenis_kelamin: radioValue('jk'),
         tahun_lahir: tahun,
@@ -1415,6 +1974,7 @@
         status_keberadaan: $('form-status-keberadaan').value,
         is_aktif: $('form-is-aktif').checked ? 'Y' : 'N',
         flag_absen: $('form-flag-absen').checked ? 'Y' : 'N',
+        perlu_dibantu: $('form-perlu-dibantu').checked ? 'Y' : 'N',
         catatan: $('form-catatan').value || ''
       };
       const done = () => { submitBtn.disabled = false; submitBtn.querySelector('span').textContent = originalText; };
@@ -1426,13 +1986,10 @@
             targetKK = 'KK-' + Date.now();
             appData.keluarga.push({ id_keluarga: targetKK, nama_kk: formData.nama_kk, alamat: formData.alamat, telepon: formData.telepon || '' });
           }
-          const kk = appData.keluarga.find(k => k.id_keluarga === targetKK);
           const j = Object.assign({}, formData, {
             id_jamaah: formData.id_jamaah || ('JM-' + Date.now()),
             id_keluarga: targetKK,
-            nama_kk: kk ? kk.nama_kk : 'Tidak Terdaftar',
-            umur: now - formData.tahun_lahir,
-            kategori_usia: kategoriUsiaLokal(formData.tahun_lahir, formData.status_nikah)
+            umur: now - formData.tahun_lahir
           });
           const idx = appData.jamaah.findIndex(x => x.id_jamaah === j.id_jamaah);
           if (idx !== -1) appData.jamaah[idx] = j; else appData.jamaah.push(j);
@@ -1441,7 +1998,7 @@
           closeDrawer();
           renderAll();
           showToast('Simulasi: data berhasil disimpan!');
-        }, 400);
+        }, 300);
         return;
       }
 
@@ -1460,6 +2017,88 @@
           done();
           formError('Error: ' + (err.message || err));
         });
+    }
+
+    // ================= PENGATURAN KATEGORI =================
+    function resetCfgDraft() {
+      cfgDraft = JSON.parse(JSON.stringify(getCfg()));
+      delete cfgDraft.invalid;
+      renderCfg();
+    }
+    function useDefaultCfg() {
+      cfgDraft = JSON.parse(JSON.stringify(DEFAULT_CFG));
+      renderCfg();
+      showToast('Nilai bawaan dimuat. Tekan "Simpan pengaturan" untuk memakainya.');
+    }
+    function addCfgRow() {
+      const last = cfgDraft.kategori[cfgDraft.kategori.length - 1];
+      cfgDraft.kategori.push({ nama: '', min: last && last.max !== null ? last.max + 1 : '', max: null, lansia: false });
+      renderCfg();
+      const inputs = document.querySelectorAll('#cfg-rows input[data-f="nama"]');
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    }
+    function renderCfg() {
+      $('cfg-error').hidden = true;
+      $('cfg-rows').innerHTML = cfgDraft.kategori.map((k, i) => `<tr>
+        <td><label class="sr-only" for="cfg-nama-${i}">Nama kategori ${i + 1}</label><input id="cfg-nama-${i}" class="input" data-i="${i}" data-f="nama" maxlength="40" value="${esc(k.nama)}"></td>
+        <td><label class="sr-only" for="cfg-min-${i}">Umur dari</label><input id="cfg-min-${i}" class="input num-input" type="number" min="0" max="150" data-i="${i}" data-f="min" value="${k.min === null || k.min === undefined ? '' : esc(k.min)}"></td>
+        <td><label class="sr-only" for="cfg-max-${i}">Umur sampai</label><input id="cfg-max-${i}" class="input num-input" type="number" min="0" max="150" data-i="${i}" data-f="max" placeholder="ke atas" value="${k.max === null || k.max === undefined ? '' : esc(k.max)}"></td>
+        <td class="c"><input type="checkbox" data-i="${i}" data-f="lansia" aria-label="Tandai ${esc(k.nama || 'kategori')} sebagai Lansia" ${k.lansia ? 'checked' : ''} style="width: 20px; height: 20px; accent-color: var(--primary)"></td>
+        <td><button type="button" class="icon-btn" data-del="${i}" aria-label="Hapus baris ${esc(k.nama || i + 1)}" ${cfgDraft.kategori.length <= 1 ? 'disabled' : ''}><i data-lucide="trash-2"></i></button></td>
+      </tr>`).join('');
+      $('cfg-menikah').value = cfgDraft.labelMenikah || '';
+      document.querySelectorAll('#cfg-rows [data-f]').forEach(el => {
+        el.oninput = el.onchange = () => {
+          const k = cfgDraft.kategori[Number(el.dataset.i)];
+          if (el.dataset.f === 'lansia') {
+            cfgDraft.kategori.forEach((x, idx) => { x.lansia = idx === Number(el.dataset.i) ? el.checked : false; });
+            document.querySelectorAll('#cfg-rows [data-f="lansia"]').forEach(c => { c.checked = cfgDraft.kategori[Number(c.dataset.i)].lansia; });
+          } else if (el.dataset.f === 'nama') k.nama = el.value;
+          else k[el.dataset.f] = el.value === '' ? (el.dataset.f === 'max' ? null : '') : Number(el.value);
+          renderCfgPreview();
+        };
+      });
+      document.querySelectorAll('#cfg-rows [data-del]').forEach(b => {
+        b.onclick = () => { cfgDraft.kategori.splice(Number(b.dataset.del), 1); renderCfg(); };
+      });
+      renderCfgPreview();
+      icons();
+    }
+    function renderCfgPreview() {
+      cfgDraft.labelMenikah = $('cfg-menikah').value;
+      const sorted = cfgDraft.kategori.slice().sort((a, b) => (Number(a.min) || 0) - (Number(b.min) || 0));
+      $('cfg-preview').innerHTML = sorted.map(k => `<span>${esc(k.min === '' ? '?' : k.min)}${k.max === null || k.max === undefined ? '+ th' : '–' + esc(k.max) + ' th'} → <strong>${esc(k.nama || '(tanpa nama)')}</strong>${k.lansia ? ' · Lansia' : ''}</span>`).join('') +
+        `<span>Menikah → <strong>${esc(cfgDraft.labelMenikah || '(tanpa nama)')}</strong></span><span>Duda / Janda → <strong>kolom tersendiri</strong></span>`;
+    }
+    function saveCfg() {
+      $('cfg-error').hidden = true;
+      cfgDraft.labelMenikah = $('cfg-menikah').value;
+      let clean;
+      try { clean = validateCfgLocal(cfgDraft); }
+      catch (e) { $('cfg-error').textContent = e.message; $('cfg-error').hidden = false; return; }
+      const btn = $('cfg-save');
+      btn.disabled = true; btn.querySelector('span').textContent = 'Menyimpan…';
+      const done = () => { btn.disabled = false; btn.querySelector('span').textContent = 'Simpan pengaturan'; };
+      if (isLocalMode) {
+        appData.kategoriConfig = clean;
+        calculateMockRekap(); cfgDraft = null; renderAll(); resetCfgDraft(); done();
+        showToast('Simulasi: pengaturan kategori disimpan.');
+        return;
+      }
+      callApi('saveKategoriConfig', authToken, clean).then(res => {
+        done();
+        if (handleAuthError(res)) return;
+        if (res.success) {
+          appData.kategoriConfig = res.config;
+          cfgDraft = null;
+          showToast(res.message);
+          loadData(true);
+          resetCfgDraft();
+        } else {
+          $('cfg-error').textContent = res.message;
+          $('cfg-error').hidden = false;
+        }
+      }, err => { done(); $('cfg-error').textContent = 'Error: ' + (err.message || err); $('cfg-error').hidden = false; });
     }
   </script>
 </body>

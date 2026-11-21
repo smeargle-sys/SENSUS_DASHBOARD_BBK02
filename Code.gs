@@ -7,7 +7,7 @@
  * - Semua fungsi yang TIDAK berakhiran "_" bisa dipanggil dari browser lewat
  *   google.script.run. Karena itu setiap fungsi publik di bawah memeriksa token sesi.
  * - PIN disimpan di Script Properties (Project Settings -> Script Properties):
- *     ADMIN_PIN  : PIN untuk halaman editor (tambah/edit data)
+ *     ADMIN_PIN  : PIN untuk halaman editor (tambah/edit/hapus data, pengaturan kategori)
  *     VIEWER_PIN : PIN untuk halaman ringkasan (?page=view)
  *   Gunakan minimal 6 digit dan jangan dibagikan di grup umum.
  */
@@ -16,6 +16,9 @@ var CONFIG = {
   SHEET_KELUARGA: "Keluarga",
   SHEET_JAMAAH: "Jamaah",
   SHEET_SUMBER_MIGRASI: "Sensus_Asal",
+  SHEET_PENGATURAN: "Pengaturan_Kategori",
+  SHEET_ARSIP_JAMAAH: "Arsip_Jamaah",
+  SHEET_ARSIP_KELUARGA: "Arsip_Keluarga",
   FALLBACK_URL: "", // Masukkan URL Google Spreadsheet Anda di sini jika dijalankan di luar konteks container
 
   // Sesi login (detik). Maksimum CacheService = 21600 (6 jam).
@@ -28,6 +31,7 @@ var CONFIG = {
   // true hanya jika aplikasi di-embed di situs lain (mis. Google Sites).
   ALLOW_EMBED: false,
 
+  // Dipakai hanya bila tidak ada kategori yang diberi penanda LANSIA di Pengaturan_Kategori.
   BATAS_LANSIA: 57
 };
 
@@ -63,7 +67,8 @@ function doGet(e) {
 
 /**
  * JSON API untuk frontend di luar Apps Script (mis. GitHub Pages).
- * Body (text/plain): {"action": "login" | "logout" | "getSensusData" | "saveSensusData", "args": [...]}
+ * Body (text/plain): {"action": "login" | "logout" | "getSensusData" | "saveSensusData" |
+ *                    "deleteJamaah" | "deleteKeluarga" | "saveKategoriConfig", "args": [...]}
  * Hanya aksi di daftar ini yang bisa dipanggil; migrasi & fungsi internal tidak terekspos.
  * Keamanan tetap sama: setiap aksi (kecuali login) memeriksa token sesi dari PIN.
  */
@@ -71,7 +76,10 @@ var API_ACTIONS = {
   login: function (args) { return login(args[0], args[1]); },
   logout: function (args) { return logout(args[0]); },
   getSensusData: function (args) { return getSensusData(args[0]); },
-  saveSensusData: function (args) { return saveSensusData(args[0], args[1]); }
+  saveSensusData: function (args) { return saveSensusData(args[0], args[1]); },
+  deleteJamaah: function (args) { return deleteJamaah(args[0], args[1], args[2]); },
+  deleteKeluarga: function (args) { return deleteKeluarga(args[0], args[1]); },
+  saveKategoriConfig: function (args) { return saveKategoriConfig(args[0], args[1]); }
 };
 
 function doPost(e) {
@@ -204,6 +212,16 @@ function assertEditorRun_() {
  * UTILITAS SPREADSHEET
  * ====================================================================== */
 
+var HEADER_KELUARGA = ["ID Keluarga", "Nama KK", "Alamat", "No Telepon"];
+var HEADER_JAMAAH = [
+  "ID Jamaah", "ID Keluarga", "Hubungan Keluarga", "Nama Lengkap",
+  "Nama Absen", "Jenis Kelamin", "Tahun Lahir", "Status Nikah",
+  "Status Keaktifan", "Flag Absen", "Status Keberadaan", "Catatan",
+  "No Telepon", "Perlu Dibantu"
+];
+var JAMAAH_COLS = HEADER_JAMAAH.length; // 14
+var HEADER_KATEGORI = ["Urutan", "Nama Kategori", "Umur Min", "Umur Maks", "Penanda"];
+
 function getSpreadsheet_() {
   var ss = null;
   try {
@@ -221,22 +239,27 @@ function getSpreadsheet_() {
   return ss;
 }
 
-/** Membuat sheet Keluarga & Jamaah dengan header standar jika belum ada. */
+/**
+ * Membuat sheet Keluarga & Jamaah dengan header standar jika belum ada.
+ * Sheet lama yang baru punya 12 kolom otomatis diberi header kolom baru
+ * (No Telepon, Perlu Dibantu) tanpa mengubah data yang ada.
+ */
 function initializeSheets_(ss) {
   var keluargaSheet = ss.getSheetByName(CONFIG.SHEET_KELUARGA);
   if (!keluargaSheet) {
     keluargaSheet = ss.insertSheet(CONFIG.SHEET_KELUARGA);
-    keluargaSheet.appendRow(["ID Keluarga", "Nama KK", "Alamat", "No Telepon"]);
+    keluargaSheet.appendRow(HEADER_KELUARGA);
   }
 
   var jamaahSheet = ss.getSheetByName(CONFIG.SHEET_JAMAAH);
   if (!jamaahSheet) {
     jamaahSheet = ss.insertSheet(CONFIG.SHEET_JAMAAH);
-    jamaahSheet.appendRow([
-      "ID Jamaah", "ID Keluarga", "Hubungan Keluarga", "Nama Lengkap",
-      "Nama Absen", "Jenis Kelamin", "Tahun Lahir", "Status Nikah",
-      "Status Keaktifan", "Flag Absen", "Status Keberadaan", "Catatan"
-    ]);
+    jamaahSheet.appendRow(HEADER_JAMAAH);
+  } else {
+    var head = jamaahSheet.getRange(1, 13, 1, 2).getValues()[0];
+    if (!head[0] || !head[1]) {
+      jamaahSheet.getRange(1, 13, 1, 2).setValues([[HEADER_JAMAAH[12], HEADER_JAMAAH[13]]]);
+    }
   }
   return { keluarga: keluargaSheet, jamaah: jamaahSheet };
 }
@@ -261,6 +284,128 @@ function newId_(prefix) {
 }
 
 /* ======================================================================
+ * KONFIGURASI KATEGORI USIA
+ * Disimpan di sheet "Pengaturan_Kategori" (bisa diubah dari halaman admin
+ * atau langsung di sheet). Aturan:
+ *  - Status MENIKAH -> kategori "label menikah" (default "Dewasa Menikah").
+ *  - Status DUDA / JANDA -> dihitung di kolom Duda / Janda tersendiri.
+ *  - Belum menikah -> dicocokkan ke rentang umur di tabel (urut dari umur kecil).
+ *  - Satu baris boleh diberi penanda LANSIA: umur minimalnya juga dipakai
+ *    untuk angka "Lansia" di dashboard (semua status nikah).
+ * ====================================================================== */
+
+var DEFAULT_KATEGORI = {
+  kategori: [
+    { nama: "BALITA-PAUD", min: 0, max: 5, lansia: false },
+    { nama: "Caberawit", min: 6, max: 12, lansia: false },
+    { nama: "Pra Remaja (SMP)", min: 13, max: 15, lansia: false },
+    { nama: "Remaja (SMA)", min: 16, max: 17, lansia: false },
+    { nama: "Usia (Pra) Menikah", min: 18, max: 56, lansia: false },
+    { nama: "Lansia", min: 57, max: null, lansia: true }
+  ],
+  labelMenikah: "Dewasa Menikah"
+};
+
+function cloneConfig_(cfg) { return JSON.parse(JSON.stringify(cfg)); }
+
+/** Baca konfigurasi dari sheet; bila belum ada, buat sheet berisi nilai default. */
+function getKategoriConfig_(ss) {
+  var sh = ss.getSheetByName(CONFIG.SHEET_PENGATURAN);
+  if (!sh) {
+    writeKategoriSheet_(ss, DEFAULT_KATEGORI);
+    return cloneConfig_(DEFAULT_KATEGORI);
+  }
+  var last = sh.getLastRow();
+  if (last < 2) return cloneConfig_(DEFAULT_KATEGORI);
+  var rows = sh.getRange(2, 1, last - 1, 5).getValues();
+  var cfg = { kategori: [], labelMenikah: DEFAULT_KATEGORI.labelMenikah };
+  rows.forEach(function (r) {
+    var nama = String(r[1] || '').trim();
+    var penanda = String(r[4] || '').trim().toUpperCase();
+    if (!nama) return;
+    if (penanda === 'MENIKAH') { cfg.labelMenikah = nama; return; }
+    cfg.kategori.push({
+      nama: nama,
+      min: r[2] === '' || r[2] === null ? 0 : Number(r[2]),
+      max: r[3] === '' || r[3] === null ? null : Number(r[3]),
+      lansia: penanda === 'LANSIA'
+    });
+  });
+  try {
+    return validateKategoriConfig_(cfg);
+  } catch (e) {
+    Logger.log("Pengaturan_Kategori tidak valid, memakai default: " + e.message);
+    var def = cloneConfig_(DEFAULT_KATEGORI);
+    def.invalid = e.message;
+    return def;
+  }
+}
+
+function writeKategoriSheet_(ss, cfg) {
+  var sh = ss.getSheetByName(CONFIG.SHEET_PENGATURAN) || ss.insertSheet(CONFIG.SHEET_PENGATURAN);
+  var last = sh.getLastRow();
+  if (last > 0) sh.getRange(1, 1, last, 5).clearContent();
+  var rows = [HEADER_KATEGORI];
+  cfg.kategori.forEach(function (k, i) {
+    rows.push([i + 1, k.nama, k.min, k.max === null ? "" : k.max, k.lansia ? "LANSIA" : ""]);
+  });
+  rows.push([cfg.kategori.length + 1, cfg.labelMenikah, "", "", "MENIKAH"]);
+  var range = sh.getRange(1, 1, rows.length, 5);
+  range.setNumberFormat('@');
+  sh.getRange(2, 1, rows.length - 1, 1).setNumberFormat('0');
+  sh.getRange(2, 3, rows.length - 1, 2).setNumberFormat('0');
+  range.setValues(rows);
+}
+
+/** Validasi & normalisasi konfigurasi. Lempar Error berisi pesan ramah pengguna. */
+function validateKategoriConfig_(input) {
+  if (!input || !Array.isArray(input.kategori)) throw new Error("Format pengaturan kategori tidak valid.");
+  var label = String(input.labelMenikah || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+  if (!label) throw new Error("Nama kategori untuk yang sudah menikah wajib diisi.");
+  if (input.kategori.length < 1 || input.kategori.length > 12) throw new Error("Jumlah kategori umur harus 1 sampai 12.");
+
+  var reserved = { 'DUDA': 1, 'JANDA': 1, 'TANPA TAHUN LAHIR': 1, 'DI LUAR KATEGORI': 1 };
+  var seen = {};
+  seen[label.toUpperCase()] = 1;
+  if (reserved[label.toUpperCase()]) throw new Error("Nama '" + label + "' dipakai sistem, gunakan nama lain.");
+
+  var list = input.kategori.map(function (k, i) {
+    var nama = String(k.nama || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+    var no = "Baris " + (i + 1) + ": ";
+    if (!nama) throw new Error(no + "nama kategori wajib diisi.");
+    if (reserved[nama.toUpperCase()]) throw new Error(no + "nama '" + nama + "' dipakai sistem.");
+    if (seen[nama.toUpperCase()]) throw new Error(no + "nama '" + nama + "' dipakai lebih dari sekali.");
+    seen[nama.toUpperCase()] = 1;
+    var min = Number(k.min);
+    var max = (k.max === null || k.max === undefined || k.max === '') ? null : Number(k.max);
+    if (!(Math.floor(min) === min && min >= 0 && min <= 150)) throw new Error(no + "umur minimal harus angka bulat 0–150.");
+    if (max !== null && !(Math.floor(max) === max && max >= min && max <= 150)) throw new Error(no + "umur maksimal harus angka bulat ≥ umur minimal.");
+    return { nama: nama, min: min, max: max, lansia: k.lansia === true || k.lansia === 'true' };
+  });
+
+  list.sort(function (a, b) { return a.min - b.min; });
+  if (list[0].min !== 0) throw new Error("Kategori pertama harus mulai dari umur 0.");
+  for (var i = 1; i < list.length; i++) {
+    var prev = list[i - 1], cur = list[i];
+    if (prev.max === null) throw new Error("Hanya kategori dengan umur terbesar yang boleh tanpa batas atas ('" + prev.nama + "').");
+    if (cur.min !== prev.max + 1) {
+      throw new Error("Rentang umur harus bersambung: '" + prev.nama + "' sampai " + prev.max +
+        " th, maka '" + cur.nama + "' harus mulai " + (prev.max + 1) + " th.");
+    }
+  }
+  if (list[list.length - 1].max !== null) throw new Error("Kategori terakhir ('" + list[list.length - 1].nama + "') harus tanpa batas atas (kosongkan umur maksimal).");
+  var lansiaCount = list.filter(function (k) { return k.lansia; }).length;
+  if (lansiaCount > 1) throw new Error("Penanda Lansia hanya boleh di satu kategori.");
+
+  return { kategori: list, labelMenikah: label };
+}
+
+function lansiaMin_(cfg) {
+  for (var i = 0; i < cfg.kategori.length; i++) if (cfg.kategori[i].lansia) return cfg.kategori[i].min;
+  return CONFIG.BATAS_LANSIA;
+}
+
+/* ======================================================================
  * RULE ENGINE
  * ====================================================================== */
 
@@ -268,21 +413,23 @@ function newId_(prefix) {
  * Menentukan Kategori Usia secara dinamis.
  * @param {number} tahunLahir
  * @param {string} statusNikah
+ * @param {object=} cfg konfigurasi kategori (default bila kosong)
  * @return {string} Kategori Usia
  */
-function dapatkanKategoriUsia(tahunLahir, statusNikah) {
+function dapatkanKategoriUsia(tahunLahir, statusNikah, cfg) {
+  cfg = cfg || DEFAULT_KATEGORI;
   var status = (statusNikah || "").toUpperCase().trim();
   if (status === "MENIKAH" || status === "DUDA" || status === "JANDA") {
-    return "Dewasa Menikah";
+    return cfg.labelMenikah;
   }
   if (!tahunLahir) return "Tanpa Tahun Lahir";
 
   var umur = new Date().getFullYear() - tahunLahir;
-  if (umur <= 5) return "BALITA-PAUD";
-  if (umur <= 12) return "Caberawit";
-  if (umur <= 15) return "Pra Remaja (SMP)";
-  if (umur <= 17) return "Remaja (SMA)";
-  return "Usia (Pra) Menikah";
+  for (var i = 0; i < cfg.kategori.length; i++) {
+    var k = cfg.kategori[i];
+    if (umur >= k.min && (k.max === null || umur <= k.max)) return k.nama;
+  }
+  return "Di Luar Kategori";
 }
 
 /* ======================================================================
@@ -291,8 +438,8 @@ function dapatkanKategoriUsia(tahunLahir, statusNikah) {
 
 /**
  * Mengambil data sensus + rekap.
- * ADMIN  : seluruh data (termasuk alamat, telepon, catatan).
- * VIEWER : hanya jamaah aktif & masuk absen, tanpa data kontak/catatan.
+ * ADMIN  : seluruh data (termasuk alamat, telepon, catatan, perlu dibantu) + konfigurasi kategori.
+ * VIEWER : hanya jamaah aktif & masuk absen; nama, kategori, umur, dan no. telepon.
  * @param {string} token
  */
 function getSensusData(token) {
@@ -311,6 +458,8 @@ function getSensusData(token) {
 function readSensus_() {
   var ss = getSpreadsheet_();
   var sheets = initializeSheets_(ss);
+  var cfg = getKategoriConfig_(ss);
+  var batasLansia = lansiaMin_(cfg);
   var shKeluarga = sheets.keluarga;
   var shJamaah = sheets.jamaah;
 
@@ -335,31 +484,23 @@ function readSensus_() {
   }
 
   // 2. Data jamaah + rekap
-  var jamaahList = [];
+  var kategoriOrder = cfg.kategori.map(function (k) { return k.nama; }).concat([cfg.labelMenikah]);
+  var detail = {};
+  kategoriOrder.forEach(function (k) { detail[k] = { L: 0, P: 0 }; });
   var rekap = {
-    total: 0,
-    laki: 0,
-    perempuan: 0,
-    duda: 0,
-    janda: 0,
-    lansia: 0,
-    kkCount: 0,
-    tanpaTahunLahir: 0,
-    detail: {
-      "BALITA-PAUD": { L: 0, P: 0 },
-      "Caberawit": { L: 0, P: 0 },
-      "Pra Remaja (SMP)": { L: 0, P: 0 },
-      "Remaja (SMA)": { L: 0, P: 0 },
-      "Usia (Pra) Menikah": { L: 0, P: 0 },
-      "Dewasa Menikah": { L: 0, P: 0 }
-    }
+    total: 0, laki: 0, perempuan: 0, duda: 0, janda: 0,
+    lansia: 0, batasLansia: batasLansia, kkCount: 0,
+    tanpaTahunLahir: 0, diLuarKategori: 0, perluDibantu: 0,
+    kategoriOrder: kategoriOrder,
+    detail: detail
   };
+  var jamaahList = [];
   var inactiveKeluargaIds = {};
   var tahunSekarang = new Date().getFullYear();
 
   var lastRowJamaah = shJamaah.getLastRow();
   if (lastRowJamaah > 1) {
-    var valJamaah = shJamaah.getRange(2, 1, lastRowJamaah - 1, 12).getValues();
+    var valJamaah = shJamaah.getRange(2, 1, lastRowJamaah - 1, JAMAAH_COLS).getValues();
 
     for (var j = 0; j < valJamaah.length; j++) {
       var jRow = valJamaah[j];
@@ -373,13 +514,14 @@ function readSensus_() {
       var statusNikah = String(jRow[7]).toUpperCase();
       var isAktif = String(jRow[8]).toUpperCase() === "N" ? "N" : "Y";
       var flagAbsen = String(jRow[9]).toUpperCase() === "N" ? "N" : "Y";
+      var perluDibantu = String(jRow[13]).toUpperCase() === "Y" ? "Y" : "N";
 
       if (hubKeluarga === "A" && isAktif === "N") {
         inactiveKeluargaIds[idKeluarga] = true;
       }
 
       var umur = tahunLahir ? tahunSekarang - tahunLahir : null;
-      var kategoriUsia = dapatkanKategoriUsia(tahunLahir, statusNikah);
+      var kategoriUsia = dapatkanKategoriUsia(tahunLahir, statusNikah, cfg);
 
       jamaahList.push({
         id_jamaah: String(jRow[0]),
@@ -396,8 +538,12 @@ function readSensus_() {
         flag_absen: flagAbsen,
         status_keberadaan: String(jRow[10]),
         kategori_usia: kategoriUsia,
-        catatan: String(jRow[11])
+        catatan: String(jRow[11]),
+        no_telepon: String(jRow[12] || ''),
+        perlu_dibantu: perluDibantu
       });
+
+      if (perluDibantu === "Y") rekap.perluDibantu++;
 
       // Agregasi rekap (hanya jamaah aktif wilayah)
       if (isAktif === "Y") {
@@ -408,8 +554,9 @@ function readSensus_() {
         if (statusNikah === "DUDA") rekap.duda++;
         else if (statusNikah === "JANDA") rekap.janda++;
 
-        if (umur !== null && umur >= CONFIG.BATAS_LANSIA) rekap.lansia++;
+        if (umur !== null && umur >= batasLansia) rekap.lansia++;
         if (!tahunLahir) rekap.tanpaTahunLahir++;
+        if (kategoriUsia === "Di Luar Kategori") rekap.diLuarKategori++;
 
         if (rekap.detail[kategoriUsia] && (jk === "L" || jk === "P") &&
             statusNikah !== "DUDA" && statusNikah !== "JANDA") {
@@ -425,27 +572,37 @@ function readSensus_() {
   }
   rekap.kkCount = activeKkCount;
 
-  return { jamaah: jamaahList, keluarga: keluargaList, rekap: rekap };
+  return { jamaah: jamaahList, keluarga: keluargaList, rekap: rekap, kategoriConfig: cfg };
 }
 
-/** Data untuk halaman ringkasan: tanpa alamat, telepon, catatan, ID, dan jamaah non-absen. */
+/**
+ * Data untuk halaman ringkasan pengurus:
+ * hanya jamaah aktif & masuk absen; tanpa alamat, catatan, ID, tahun lahir, dan penanda perlu dibantu.
+ * No. telepon jamaah ikut dikirim (keputusan pengurus: tombol WA tersedia di halaman ringkasan).
+ */
 function toPublicData_(full) {
+  var grup = {}, next = 1;
   var jamaah = full.jamaah
     .filter(function (j) { return j.is_aktif === "Y" && j.flag_absen === "Y"; })
     .map(function (j) {
+      if (j.id_keluarga && !grup[j.id_keluarga]) grup[j.id_keluarga] = next++;
       return {
         nama_lengkap: j.nama_lengkap,
         nama_absen: j.nama_absen,
         hubungan_keluarga: j.hubungan_keluarga,
         nama_kk: j.nama_kk,
+        grup_kk: grup[j.id_keluarga] || 0, // nomor urut keluarga, bukan ID asli
         jenis_kelamin: j.jenis_kelamin,
         umur: j.umur,
         kategori_usia: j.kategori_usia,
+        no_telepon: j.no_telepon,
         is_aktif: j.is_aktif,
         flag_absen: j.flag_absen
       };
     });
-  return { jamaah: jamaah, keluarga: [], rekap: full.rekap };
+  var rekap = JSON.parse(JSON.stringify(full.rekap));
+  delete rekap.perluDibantu;
+  return { jamaah: jamaah, keluarga: [], rekap: rekap };
 }
 
 /* ======================================================================
@@ -507,7 +664,9 @@ function saveSensusData(token, formData) {
       d.is_aktif,
       d.flag_absen,
       d.status_keberadaan,
-      d.catatan
+      d.catatan,
+      d.no_telepon,
+      d.perlu_dibantu
     ];
     writeRowAsText_(shJamaah, foundRowIndex || shJamaah.getLastRow() + 1, row, [6]);
     SpreadsheetApp.flush();
@@ -543,6 +702,7 @@ function validateFormData_(f) {
     for (var i = 0; i < list.length; i++) if (list[i].toUpperCase() === s.toUpperCase()) return list[i];
     return null;
   }
+  var phoneRe = /^[0-9+\-\s]{6,20}$/;
 
   var d = {
     id_jamaah: f.id_jamaah ? text(f.id_jamaah, 64) : null,
@@ -560,13 +720,15 @@ function validateFormData_(f) {
     is_aktif: pick(f.is_aktif, ENUM.YN, "Y"),
     flag_absen: pick(f.flag_absen, ENUM.YN, "Y"),
     status_keberadaan: pick(f.status_keberadaan, ENUM.KEBERADAAN, "Menetap"),
-    catatan: text(f.catatan, 500)
+    catatan: text(f.catatan, 500),
+    no_telepon: text(f.no_telepon, 20),
+    perlu_dibantu: pick(f.perlu_dibantu, ENUM.YN, "N")
   };
 
   if (d.is_new_keluarga) {
     if (!d.nama_kk) errors.push("Nama Kepala Keluarga wajib diisi.");
     if (!d.alamat) errors.push("Alamat KK baru wajib diisi.");
-    if (d.telepon && !/^[0-9+\-\s]{6,20}$/.test(d.telepon)) errors.push("No. telepon hanya boleh angka, spasi, + atau -.");
+    if (d.telepon && !phoneRe.test(d.telepon)) errors.push("No. telepon KK hanya boleh angka, spasi, + atau -.");
   } else if (!d.id_keluarga || d.id_keluarga === "NEW") {
     errors.push("Pilih Keluarga (KK) dari daftar, atau buat KK baru.");
   }
@@ -579,13 +741,135 @@ function validateFormData_(f) {
     errors.push("Tahun lahir harus antara 1900 dan " + tahunSekarang + ".");
   }
   if (!d.status_nikah) errors.push("Status pernikahan tidak valid.");
-  if (!d.is_aktif || !d.flag_absen) errors.push("Penanda Aktif/Absen tidak valid.");
+  if (!d.is_aktif || !d.flag_absen || !d.perlu_dibantu) errors.push("Penanda Aktif/Absen/Perlu Dibantu tidak valid.");
   if (!d.status_keberadaan) errors.push("Status keberadaan tidak valid.");
   if (d.status_nikah === "DUDA" && d.jenis_kelamin === "P") errors.push("Status DUDA hanya untuk laki-laki.");
   if (d.status_nikah === "JANDA" && d.jenis_kelamin === "L") errors.push("Status JANDA hanya untuk perempuan.");
+  if (d.no_telepon && !phoneRe.test(d.no_telepon)) errors.push("No. telepon jamaah hanya boleh angka, spasi, + atau -.");
 
   if (errors.length) throw new Error(errors.join(" "));
   return d;
+}
+
+/* ======================================================================
+ * HAPUS DATA (dengan arsip)
+ * Baris yang dihapus dipindah ke sheet Arsip_Jamaah / Arsip_Keluarga
+ * beserta waktu & keterangan, sehingga bisa dipulihkan manual (salin balik).
+ * ====================================================================== */
+
+/**
+ * Hapus jamaah. Khusus ADMIN.
+ * @param {string} token
+ * @param {string} idJamaah
+ * @param {string} mode 'single' = hanya jamaah ini; 'kk' = seluruh KK beserta anggotanya
+ */
+function deleteJamaah(token, idJamaah, mode) {
+  var lock = LockService.getScriptLock();
+  var locked = false;
+  try {
+    requireSession_(token, [ROLE.ADMIN]);
+    if (!idJamaah) throw new Error("ID jamaah kosong.");
+    if (mode !== 'single' && mode !== 'kk') throw new Error("Mode hapus tidak valid.");
+
+    locked = lock.tryLock(15000);
+    if (!locked) throw new Error("Server sedang sibuk. Coba lagi sebentar.");
+
+    var ss = getSpreadsheet_();
+    var sheets = initializeSheets_(ss);
+    var row = findRowById_(sheets.jamaah, idJamaah);
+    if (!row) throw new Error("Data jamaah tidak ditemukan (mungkin sudah dihapus).");
+
+    if (mode === 'kk') {
+      var idKeluarga = String(sheets.jamaah.getRange(row, 2, 1, 1).getValues()[0][0]);
+      var res = deleteKeluargaRows_(ss, sheets, idKeluarga, "Hapus seluruh KK (dari jamaah " + idJamaah + ")");
+      return { success: true, message: "Keluarga beserta " + res.jamaah + " anggota dihapus dan disimpan di arsip.", deleted: res };
+    }
+
+    archiveAndDeleteRows_(ss, sheets.jamaah, CONFIG.SHEET_ARSIP_JAMAAH, HEADER_JAMAAH, [row], "Hapus jamaah");
+    SpreadsheetApp.flush();
+    return { success: true, message: "Data jamaah dihapus dan disimpan di arsip.", deleted: { jamaah: 1, keluarga: 0 } };
+  } catch (err) {
+    return errorResponse_(err, err && err.isAuth ? "" : "Gagal menghapus: ");
+  } finally {
+    if (locked) lock.releaseLock();
+  }
+}
+
+/** Hapus satu KK beserta seluruh anggotanya. Khusus ADMIN. */
+function deleteKeluarga(token, idKeluarga) {
+  var lock = LockService.getScriptLock();
+  var locked = false;
+  try {
+    requireSession_(token, [ROLE.ADMIN]);
+    if (!idKeluarga) throw new Error("ID keluarga kosong.");
+
+    locked = lock.tryLock(15000);
+    if (!locked) throw new Error("Server sedang sibuk. Coba lagi sebentar.");
+
+    var ss = getSpreadsheet_();
+    var sheets = initializeSheets_(ss);
+    if (!findRowById_(sheets.keluarga, idKeluarga)) throw new Error("Data keluarga tidak ditemukan (mungkin sudah dihapus).");
+    var res = deleteKeluargaRows_(ss, sheets, String(idKeluarga), "Hapus seluruh KK");
+    return { success: true, message: "Keluarga beserta " + res.jamaah + " anggota dihapus dan disimpan di arsip.", deleted: res };
+  } catch (err) {
+    return errorResponse_(err, err && err.isAuth ? "" : "Gagal menghapus: ");
+  } finally {
+    if (locked) lock.releaseLock();
+  }
+}
+
+function deleteKeluargaRows_(ss, sheets, idKeluarga, keterangan) {
+  var memberRows = [];
+  var last = sheets.jamaah.getLastRow();
+  if (last > 1) {
+    var vals = sheets.jamaah.getRange(2, 2, last - 1, 1).getValues();
+    for (var i = 0; i < vals.length; i++) if (String(vals[i][0]) === idKeluarga) memberRows.push(i + 2);
+  }
+  archiveAndDeleteRows_(ss, sheets.jamaah, CONFIG.SHEET_ARSIP_JAMAAH, HEADER_JAMAAH, memberRows, keterangan);
+  var kkRow = findRowById_(sheets.keluarga, idKeluarga);
+  if (kkRow) archiveAndDeleteRows_(ss, sheets.keluarga, CONFIG.SHEET_ARSIP_KELUARGA, HEADER_KELUARGA, [kkRow], keterangan);
+  SpreadsheetApp.flush();
+  return { jamaah: memberRows.length, keluarga: kkRow ? 1 : 0 };
+}
+
+/** Salin baris ke sheet arsip (dengan waktu & keterangan) lalu hapus dari sheet asal, dari bawah ke atas. */
+function archiveAndDeleteRows_(ss, sheet, archiveName, header, rowIndexes, keterangan) {
+  if (!rowIndexes.length) return;
+  var arsip = ss.getSheetByName(archiveName);
+  if (!arsip) {
+    arsip = ss.insertSheet(archiveName);
+    arsip.appendRow(["Waktu Hapus", "Keterangan"].concat(header));
+  }
+  var waktu = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
+  var sorted = rowIndexes.slice().sort(function (a, b) { return b - a; });
+  sorted.forEach(function (r) {
+    var values = sheet.getRange(r, 1, 1, header.length).getValues()[0];
+    writeRowAsText_(arsip, arsip.getLastRow() + 1, [waktu, keterangan].concat(values), []);
+  });
+  sorted.forEach(function (r) { sheet.deleteRow(r); });
+}
+
+/* ======================================================================
+ * PENGATURAN KATEGORI (API)
+ * ====================================================================== */
+
+/** Simpan konfigurasi kategori usia. Khusus ADMIN. */
+function saveKategoriConfig(token, cfg) {
+  var lock = LockService.getScriptLock();
+  var locked = false;
+  try {
+    requireSession_(token, [ROLE.ADMIN]);
+    var clean = validateKategoriConfig_(cfg);
+    locked = lock.tryLock(15000);
+    if (!locked) throw new Error("Server sedang sibuk. Coba lagi sebentar.");
+    writeKategoriSheet_(getSpreadsheet_(), clean);
+    SpreadsheetApp.flush();
+    return { success: true, message: "Pengaturan kategori usia disimpan.", config: clean };
+  } catch (err) {
+    return errorResponse_(err, err && err.isAuth ? "" : "Gagal menyimpan pengaturan: ");
+  } finally {
+    if (locked) lock.releaseLock();
+  }
 }
 
 /* ======================================================================

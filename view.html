@@ -54,25 +54,18 @@
     .brand-mark svg.lucide { width: 26px; height: 26px; }
     .login-band h1 { margin: 0; font-size: 26px; font-weight: 800; }
     .login-band p { margin: 4px 0 0; color: var(--deep-muted); font-size: 15px; }
-    .login-card { width: calc(100% - 40px); max-width: 400px; margin-top: -56px; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 24px 22px; box-shadow: 0 10px 30px rgba(13, 43, 36, .10); display: flex; flex-direction: column; gap: 18px; }
+    .login-card { width: calc(100% - 40px); max-width: 400px; margin-top: -56px; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 24px 22px; box-shadow: 0 10px 30px rgba(13, 43, 36, .10); display: flex; flex-direction: column; gap: 16px; }
     .login-head { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
     .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 5px 12px; }
     .pill svg.lucide { width: 14px; height: 14px; }
     .pill-blue { color: var(--blue-ink); background: var(--blue-bg); }
     .login-head h2 { margin: 6px 0 0; font-size: 19px; font-weight: 700; }
     .login-head p { margin: 0; font-size: 13px; color: var(--muted); }
-    .pin-field { position: relative; display: flex; justify-content: center; gap: 10px; }
-    #pin-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; font-size: 16px; }
-    .pin-box { width: 40px; height: 48px; border-radius: 12px; border: 2px solid var(--line-2); background: #fff; display: flex; align-items: center; justify-content: center; }
-    .pin-box.filled { border-color: var(--primary); background: var(--primary-soft); }
-    .pin-box.filled::after { content: ''; width: 12px; height: 12px; border-radius: 999px; background: var(--primary); }
-    .pin-box.current { border-color: var(--mint); }
-    .pin-field:focus-within .pin-box.current { box-shadow: 0 0 0 3px rgba(18, 163, 131, .25); }
-    .keypad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-    .key { height: 56px; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); font-size: 22px; font-weight: 700; }
-    .key:hover { background: var(--track); }
-    .key-ghost { background: transparent; border-color: transparent; color: var(--muted); display: flex; align-items: center; justify-content: center; }
-    .key-ghost svg.lucide { width: 24px; height: 24px; }
+    .pin-wrap { position: relative; }
+    #pin-input { width: 100%; height: 54px; border-radius: 14px; border: 1px solid var(--line-3); padding: 0 56px 0 16px; font-size: 22px; letter-spacing: .3em; background: #fff; }
+    #pin-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(11, 110, 91, .15); }
+    #pin-toggle { position: absolute; right: 5px; top: 5px; width: 44px; height: 44px; border: 0; background: transparent; color: var(--muted); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    #pin-toggle:hover { background: var(--soft); }
     #login-btn { height: 52px; font-size: 16px; border-radius: 14px; }
     #login-error { margin: 0; min-height: 20px; text-align: center; color: var(--danger); font-size: 14px; font-weight: 600; }
     .login-note { width: calc(100% - 56px); max-width: 372px; margin: 18px 0 40px; display: flex; gap: 10px; font-size: 13px; color: var(--muted); }
@@ -142,6 +135,78 @@
     .state h2 { font-size: 20px; margin-bottom: 6px; }
     .state p { margin: 0 0 18px; color: var(--muted); }
 
+    /* ---------- List tools, grouping, pager, modal ---------- */
+    .list-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 22px; border-bottom: 1px solid var(--line); background: var(--soft); }
+    .list-tools .search { flex: 1 1 300px; max-width: 440px; }
+    .search { display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 6px 0 12px; border: 1px solid var(--line-2); border-radius: 12px; min-width: 180px; color: var(--muted); background: #fff; }
+    .search:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(11, 110, 91, .12); }
+    .search input { border: 0; outline: none; font-size: 14px; flex: 1; min-width: 0; color: var(--ink); background: transparent; }
+    .search input::-webkit-search-cancel-button { display: none; }
+    .search-clear { width: 32px; height: 32px; border: 0; border-radius: 8px; background: var(--track); color: var(--ink-2); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+    .search-clear svg.lucide { width: 16px; height: 16px; }
+    .result-info { font-size: 13px; color: var(--muted); }
+    .result-info strong { color: var(--ink); }
+    .spacer { flex: 1; }
+    .switch { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line-2); background: #fff; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+    .switch input { width: 18px; height: 18px; accent-color: var(--primary); margin: 0; }
+    .switch:has(input:checked) { border-color: var(--primary); color: var(--primary-ink); background: #F2F9F6; }
+    tr.group-row td { background: var(--deep) !important; color: #fff; font-size: 13px; padding: 9px 14px; font-weight: 700; }
+    tr.group-row td span { color: var(--deep-muted); font-weight: 500; margin-left: 8px; }
+    tr.is-head td { background: #DCEFE7; }
+    .name-btn { border: 0; background: none; padding: 0; text-align: left; font: inherit; color: inherit; font-weight: 700; cursor: pointer; }
+    .name-btn:hover { color: var(--primary); text-decoration: underline; }
+    .wa { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 999px; background: #E7F8EE; color: #136C3A; font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+    .wa:hover { background: #D3F2E0; }
+    .wa svg.lucide { width: 15px; height: 15px; }
+    .muted { color: var(--muted); }
+    .table-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 22px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); }
+    .table-foot > span { flex: 1; }
+    .pager { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .pager button { min-width: 38px; height: 38px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line-2); background: #fff; font-size: 13px; font-weight: 600; color: var(--ink-2); display: inline-flex; align-items: center; justify-content: center; }
+    .pager button:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .pager button[aria-current="page"] { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .pager button:disabled { opacity: .45; cursor: not-allowed; }
+    .pager .gap { padding: 0 4px; color: var(--muted); }
+    .pager svg.lucide { width: 16px; height: 16px; }
+    .m-list { display: none; flex-direction: column; gap: 8px; padding: 12px; }
+    .m-group { margin-top: 4px; padding: 8px 12px; border-radius: 10px; background: var(--deep); color: #fff; font-size: 13px; font-weight: 700; }
+    .m-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+    .m-row.is-head { background: #DCEFE7; border-color: #B9D8CE; }
+    .m-row .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .m-row .grow span { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(13, 43, 36, .5); z-index: 70; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal { background: #fff; border-radius: 20px; width: min(520px, 100%); max-height: calc(100vh - 40px); display: flex; flex-direction: column; box-shadow: 0 24px 60px rgba(13, 43, 36, .3); }
+    .modal-head { display: flex; align-items: flex-start; gap: 14px; padding: 22px 22px 16px; }
+    .modal-head .titles { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .modal-head h2 { margin: 0; font-size: 20px; font-weight: 800; }
+    .modal-head p { margin: 0; color: var(--muted); font-size: 14px; }
+    .modal-body { padding: 0 22px 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; font-size: 14px; }
+    .avatar { width: 56px; height: 56px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex: none; background: var(--primary-soft); color: var(--primary-ink); }
+    .avatar.sm { width: 30px; height: 30px; font-size: 11px; }
+    .detail-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    dl.detail-grid { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; }
+    .detail-grid div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .detail-grid dt { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .detail-grid dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+    .detail-grid .full { grid-column: 1 / -1; }
+    .family { display: flex; flex-direction: column; gap: 6px; }
+    .family h3 { margin: 0; font-size: 13px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+    .family button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: #fff; text-align: left; font-size: 14px; }
+    .family button:hover { border-color: var(--primary); }
+    .family button.is-head { background: #DCEFE7; border-color: #B9D8CE; }
+    .family .grow { flex: 1; min-width: 0; }
+    .icon-btn-plain { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line-2); background: #fff; color: var(--muted); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+
+    .tabs { display: none; }
+    .mobile-actions { display: none; }
+
+    .state { max-width: 460px; margin: 18vh auto; text-align: center; padding: 0 20px; }
+    .spinner { width: 44px; height: 44px; border: 4px solid var(--primary-soft); border-top-color: var(--primary); border-radius: 50%; margin: 0 auto 18px; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .state h2 { font-size: 20px; margin-bottom: 6px; }
+    .state p { margin: 0 0 18px; color: var(--muted); }
+
     /* ---------- Mobile ---------- */
     @media (max-width: 760px) {
       .topbar-inner { padding: 14px 16px; }
@@ -166,27 +231,37 @@
       body.tab-rekap #absen-section { display: none; }
       body.tab-absen #komposisi-section, body.tab-absen #rekap-section { display: none; }
       .panel { padding: 16px; }
-      .section-head { padding: 14px 16px; }
-      .search { flex: 1 1 100%; }
+      .section-head, .list-tools { padding: 12px 14px; }
+      .list-tools .search { flex: 1 1 100%; max-width: none; }
       #csv-btn { display: none; }
       .mobile-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px 20px; background: #fff; border-top: 1px solid var(--line); z-index: 20; }
       .mobile-actions .btn { height: 48px; border-radius: 14px; }
       td, th { padding: 10px; }
       .hide-m { display: none; }
+      #absen-section .table-wrap { display: none; }
+      .m-list { display: flex; }
+      .table-foot { justify-content: center; }
+      .table-foot > span { flex-basis: 100%; text-align: center; }
+      .modal-backdrop { align-items: flex-end; padding: 0; }
+      .modal { width: 100%; border-radius: 20px 20px 0 0; max-height: 92vh; }
+      dl.detail-grid { grid-template-columns: minmax(0, 1fr); }
     }
 
     /* ---------- Print ---------- */
     @media print {
       body { background: #fff; }
-      .topbar, .page-head .btn, .tabs, .mobile-actions, .section-head .search, .section-head .select-label, #csv-btn, .privacy { display: none !important; }
+      .topbar, .page-head .btn, .tabs, .mobile-actions, .list-tools, #csv-btn, .privacy, .table-foot .pager, .m-list, .modal-backdrop { display: none !important; }
       main { padding: 0; max-width: none; }
-      .card { border-color: #C9D3CF; break-inside: avoid; }
+      .card { border-color: #C9D3CF; }
+      #komposisi-section, .kpis { break-inside: avoid; }
       .kpi-hero { background: #fff; color: var(--ink); border-color: #C9D3CF; }
       .kpi-hero .kpi-label, .kpi-hero .kpi-hint { color: var(--muted); }
       .kpis .kpi { display: flex !important; }
       .kpi-mini { display: none !important; }
-      #absen-section, #komposisi-section, #rekap-section { display: block !important; }
-      .stack span, .swatch, .prop-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      #absen-section, #komposisi-section, #rekap-section, #absen-section .table-wrap { display: block !important; }
+      .wa { background: none; padding: 0; height: auto; color: var(--ink); }
+      .wa svg { display: none; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
 </head>
@@ -209,24 +284,12 @@
         <h2>Masukkan PIN</h2>
         <p>PIN pengurus (atau PIN admin)</p>
       </div>
-      <div class="pin-field" onclick="document.getElementById('pin-input').focus()">
+      <div>
         <label for="pin-input" class="sr-only">PIN</label>
-        <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" oninput="onPinInput()">
-        <div id="pin-boxes" style="display: contents" aria-hidden="true"></div>
-      </div>
-      <div class="keypad" aria-label="Papan angka">
-        <button type="button" class="key" onclick="pressKey('1')">1</button>
-        <button type="button" class="key" onclick="pressKey('2')">2</button>
-        <button type="button" class="key" onclick="pressKey('3')">3</button>
-        <button type="button" class="key" onclick="pressKey('4')">4</button>
-        <button type="button" class="key" onclick="pressKey('5')">5</button>
-        <button type="button" class="key" onclick="pressKey('6')">6</button>
-        <button type="button" class="key" onclick="pressKey('7')">7</button>
-        <button type="button" class="key" onclick="pressKey('8')">8</button>
-        <button type="button" class="key" onclick="pressKey('9')">9</button>
-        <span></span>
-        <button type="button" class="key" onclick="pressKey('0')">0</button>
-        <button type="button" class="key key-ghost" onclick="pressKey('back')" aria-label="Hapus satu digit"><i data-lucide="delete"></i></button>
+        <div class="pin-wrap">
+          <input id="pin-input" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="••••••" oninput="this.value = this.value.replace(/\D/g, ''); document.getElementById('login-error').textContent = ''">
+          <button type="button" id="pin-toggle" onclick="togglePin()" aria-label="Tampilkan PIN" aria-pressed="false"><i data-lucide="eye"></i></button>
+        </div>
       </div>
       <button type="submit" id="login-btn" class="btn btn-primary"><span>Masuk</span></button>
       <p id="login-error" role="alert"></p>
@@ -255,7 +318,7 @@
         <div class="brand-mark"><i data-lucide="users"></i></div>
         <div class="brand-text"><strong>Sensus BBK02</strong><span>Kelompok Babakan Barat</span></div>
         <span class="pill pill-blue" id="mode-badge"><i data-lucide="eye"></i> Mode lihat · Pengurus</span>
-        <button type="button" id="logout-btn" class="btn icon-btn-m" onclick="handleLogout()" aria-label="Keluar"><i data-lucide="log-out"></i><span>Keluar</span></button>
+        <button type="button" id="logout-btn" class="btn" onclick="handleLogout()" aria-label="Keluar"><i data-lucide="log-out"></i><span>Keluar</span></button>
       </div>
     </header>
 
@@ -281,7 +344,7 @@
         </div>
         <div class="card kpi"><span class="kpi-label">Laki-laki</span><span class="kpi-value num" id="kpi-laki" style="color: var(--male-ink)">0</span><span class="kpi-hint" id="kpi-laki-hint"></span></div>
         <div class="card kpi"><span class="kpi-label">Perempuan</span><span class="kpi-value num" id="kpi-perempuan" style="color: var(--female-ink)">0</span><span class="kpi-hint" id="kpi-perempuan-hint"></span></div>
-        <div class="card kpi"><span class="kpi-label">Lansia ≥ 57 th</span><span class="kpi-value num" id="kpi-lansia" style="color: var(--primary)">0</span><span class="kpi-hint" id="kpi-lansia-hint"></span></div>
+        <div class="card kpi"><span class="kpi-label" id="kpi-lansia-label">Lansia</span><span class="kpi-value num" id="kpi-lansia" style="color: var(--primary)">0</span><span class="kpi-hint" id="kpi-lansia-hint"></span></div>
         <div class="card kpi"><span class="kpi-label">Masuk daftar absen</span><span class="kpi-value num" id="kpi-absen">0</span><span class="kpi-hint" id="kpi-absen-hint"></span></div>
       </section>
 
@@ -311,26 +374,46 @@
       <section class="card" id="absen-section">
         <div class="section-head" style="border-bottom: 1px solid var(--line)">
           <div class="titles"><h2>Daftar absen pengajian</h2><span id="absen-info"></span></div>
-          <label class="search"><i data-lucide="search"></i><span class="sr-only">Cari nama</span><input type="search" id="search-input" placeholder="Cari nama atau KK…" oninput="renderAbsen()"></label>
-          <label class="select-label">Gender
-            <select id="filter-gender" class="select" onchange="renderAbsen()"><option value="">Semua</option><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
+          <button type="button" class="btn btn-primary btn-sm" id="csv-btn" onclick="exportToCSV()"><i data-lucide="download"></i> Ekspor CSV</button>
+        </div>
+        <div class="list-tools">
+          <label class="search">
+            <i data-lucide="search"></i><span class="sr-only">Cari nama</span>
+            <input type="search" id="search-input" placeholder="Cari nama, KK, atau no. telepon…" oninput="resetAndRender()" autocomplete="off">
+            <button type="button" class="search-clear" id="search-clear" onclick="clearSearch()" aria-label="Hapus pencarian" hidden><i data-lucide="x"></i></button>
           </label>
-          <label class="select-label">Kategori
-            <select id="filter-kategori" class="select" onchange="renderAbsen()">
-              <option value="">Semua</option>
-              <option value="BALITA-PAUD">BALITA-PAUD</option><option value="Caberawit">Caberawit</option><option value="Pra Remaja (SMP)">Pra Remaja (SMP)</option>
-              <option value="Remaja (SMA)">Remaja (SMA)</option><option value="Usia (Pra) Menikah">Usia (Pra) Menikah</option><option value="Dewasa Menikah">Dewasa Menikah</option>
+          <span class="result-info" id="result-info"></span>
+          <span class="spacer"></span>
+          <label class="select-label">Urutkan
+            <select id="sort-select" class="select" onchange="resetAndRender()">
+              <option value="nama_absen:asc">Nama absen A–Z</option>
+              <option value="nama_lengkap:asc">Nama lengkap A–Z</option>
+              <option value="nama_kk:asc">Keluarga (KK) A–Z</option>
+              <option value="kategori_usia:asc">Kategori</option>
+              <option value="umur:asc">Umur termuda</option>
+              <option value="umur:desc">Umur tertua</option>
             </select>
           </label>
-          <button type="button" class="btn btn-primary btn-sm" id="csv-btn" onclick="exportToCSV()"><i data-lucide="download"></i> Ekspor CSV</button>
+          <label class="switch"><input type="checkbox" id="group-kk" onchange="resetAndRender()"> Kelompokkan per KK</label>
+          <label class="select-label">Gender
+            <select id="filter-gender" class="select" onchange="resetAndRender()"><option value="">Semua</option><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
+          </label>
+          <label class="select-label">Kategori
+            <select id="filter-kategori" class="select" onchange="resetAndRender()"></select>
+          </label>
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th scope="col">No</th><th scope="col">Nama di absen</th><th scope="col" class="hide-m">Nama lengkap</th><th scope="col">Keluarga (KK)</th><th scope="col" class="hide-m">Kategori</th><th scope="col" class="r">Umur</th></tr></thead>
+            <thead><tr><th scope="col">No</th><th scope="col">Nama di absen</th><th scope="col" class="hide-m">Nama lengkap</th><th scope="col">Keluarga (KK)</th><th scope="col" class="hide-m">Kategori</th><th scope="col" class="r">Umur</th><th scope="col">Kontak</th></tr></thead>
             <tbody id="jamaah-table-rows"></tbody>
           </table>
         </div>
-        <div class="privacy"><i data-lucide="lock"></i> Alamat, nomor telepon, dan catatan tidak ditampilkan di halaman pengurus.</div>
+        <div class="m-list" id="jamaah-cards"></div>
+        <div class="table-foot">
+          <span id="page-info"></span>
+          <div class="pager" id="pager" aria-label="Halaman"></div>
+        </div>
+        <div class="privacy"><i data-lucide="lock"></i> Alamat dan catatan tidak ditampilkan di halaman pengurus. Nomor telepon hanya untuk keperluan kelompok.</div>
       </section>
     </main>
 
@@ -340,17 +423,24 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="modal-backdrop" hidden onclick="if (event.target === this) closeModal()">
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"></div>
+  </div>
+
   <script>
     let appData = { jamaah: [], keluarga: [], rekap: {} };
     let lastSync = null;
+    let currentPage = 1;
+    const PAGE_SIZE = 25;
+    let printAll = false; // saat Cetak laporan: tampilkan seluruh daftar, bukan hanya halaman aktif
 
     const TOKEN_KEY = 'sensus_token_view';
     let authToken = null;
 
-    const KATEGORI = [
-      { key: 'BALITA-PAUD', color: '#12A383' }, { key: 'Caberawit', color: '#2563EB' }, { key: 'Pra Remaja (SMP)', color: '#7C3AED' },
-      { key: 'Remaja (SMA)', color: '#F59E5B' }, { key: 'Usia (Pra) Menikah', color: '#DB2777' }, { key: 'Dewasa Menikah', color: '#0D2B24' }
-    ];
+    const PALETTE = ['#12A383', '#2563EB', '#7C3AED', '#F59E5B', '#DB2777', '#0EA5E9', '#65A30D', '#B45309', '#0D2B24', '#9333EA', '#DC2626', '#475569'];
+    const DEFAULT_ORDER = ['BALITA-PAUD', 'Caberawit', 'Pra Remaja (SMP)', 'Remaja (SMA)', 'Usia (Pra) Menikah', 'Lansia', 'Dewasa Menikah'];
+    const HUB_LABEL = { A: 'Kepala', B: 'Istri', C: 'Anak', D: 'Lainnya' };
+    const HUB_ORDER = { A: 0, B: 1, C: 2, D: 3 };
 
     // Escape data sebelum masuk ke innerHTML / template HTML (anti-XSS)
     function esc(value) {
@@ -362,6 +452,7 @@
     const fmt = n => Number(n || 0).toLocaleString('id-ID');
     const pct = (n, total) => total > 0 ? (n / total * 100).toFixed(1).replace('.', ',') + '%' : '0%';
     function umurText(umur) { return (umur === null || umur === undefined) ? '–' : umur + ' th'; }
+    function initials(name) { return String(name || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase(); }
     function icons() { if (window.lucide) lucide.createIcons(); }
 
     // Sel CSV yang diawali = + - @ bisa dieksekusi sebagai rumus oleh Excel/Sheets
@@ -369,6 +460,18 @@
       let s = String(value == null ? '' : value);
       if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
       return '"' + s.replace(/"/g, '""') + '"';
+    }
+    // Nomor HP Indonesia -> format wa.me
+    function waNumber(raw) {
+      let d = String(raw || '').replace(/\D/g, '');
+      if (d.startsWith('0')) d = '62' + d.slice(1);
+      else if (d.startsWith('8')) d = '62' + d;
+      return d.length >= 9 && d.length <= 15 ? d : '';
+    }
+    function waHtml(raw, name) {
+      const n = waNumber(raw);
+      if (!n) return raw ? `<span class="muted">${esc(raw)}</span>` : '<span class="muted">–</span>';
+      return `<a class="wa" href="https://wa.me/${n}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp ${esc(raw)}${name ? ' (' + esc(name) + ')' : ''}"><i data-lucide="message-circle"></i>${esc(raw)}</a>`;
     }
 
     function saveToken(t) {
@@ -416,46 +519,49 @@
         if (u <= 12) return 'Caberawit';
         if (u <= 15) return 'Pra Remaja (SMP)';
         if (u <= 17) return 'Remaja (SMA)';
-        return 'Usia (Pra) Menikah';
+        if (u <= 56) return 'Usia (Pra) Menikah';
+        return 'Lansia';
       };
       const rows = [
-        ["Bapak Contoh Satu", "A", "Bapak Contoh Satu", "Contoh Satu", "L", 1956, "MENIKAH", "Y", "Y"],
-        ["Bapak Contoh Satu", "B", "Ibu Contoh Satu", "Ibu Satu", "P", 1968, "MENIKAH", "Y", "Y"],
-        ["Bapak Contoh Dua", "A", "Bapak Contoh Dua", "Contoh Dua", "L", 1997, "MENIKAH", "Y", "Y"],
-        ["Bapak Contoh Dua", "B", "Ibu Contoh Dua", "Ibu Dua", "P", 1999, "MENIKAH", "Y", "Y"],
-        ["Bapak Contoh Dua", "C", "Anak Contoh Dua", "Anak Dua", "L", 2025, "BELUM", "Y", "N"],
-        ["Bapak Contoh Tiga", "A", "Bapak Contoh Tiga", "Contoh Tiga", "L", 1967, "MENIKAH", "Y", "Y"],
-        ["Bapak Contoh Tiga", "B", "Ibu Contoh Tiga", "Ibu Tiga", "P", 1964, "MENIKAH", "Y", "Y"]
+        [1, "Bapak Contoh Satu", "A", "Bapak Contoh Satu", "Contoh Satu", "L", 1956, "MENIKAH", "080000000011"],
+        [1, "Bapak Contoh Satu", "B", "Ibu Contoh Satu", "Ibu Satu", "P", 1968, "MENIKAH", ""],
+        [2, "Bapak Contoh Dua", "A", "Bapak Contoh Dua", "Contoh Dua", "L", 1997, "MENIKAH", "080000000021"],
+        [2, "Bapak Contoh Dua", "B", "Ibu Contoh Dua", "Ibu Dua", "P", 1999, "MENIKAH", ""],
+        [3, "Bapak Contoh Tiga", "A", "Bapak Contoh Tiga", "Contoh Tiga", "L", 1950, "BELUM", ""],
+        [3, "Bapak Contoh Tiga", "C", "Anak Contoh Tiga", "Anak Tiga", "P", 2012, "BELUM", ""]
       ];
       const all = rows.map(r => ({
-        nama_kk: r[0], hubungan_keluarga: r[1], nama_lengkap: r[2], nama_absen: r[3], jenis_kelamin: r[4],
-        umur: thisYear - r[5], status_nikah: r[6], is_aktif: r[7], flag_absen: r[8], kategori_usia: kategori(r[5], r[6])
+        grup_kk: r[0], nama_kk: r[1], hubungan_keluarga: r[2], nama_lengkap: r[3], nama_absen: r[4], jenis_kelamin: r[5],
+        umur: thisYear - r[6], status_nikah: r[7], no_telepon: r[8], is_aktif: 'Y', flag_absen: 'Y', kategori_usia: kategori(r[6], r[7])
       }));
-      const active = all.filter(j => j.is_aktif === 'Y');
       const detail = {};
-      KATEGORI.forEach(k => { detail[k.key] = { L: 0, P: 0 }; });
-      active.forEach(j => { if (detail[j.kategori_usia] && j.status_nikah !== 'DUDA' && j.status_nikah !== 'JANDA') detail[j.kategori_usia][j.jenis_kelamin]++; });
+      DEFAULT_ORDER.forEach(k => { detail[k] = { L: 0, P: 0 }; });
+      all.forEach(j => { detail[j.kategori_usia][j.jenis_kelamin]++; });
       setTimeout(() => {
         appData = {
-          jamaah: all.filter(j => j.is_aktif === 'Y' && j.flag_absen === 'Y'),
-          keluarga: [],
+          jamaah: all, keluarga: [],
           rekap: {
-            total: active.length, kkCount: 3,
-            laki: active.filter(j => j.jenis_kelamin === 'L').length,
-            perempuan: active.filter(j => j.jenis_kelamin === 'P').length,
-            duda: 0, janda: 0, lansia: active.filter(j => j.umur >= 57).length, detail: detail
+            total: all.length + 1, kkCount: 3,
+            laki: all.filter(j => j.jenis_kelamin === 'L').length + 1,
+            perempuan: all.filter(j => j.jenis_kelamin === 'P').length,
+            duda: 0, janda: 0, lansia: all.filter(j => j.umur >= 57).length, batasLansia: 57,
+            kategoriOrder: DEFAULT_ORDER, detail: detail
           }
         };
+        appData.rekap.detail['BALITA-PAUD'].L++; // 1 balita aktif tapi tidak masuk daftar absen
         lastSync = new Date();
         showState('app');
         renderAll();
-      }, 400);
+      }, 300);
     }
 
     // ================= INIT & STATES =================
+    window.addEventListener('beforeprint', () => { printAll = true; renderAbsen(); });
+    window.addEventListener('afterprint', () => { printAll = false; renderAbsen(); });
+
     window.addEventListener('DOMContentLoaded', () => {
-      renderPinBoxes();
       icons();
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
       initApp();
     });
 
@@ -477,36 +583,27 @@
     }
 
     // ================= LOGIN =================
-    function renderPinBoxes() {
-      const len = $('pin-input').value.length;
-      const slots = Math.max(6, len + (len >= 6 && len < 12 ? 1 : 0));
-      let html = '';
-      for (let i = 0; i < slots; i++) html += `<span class="pin-box${i < len ? ' filled' : ''}${i === len ? ' current' : ''}"></span>`;
-      $('pin-boxes').innerHTML = html;
-    }
-    function onPinInput() {
-      const el = $('pin-input');
-      el.value = el.value.replace(/\D/g, '').slice(0, 12);
-      $('login-error').textContent = '';
-      renderPinBoxes();
-    }
-    function pressKey(k) {
-      const el = $('pin-input');
-      if (k === 'back') el.value = el.value.slice(0, -1);
-      else if (el.value.length < 12) el.value += k;
-      onPinInput();
+    function togglePin() {
+      const el = $('pin-input'), btn = $('pin-toggle');
+      const show = el.type === 'password';
+      el.type = show ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+      btn.setAttribute('aria-label', show ? 'Sembunyikan PIN' : 'Tampilkan PIN');
+      btn.innerHTML = `<i data-lucide="${show ? 'eye-off' : 'eye'}"></i>`;
+      icons();
+      el.focus();
     }
     function showLogin(message) {
+      closeModal();
       showState('login');
       $('login-error').textContent = message || '';
       $('pin-input').value = '';
-      renderPinBoxes();
       $('pin-input').focus();
     }
     function handleLogin(event) {
       event.preventDefault();
       const btn = $('login-btn');
-      const pin = $('pin-input').value;
+      const pin = $('pin-input').value.trim();
       if (!pin) { $('login-error').textContent = 'Masukkan PIN terlebih dahulu.'; return; }
       btn.disabled = true;
       btn.querySelector('span').textContent = 'Memeriksa…';
@@ -521,7 +618,6 @@
             loadData();
           } else {
             $('pin-input').value = '';
-            renderPinBoxes();
             $('login-error').textContent = (res && res.message) || 'PIN salah.';
           }
         }, err => {
@@ -533,8 +629,8 @@
     function handleLogout() {
       const t = authToken;
       saveToken(null);
-      appData = { jamaah: [], keluarga: [], rekap: {} };
       if (isLocalMode) return;
+      appData = { jamaah: [], keluarga: [], rekap: {} };
       if (t) callApi('logout', t).catch(() => {});
       showLogin('Anda sudah keluar.');
     }
@@ -566,6 +662,8 @@
     }
 
     // ================= RENDER =================
+    function kategoriOrder() { return (appData.rekap && appData.rekap.kategoriOrder) || DEFAULT_ORDER; }
+
     function renderAll() {
       const r = appData.rekap || {};
       const absenCount = (appData.jamaah || []).length; // server hanya mengirim jamaah aktif & absen
@@ -577,6 +675,7 @@
       $('kpi-laki-hint').textContent = pct(r.laki, r.total);
       $('kpi-perempuan').textContent = fmt(r.perempuan);
       $('kpi-perempuan-hint').textContent = pct(r.perempuan, r.total);
+      $('kpi-lansia-label').textContent = 'Lansia ≥ ' + (r.batasLansia || 57) + ' th';
       $('kpi-lansia').textContent = fmt(r.lansia);
       $('kpi-lansia-hint').textContent = pct(r.lansia, r.total) + ' jiwa aktif';
       $('kpi-absen').textContent = fmt(absenCount);
@@ -585,9 +684,9 @@
       $('mini-perempuan').textContent = fmt(r.perempuan);
       $('mini-lansia').textContent = fmt(r.lansia);
 
-      const items = KATEGORI.map(k => {
-        const d = (r.detail && r.detail[k.key]) || { L: 0, P: 0 };
-        return { label: k.key, color: k.color, L: d.L, P: d.P, total: d.L + d.P };
+      const items = kategoriOrder().map((k, i) => {
+        const d = (r.detail && r.detail[k]) || { L: 0, P: 0 };
+        return { label: k, color: PALETTE[i % PALETTE.length], L: d.L, P: d.P, total: d.L + d.P };
       });
       items.push({ label: 'Duda', color: '#94A3A0', L: r.duda || 0, P: 0, total: r.duda || 0 });
       items.push({ label: 'Janda', color: '#C9B28A', L: 0, P: r.janda || 0, total: r.janda || 0 });
@@ -608,33 +707,166 @@
           <td class="hide-m"><div class="prop"><div class="prop-track"><div class="prop-fill" style="width: ${i.total / maxCat * 100}%"></div></div><span class="num">${pct(i.total, total)}</span></div></td>
         </tr>`).join('') + `<tr class="total"><td>Total</td><td class="c num" style="color: var(--male-ink)">${sumL}</td><td class="c num" style="color: var(--female-ink)">${sumP}</td><td class="c num">${sumL + sumP}</td><td class="hide-m"></td></tr>`;
 
+      const sel = $('filter-kategori'), prev = sel.value;
+      sel.innerHTML = '<option value="">Semua</option>' + kategoriOrder().map(k => `<option value="${esc(k)}">${esc(k)}</option>`).join('');
+      if (kategoriOrder().includes(prev)) sel.value = prev;
+
       renderAbsen();
       icons();
     }
 
+    function compareBy(field, order) {
+      return (a, b) => {
+        let valA = a[field], valB = b[field];
+        if (valA === null || valA === undefined || valA === '') return 1;
+        if (valB === null || valB === undefined || valB === '') return -1;
+        if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = String(valB).toLowerCase(); }
+        if (valA < valB) return order === 'asc' ? -1 : 1;
+        if (valA > valB) return order === 'asc' ? 1 : -1;
+        return 0;
+      };
+    }
+    function familyOrder(a, b) {
+      const h = (HUB_ORDER[a.hubungan_keluarga] ?? 9) - (HUB_ORDER[b.hubungan_keluarga] ?? 9);
+      return h || (b.umur ?? -1) - (a.umur ?? -1);
+    }
+
     function getFilteredAbsen() {
       const q = $('search-input').value.toLowerCase().trim();
+      const qDigits = q.replace(/\D/g, '');
       const fGender = $('filter-gender').value;
       const fKategori = $('filter-kategori').value;
-      return (appData.jamaah || [])
+      const [field, order] = ($('sort-select').value || 'nama_absen:asc').split(':');
+      const list = (appData.jamaah || [])
         .filter(j => j.is_aktif === 'Y' && j.flag_absen === 'Y')
-        .filter(j => !q || String(j.nama_lengkap).toLowerCase().includes(q) || String(j.nama_absen).toLowerCase().includes(q) || String(j.nama_kk).toLowerCase().includes(q))
-        .filter(j => (!fGender || j.jenis_kelamin === fGender) && (!fKategori || j.kategori_usia === fKategori))
-        .sort((a, b) => String(a.nama_absen).localeCompare(String(b.nama_absen), 'id'));
+        .filter(j => !q || String(j.nama_lengkap).toLowerCase().includes(q) || String(j.nama_absen).toLowerCase().includes(q) ||
+          String(j.nama_kk).toLowerCase().includes(q) || (qDigits.length >= 3 && String(j.no_telepon || '').replace(/\D/g, '').includes(qDigits)))
+        .filter(j => (!fGender || j.jenis_kelamin === fGender) && (!fKategori || j.kategori_usia === fKategori));
+      if ($('group-kk').checked) {
+        const kkOrder = field === 'nama_kk' && order === 'desc' ? -1 : 1;
+        list.sort((a, b) => String(a.nama_kk).localeCompare(String(b.nama_kk), 'id') * kkOrder || (a.grup_kk - b.grup_kk) ||
+          (field !== 'nama_kk' && field !== 'nama_absen' && field !== 'nama_lengkap' ? compareBy(field, order)(a, b) : 0) || familyOrder(a, b));
+      } else {
+        list.sort(compareBy(field, order));
+      }
+      return list;
     }
+
+    function resetAndRender() { currentPage = 1; renderAbsen(); }
+    function clearSearch() { $('search-input').value = ''; resetAndRender(); $('search-input').focus(); }
 
     function renderAbsen() {
       const list = getFilteredAbsen();
-      $('absen-info').textContent = fmt(list.length) + ' jamaah aktif yang masuk daftar absen';
-      $('jamaah-table-rows').innerHTML = list.length ? list.map((j, i) => `<tr>
-          <td style="color: var(--muted)">${i + 1}</td>
-          <td style="font-weight: 700">${esc(j.nama_absen)}</td>
-          <td class="hide-m">${esc(j.nama_lengkap)}</td>
-          <td style="color: var(--ink-2)">${esc(j.nama_kk)}</td>
-          <td class="hide-m"><span class="tag">${esc(j.kategori_usia)}</span></td>
-          <td class="r num">${esc(umurText(j.umur))}</td>
-        </tr>`).join('')
-        : '<tr><td colspan="6" class="empty">Tidak ada jamaah yang cocok dengan filter.</td></tr>';
+      const grouped = $('group-kk').checked;
+      const size = printAll ? Math.max(1, list.length) : PAGE_SIZE;
+      const pages = Math.max(1, Math.ceil(list.length / size));
+      if (currentPage > pages) currentPage = pages;
+      const start = printAll ? 0 : (currentPage - 1) * size;
+      const pageRows = list.slice(start, start + size);
+      const q = $('search-input').value.trim();
+      $('search-clear').hidden = !q;
+      const total = (appData.jamaah || []).length;
+      $('absen-info').textContent = fmt(total) + ' jamaah aktif yang masuk daftar absen';
+      $('result-info').innerHTML = list.length === total ? `${fmt(list.length)} jamaah` : `<strong>${fmt(list.length)}</strong> jamaah cocok`;
+
+      const famCount = {};
+      if (grouped) list.forEach(j => { famCount[j.grup_kk] = (famCount[j.grup_kk] || 0) + 1; });
+
+      if (!pageRows.length) {
+        $('jamaah-table-rows').innerHTML = '<tr><td colspan="7" class="empty">Tidak ada jamaah yang cocok dengan pencarian / filter.</td></tr>';
+        $('jamaah-cards').innerHTML = '<div class="empty">Tidak ada jamaah yang cocok dengan pencarian / filter.</div>';
+      } else {
+        let rows = '', cards = '', lastGroup = null;
+        pageRows.forEach((j, i) => {
+          if (grouped && j.grup_kk !== lastGroup) {
+            lastGroup = j.grup_kk;
+            rows += `<tr class="group-row"><td colspan="7">KK ${esc(j.nama_kk)}<span>${famCount[j.grup_kk]} jiwa</span></td></tr>`;
+            cards += `<div class="m-group">KK ${esc(j.nama_kk)} · ${famCount[j.grup_kk]} jiwa</div>`;
+          }
+          const idx = list.indexOf(j);
+          const head = j.hubungan_keluarga === 'A' ? 'is-head' : '';
+          rows += `<tr class="${head}">
+            <td style="color: var(--muted)">${start + i + 1}</td>
+            <td><button type="button" class="name-btn" data-idx="${idx}">${esc(j.nama_absen)}</button></td>
+            <td class="hide-m">${esc(j.nama_lengkap)}</td>
+            <td style="color: var(--ink-2)">${esc(j.nama_kk)}</td>
+            <td class="hide-m"><span class="tag">${esc(j.kategori_usia)}</span></td>
+            <td class="r num">${esc(umurText(j.umur))}</td>
+            <td>${waHtml(j.no_telepon, j.nama_lengkap)}</td>
+          </tr>`;
+          cards += `<div class="m-row ${head}">
+            <button type="button" class="name-btn grow" data-idx="${idx}"><strong>${esc(j.nama_absen)}</strong><span>${esc(HUB_LABEL[j.hubungan_keluarga] || '')} · ${esc(j.nama_kk)} · ${esc(umurText(j.umur))}</span></button>
+            ${waNumber(j.no_telepon) ? `<a class="wa" href="https://wa.me/${waNumber(j.no_telepon)}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp ${esc(j.nama_lengkap)}"><i data-lucide="message-circle"></i>WA</a>` : ''}
+          </div>`;
+        });
+        $('jamaah-table-rows').innerHTML = rows;
+        $('jamaah-cards').innerHTML = cards;
+      }
+      document.querySelectorAll('#absen-section .name-btn').forEach(b => { b.onclick = () => openDetail(list[Number(b.dataset.idx)]); });
+      $('page-info').textContent = list.length ? `Menampilkan ${start + 1}–${start + pageRows.length} dari ${fmt(list.length)} jamaah` : '0 jamaah';
+      renderPager($('pager'), pages, currentPage, p => { currentPage = p; renderAbsen(); $('absen-section').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+      icons();
+    }
+
+    // Pager: « ‹ 1 … 4 5 6 … 20 › »
+    function renderPager(el, pages, page, go) {
+      if (pages <= 1) { el.innerHTML = ''; return; }
+      const nums = new Set([1, pages, page - 1, page, page + 1]);
+      if (page <= 3) [2, 3, 4].forEach(n => nums.add(n));
+      if (page >= pages - 2) [pages - 1, pages - 2, pages - 3].forEach(n => nums.add(n));
+      const list = [...nums].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
+      let html = `<button type="button" data-p="1" ${page === 1 ? 'disabled' : ''} aria-label="Halaman pertama"><i data-lucide="chevrons-left"></i></button>`;
+      html += `<button type="button" data-p="${page - 1}" ${page === 1 ? 'disabled' : ''} aria-label="Halaman sebelumnya"><i data-lucide="chevron-left"></i></button>`;
+      let prev = 0;
+      list.forEach(n => {
+        if (n - prev > 1) html += '<span class="gap">…</span>';
+        html += `<button type="button" data-p="${n}" ${n === page ? 'aria-current="page"' : ''} aria-label="Halaman ${n}">${n}</button>`;
+        prev = n;
+      });
+      html += `<button type="button" data-p="${page + 1}" ${page === pages ? 'disabled' : ''} aria-label="Halaman berikutnya"><i data-lucide="chevron-right"></i></button>`;
+      html += `<button type="button" data-p="${pages}" ${page === pages ? 'disabled' : ''} aria-label="Halaman terakhir"><i data-lucide="chevrons-right"></i></button>`;
+      el.innerHTML = html;
+      el.querySelectorAll('button[data-p]').forEach(b => { b.onclick = () => go(Number(b.dataset.p)); });
+      icons();
+    }
+
+    // ================= DETAIL =================
+    function openDetail(j) {
+      if (!j) return;
+      const family = (appData.jamaah || []).filter(m => m.grup_kk && m.grup_kk === j.grup_kk && m !== j).sort(familyOrder);
+      const tags = [`<span class="tag">${esc(j.kategori_usia)}</span>`];
+      if (j.hubungan_keluarga === 'A') tags.push('<span class="tag" style="background: var(--primary); color: #fff">Kepala Keluarga</span>');
+      $('modal').innerHTML = `
+        <div class="modal-head">
+          <span class="avatar">${esc(initials(j.nama_lengkap))}</span>
+          <div class="titles"><h2 id="modal-title">${esc(j.nama_lengkap)}</h2><p>Nama di absen: ${esc(j.nama_absen)}</p><div class="detail-tags">${tags.join('')}</div></div>
+          <button type="button" class="icon-btn-plain" onclick="closeModal()" aria-label="Tutup"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <dl class="detail-grid">
+            <div class="full"><dt>Keluarga (KK)</dt><dd>${esc(j.nama_kk)}</dd></div>
+            <div><dt>Hubungan</dt><dd>${esc(j.hubungan_keluarga)} · ${esc(HUB_LABEL[j.hubungan_keluarga] || '-')}</dd></div>
+            <div><dt>Jenis kelamin</dt><dd>${j.jenis_kelamin === 'P' ? 'Perempuan' : 'Laki-laki'}</dd></div>
+            <div><dt>Umur</dt><dd>${esc(umurText(j.umur))}</dd></div>
+            <div><dt>Telepon</dt><dd>${waHtml(j.no_telepon, j.nama_lengkap)}</dd></div>
+          </dl>
+          ${family.length ? `<div class="family"><h3>Anggota keluarga di daftar absen (${family.length})</h3>
+            ${family.map(m => `<button type="button" data-idx="${appData.jamaah.indexOf(m)}" class="${m.hubungan_keluarga === 'A' ? 'is-head' : ''}">
+              <span class="avatar sm">${esc(initials(m.nama_lengkap))}</span>
+              <span class="grow"><strong>${esc(m.nama_lengkap)}</strong> <span class="muted">· ${esc(HUB_LABEL[m.hubungan_keluarga] || '')} · ${esc(umurText(m.umur))}</span></span>
+              <i data-lucide="chevron-right"></i></button>`).join('')}</div>` : ''}
+        </div>`;
+      $('modal-backdrop').hidden = false;
+      document.body.style.overflow = 'hidden';
+      document.querySelectorAll('#modal .family button').forEach(b => { b.onclick = () => openDetail(appData.jamaah[Number(b.dataset.idx)]); });
+      icons();
+      $('modal').querySelector('button').focus();
+    }
+    function closeModal() {
+      if ($('modal-backdrop').hidden) return;
+      $('modal-backdrop').hidden = true;
+      $('modal').innerHTML = '';
+      document.body.style.overflow = '';
     }
 
     function setTab(tab) {
@@ -646,9 +878,9 @@
 
     function exportToCSV() {
       const list = getFilteredAbsen();
-      const headers = ["No", "Nama Absen", "Nama Lengkap", "Hub KK", "Nama KK", "Jenis Kelamin", "Kategori Usia", "Umur"];
+      const headers = ["No", "Nama Absen", "Nama Lengkap", "Hub KK", "Nama KK", "Jenis Kelamin", "Kategori Usia", "Umur", "No Telepon"];
       const rows = list.map((j, i) => [i + 1, csvCell(j.nama_absen), csvCell(j.nama_lengkap), csvCell(j.hubungan_keluarga), csvCell(j.nama_kk),
-        csvCell(j.jenis_kelamin), csvCell(j.kategori_usia), j.umur === null || j.umur === undefined ? '' : j.umur].join(','));
+        csvCell(j.jenis_kelamin), csvCell(j.kategori_usia), j.umur === null || j.umur === undefined ? '' : j.umur, csvCell(j.no_telepon)].join(','));
       const blob = new Blob(["﻿" + [headers.join(","), ...rows].join("\n")], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
