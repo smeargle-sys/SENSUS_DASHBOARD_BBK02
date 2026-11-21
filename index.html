@@ -4,1059 +4,682 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sensus Jiwa Babakan Barat</title>
+  <title>Admin – Sensus Jiwa Kelompok Babakan Barat</title>
 
-  <!-- Outfit Font for Premium Aesthetics -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Lucide Icons for Clean Iconography -->
+  <!-- Ikon -->
   <script src="https://unpkg.com/lucide@1.77.0"></script>
-
-  <!-- Chart.js for High Level Data Visualization -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1"></script>
 
   <!-- Konfigurasi URL API (dipakai saat dibuka dari GitHub Pages) -->
   <script src="config.js"></script>
 
   <style>
-    /* Design System: Sleek Light Mode & Premium Clean Aesthetics */
     :root {
-      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-      --card-bg: #ffffff;
-      --card-border: #e2e8f0;
-      --card-hover-border: #cbd5e1;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-
-      --color-primary: #10b981;
-      /* Emerald Green */
-      --color-primary-hover: #059669;
-      --color-accent: #6366f1;
-      /* Indigo */
-      --color-danger: #ef4444;
-      /* Red */
-      --color-warning: #d97706;
-      /* Darker Amber for light mode contrast */
-
-      --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: var(--font-family);
-      background: var(--bg-gradient);
-      color: var(--text-main);
-      min-height: 100vh;
-      padding: 2rem 1.5rem;
-      overflow-x: hidden;
-      position: relative;
-    }
-
-    /* Decorative Background Soft Ambient Blobs */
-    body::before {
-      content: '';
-      position: absolute;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
-      top: -100px;
-      left: 10%;
-      z-index: -1;
-      filter: blur(80px);
-      pointer-events: none;
-    }
-
-    body::after {
-      content: '';
-      position: absolute;
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, rgba(0, 0, 0, 0) 70%);
-      bottom: 10%;
-      right: 5%;
-      z-index: -1;
-      filter: blur(100px);
-      pointer-events: none;
-    }
-
-    .container {
-      max-width: 1280px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-
-    /* Header Styling */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      backdrop-filter: blur(12px);
-      padding: 1.5rem 2rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
-    }
-
-    .header-title h1 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #0284c7 0%, #10b981 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 0.25rem;
-    }
-
-    .header-title p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-    }
-
-    .badge {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.85rem;
-      font-weight: 600;
-      padding: 0.5rem 1rem;
-      border-radius: 9999px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      color: #ffffff;
-    }
-
-    /* State Boxes */
-    #loading-state,
-    #error-state {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 4rem 2rem;
-      text-align: center;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
-    }
-
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid rgba(16, 185, 129, 0.1);
-      border-top-color: var(--color-primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 1.5rem;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* Grid Layouts */
-    .grid-5 {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 1.25rem;
-    }
-
-    @media (max-width: 1200px) {
-      .grid-5 {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      }
-    }
-
-    .grid-layout {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-
-    .grid-layout-2 {
-      display: grid;
-      grid-template-columns: 1fr 1.2fr;
-      gap: 1.5rem;
-    }
-
-    @media (max-width: 992px) {
-      .grid-layout-2 {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .visual-stat-item {
-      margin-bottom: 0.95rem;
-    }
-
-    .visual-stat-info {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.825rem;
-      font-weight: 500;
-      margin-bottom: 0.35rem;
-    }
-
-    .visual-stat-label {
-      color: var(--text-main);
-      font-weight: 600;
-    }
-
-    .visual-stat-value {
-      color: var(--text-muted);
-    }
-
-    .progress-bar-bg {
-      background: #e2e8f0;
-      height: 8px;
-      border-radius: 9999px;
-      overflow: hidden;
-      display: flex;
-    }
-
-    .progress-bar-fill-l {
-      background: #60a5fa; /* Blue for L */
-      height: 100%;
-      transition: var(--transition);
-    }
-
-    .progress-bar-fill-p {
-      background: #f43f5e; /* Red/Pink for P */
-      height: 100%;
-      transition: var(--transition);
-    }
-
-    /* Card Styling */
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 1.5rem;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05), 0 8px 16px -6px rgba(15, 23, 42, 0.05);
-      transition: var(--transition);
-    }
-
-    .card:hover {
-      border-color: var(--card-hover-border);
-      transform: translateY(-2px);
-      box-shadow: 0 20px 40px -5px rgba(15, 23, 42, 0.08), 0 8px 24px -6px rgba(15, 23, 42, 0.08);
-    }
-
-    .stat-card {
-      display: flex;
-      align-items: center;
-      gap: 1.25rem;
-    }
-
-    .stat-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 56px;
-      height: 56px;
-      border-radius: 12px;
-      background: rgba(16, 185, 129, 0.08);
-      color: var(--color-primary);
-    }
-
-    .stat-card.accent .stat-icon {
-      background: rgba(99, 102, 241, 0.08);
-      color: var(--color-accent);
-    }
-
-    .stat-info h3 {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      margin-bottom: 0.25rem;
-    }
-
-    .stat-info p {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    /* Form Fields */
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-
-    .form-group.checkbox-group {
-      display: flex;
-      gap: 1.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.9rem;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      color: #334155;
-    }
-
-    input,
-    select,
-    textarea {
-      width: 100%;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      color: var(--text-main);
-      font-family: var(--font-family);
-      font-size: 0.95rem;
-      outline: none;
-      transition: var(--transition);
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-    }
-
-    .checkbox-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
-      color: #334155;
-    }
-
-    .checkbox-item input[type="checkbox"] {
-      width: auto;
-      cursor: pointer;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    /* Sub-section for new keluarga form */
-    .new-keluarga-section {
-      background: rgba(99, 102, 241, 0.03);
-      border: 1px dashed rgba(99, 102, 241, 0.25);
-      padding: 1.25rem;
-      border-radius: 12px;
-      margin-bottom: 1.25rem;
-    }
-
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: var(--text-main);
-    }
-
-    .btn {
-      width: 100%;
-      padding: 0.85rem;
-      border-radius: 8px;
-      border: none;
-      font-family: var(--font-family);
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      transition: var(--transition);
-    }
-
-    .btn-primary {
-      background: var(--color-primary);
-      color: #ffffff;
-    }
-
-    .btn-primary:hover {
-      background: var(--color-primary-hover);
-      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
-    }
-
-    .btn-secondary {
-      background: #f8fafc;
-      color: var(--text-main);
-      border: 1px solid var(--card-border);
-      margin-top: 0.5rem;
-    }
-
-    .btn-secondary:hover {
-      background: #f1f5f9;
-    }
-
-    /* Dashboard Tables & Rekap */
-    .rekap-table-container {
-      overflow-x: auto;
-      margin-top: 1rem;
-      border-radius: 8px;
-      border: 1px solid var(--card-border);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.9rem;
-    }
-
-    th,
-    td {
-      padding: 0.85rem 1rem;
-      border-bottom: 1px solid var(--card-border);
-    }
-
-    th {
-      background: #f8fafc;
-      font-weight: 600;
-      color: #334155;
-      white-space: nowrap;
-    }
-
-    th.sortable {
-      cursor: pointer;
-      user-select: none;
-      transition: var(--transition);
-    }
-
-    th.sortable:hover {
-      background: #f1f5f9;
-      color: var(--color-primary);
-    }
-
-    .sort-icon {
-      display: inline-flex;
-      align-items: center;
-      margin-left: 0.25rem;
-      vertical-align: middle;
-      opacity: 0.4;
-      transition: var(--transition);
-    }
-
-    th.sortable:hover .sort-icon,
-    th.sorted .sort-icon {
-      opacity: 1;
-      color: var(--color-primary);
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    tr.total-row {
-      background: rgba(16, 185, 129, 0.03);
-      font-weight: 700;
-      border-top: 2px solid rgba(16, 185, 129, 0.15);
-    }
-
-    /* Filter & Search Controls */
-    .filters-card {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .search-box {
-      flex: 1;
-      min-width: 250px;
-      position: relative;
-    }
-
-    .search-box i {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-    }
-
-    .search-box input {
-      padding-left: 2.75rem;
-    }
-
-    .filter-select {
-      width: 160px;
-    }
-
-    @media (max-width: 768px) {
-      .filter-select {
-        width: 100%;
-      }
-    }
-
-    /* Data Table styling */
-    .list-table-container {
-      overflow-x: auto;
-      max-height: 500px;
-      overflow-y: auto;
-      border-radius: 12px;
-      border: 1px solid var(--card-border);
-    }
-
-    .active-badge {
-      display: inline-block;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .active-badge.yes {
-      background: rgba(16, 185, 129, 0.1);
-      color: #047857;
-    }
-
-    .active-badge.no {
-      background: rgba(239, 68, 68, 0.08);
-      color: #b91c1c;
-    }
-
-    .edit-btn {
-      background: rgba(99, 102, 241, 0.08);
-      color: #4f46e5;
-      border: 1px solid rgba(99, 102, 241, 0.18);
-      padding: 0.35rem 0.75rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      font-family: var(--font-family);
-      font-weight: 500;
-      transition: var(--transition);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-
-    .edit-btn:hover {
-      background: var(--color-accent);
-      color: #fff;
-    }
-
-    /* Tabs for Form */
-    .form-tabs {
-      display: flex;
-      border-bottom: 1px solid var(--card-border);
-      margin-bottom: 1.5rem;
-    }
-
-    .form-tab {
-      padding: 0.75rem 1.25rem;
-      cursor: pointer;
-      color: var(--text-muted);
-      font-weight: 600;
-      border-bottom: 2px solid transparent;
-      transition: var(--transition);
-    }
-
-    .form-tab.active {
-      color: var(--color-primary);
-      border-bottom-color: var(--color-primary);
-    }
-
-    /* Login PIN */
-    #login-state { display: none; max-width: 380px; margin: 4rem auto; text-align: center; padding: 2rem; }
-    #login-state .lock-icon { width: 48px; height: 48px; color: var(--color-primary); margin-bottom: 0.75rem; }
-    #pin-input { width: 100%; padding: 0.85rem 1rem; margin: 1rem 0 0.75rem; font-size: 1.4rem; letter-spacing: 0.5rem; text-align: center; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; outline: none; }
-    #pin-input:focus { border-color: var(--color-primary); }
-    #login-error { color: var(--color-danger); font-size: 0.9rem; min-height: 1.2rem; margin-top: 0.75rem; }
-    .header-actions { display: flex; align-items: center; gap: 0.75rem; }
-    #logout-btn { display: none; width: auto; margin-top: 0; padding: 0.45rem 0.9rem; font-size: 0.85rem; }
+      --ink: #13211D; --ink-2: #3B4A45; --muted: #5B6B66;
+      --bg: #F4F6F5; --surface: #FFFFFF; --soft: #F6F8F7; --track: #EEF2F0;
+      --line: #E3E8E6; --line-2: #D6DEDB; --line-3: #C9D3CF;
+      --primary: #0B6E5B; --primary-600: #08503F; --primary-soft: #E3F1ED; --primary-ink: #0B5446; --primary-tint: #F2F9F6;
+      --deep: #0D2B24; --deep-2: #17443A; --deep-3: #133A31; --deep-line: #2D5A4F; --deep-muted: #A9C4BB; --mint: #12A383;
+      --male: #2563EB; --male-ink: #1D4ED8; --female: #F59E5B; --female-ink: #B4501B;
+      --warn-bg: #FEF3E2; --warn-line: #F6D9A8; --warn-ink: #7A3E06;
+      --danger: #B42318; --danger-bg: #FEECEB;
+      --radius: 16px;
+      --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--font); color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
+    button, input, select, textarea { font-family: inherit; color: inherit; }
+    button { cursor: pointer; }
+    a { color: var(--primary); }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .num { font-variant-numeric: tabular-nums; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 3px solid #5FD4B4; outline-offset: 2px; }
+    svg.lucide { width: 18px; height: 18px; flex: none; }
+
+    /* ---------- Buttons ---------- */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; white-space: nowrap; }
+    .btn:hover { border-color: var(--line-3); background: var(--soft); }
+    .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 700; }
+    .btn-primary:hover { background: var(--primary-600); border-color: var(--primary-600); }
+    .btn-sm { height: 36px; padding: 0 14px; font-size: 13px; border-radius: 10px; }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+    .icon-btn { width: 44px; height: 44px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line-2); background: var(--surface); color: var(--muted); }
+    .icon-btn:hover { background: var(--soft); }
+    .link-btn { border: 0; background: none; padding: 0; color: var(--primary); font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+
+    /* ---------- Login ---------- */
+    #login-state { min-height: 100vh; display: flex; flex-direction: column; align-items: center; background: var(--bg); }
+    .login-band { width: 100%; background: var(--deep); color: #fff; padding: 56px 24px 96px; display: flex; justify-content: center; }
+    .login-band-inner { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 18px; }
+    .brand-mark { width: 52px; height: 52px; border-radius: 16px; background: var(--mint); display: flex; align-items: center; justify-content: center; color: #fff; }
+    .brand-mark svg.lucide { width: 26px; height: 26px; }
+    .login-band h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
+    .login-band p { margin: 4px 0 0; color: var(--deep-muted); font-size: 15px; }
+    .login-card { width: calc(100% - 40px); max-width: 400px; margin-top: -56px; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 24px 22px; box-shadow: 0 10px 30px rgba(13, 43, 36, .10); display: flex; flex-direction: column; gap: 18px; }
+    .login-head { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 5px 12px; }
+    .pill svg.lucide { width: 14px; height: 14px; }
+    .pill-green { color: var(--primary-ink); background: var(--primary-soft); }
+    .login-head h2 { margin: 6px 0 0; font-size: 19px; font-weight: 700; }
+    .login-head p { margin: 0; font-size: 13px; color: var(--muted); }
+    .pin-field { position: relative; display: flex; justify-content: center; gap: 10px; }
+    #pin-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; font-size: 16px; }
+    .pin-box { width: 40px; height: 48px; border-radius: 12px; border: 2px solid var(--line-2); background: #fff; display: flex; align-items: center; justify-content: center; }
+    .pin-box.filled { border-color: var(--primary); background: var(--primary-soft); }
+    .pin-box.filled::after { content: ''; width: 12px; height: 12px; border-radius: 999px; background: var(--primary); }
+    .pin-box.current { border-color: var(--mint); }
+    .pin-field:focus-within .pin-box.current { box-shadow: 0 0 0 3px rgba(18, 163, 131, .25); }
+    .keypad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .key { height: 56px; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); font-size: 22px; font-weight: 700; }
+    .key:hover { background: var(--track); }
+    .key-ghost { background: transparent; border-color: transparent; color: var(--muted); display: flex; align-items: center; justify-content: center; }
+    .key-ghost svg.lucide { width: 24px; height: 24px; }
+    #login-btn { height: 52px; font-size: 16px; border-radius: 14px; }
+    #login-error { margin: 0; min-height: 20px; text-align: center; color: var(--danger); font-size: 14px; font-weight: 600; }
+    .login-note { width: calc(100% - 56px); max-width: 372px; margin: 18px 0 40px; display: flex; gap: 10px; font-size: 13px; color: var(--muted); }
+    .login-note svg.lucide { width: 16px; height: 16px; margin-top: 2px; }
+
+    /* ---------- App shell ---------- */
+    #main-content { min-height: 100vh; }
+    .app { display: flex; min-height: 100vh; }
+    .sidebar { width: 252px; flex: none; background: var(--deep); color: #E6F0EC; padding: 24px 16px; display: flex; flex-direction: column; gap: 28px; position: sticky; top: 0; height: 100vh; }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px; }
+    .brand .brand-mark { width: 40px; height: 40px; border-radius: 12px; }
+    .brand .brand-mark svg.lucide { width: 22px; height: 22px; }
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-text strong { font-weight: 800; font-size: 16px; color: #fff; }
+    .brand-text span { font-size: 12px; color: var(--deep-muted); }
+    .nav { display: flex; flex-direction: column; gap: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border-radius: 10px; border: 0; background: transparent; color: #CFE0DA; font-weight: 500; font-size: 14px; text-align: left; }
+    .nav-item:hover { background: var(--deep-3); color: #fff; }
+    .nav-item[aria-current="page"] { background: var(--deep-2); color: #fff; font-weight: 600; }
+    .nav-badge { margin-left: auto; background: #F5B547; color: #3A2500; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 2px 8px; }
+    .session-box { margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 12px; background: var(--deep-3); }
+    .session-user { display: flex; align-items: center; gap: 10px; }
+    .avatar-sm { width: 32px; height: 32px; border-radius: 999px; background: var(--mint); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+    .session-user div { display: flex; flex-direction: column; }
+    .session-user strong { font-size: 14px; color: #fff; }
+    .session-user span { font-size: 12px; color: var(--deep-muted); }
+    .btn-deep { height: 44px; border-radius: 10px; border: 1px solid var(--deep-line); background: transparent; color: #E6F0EC; font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-deep:hover { background: var(--deep-2); }
+
+    .content { flex: 1; min-width: 0; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 24px; }
+    .page-head { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+    .page-title { flex: 1 1 320px; display: flex; flex-direction: column; gap: 4px; }
+    .page-title h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.01em; }
+    .page-title p { margin: 0; font-size: 14px; color: var(--muted); }
+    .search { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; background: var(--surface); border: 1px solid var(--line-2); border-radius: 12px; flex: 0 1 340px; min-width: 220px; color: var(--muted); }
+    .search:focus-within { border-color: var(--primary); }
+    .search input { border: 0; outline: none; font-size: 14px; flex: 1; min-width: 0; background: transparent; color: var(--ink); }
+
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
+    .kpi { padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; }
+    .kpi-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+    .kpi-value { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+    .kpi-hint { font-size: 12px; color: var(--muted); }
+
+    .banner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 14px; background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-ink); font-size: 14px; }
+    .banner span { flex: 1 1 300px; }
+    .banner .link-btn { color: var(--warn-ink); }
+
+    .row-wrap { display: flex; flex-wrap: wrap; gap: 16px; }
+    .panel { padding: 22px 24px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+    .panel h2, .section-head h2 { margin: 0; font-size: 17px; font-weight: 700; }
+    .legend { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+    .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+    .bars { display: flex; flex-direction: column; gap: 12px; }
+    .bar-row { display: grid; grid-template-columns: minmax(110px, 170px) minmax(0, 1fr) auto; align-items: center; gap: 14px; font-size: 14px; }
+    .bar-row .bar-label { font-weight: 600; }
+    .bar-track { height: 14px; border-radius: 999px; background: var(--track); display: flex; overflow: hidden; }
+    .bar-l { background: var(--male); height: 100%; }
+    .bar-p { background: var(--female); height: 100%; }
+    .bar-val { font-size: 13px; color: var(--muted); text-align: right; white-space: nowrap; }
+    .bar-val strong { color: var(--ink); }
+    .stat-line { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--soft); }
+    .stat-line .dot { width: 10px; height: 10px; border-radius: 999px; }
+    .stat-line span:nth-child(2) { font-size: 14px; font-weight: 600; flex: 1; }
+    .stat-line strong { font-size: 18px; font-weight: 800; }
+    .stat-foot { border-top: 1px dashed var(--line-2); padding-top: 14px; display: flex; justify-content: space-between; font-size: 14px; }
+    .stat-foot span { color: var(--muted); }
+
+    .section-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+    .section-head h2 { margin-right: 12px; }
+    .chip { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink-2); font-size: 13px; font-weight: 600; white-space: nowrap; }
+    .chip:hover { border-color: var(--line-3); }
+    .chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .chip-warn { background: var(--warn-bg); border-color: var(--warn-line); color: var(--warn-ink); font-weight: 700; }
+    .chip-warn[aria-pressed="true"] { background: var(--warn-ink); border-color: var(--warn-ink); color: #fff; }
+    .spacer { flex: 1; }
+    .select-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+    .select { height: 36px; border-radius: 10px; border: 1px solid var(--line-2); padding: 0 10px; font-size: 13px; color: var(--ink); background: var(--surface); }
+
+    .table-wrap { overflow-x: auto; }
+    table.data { width: 100%; border-collapse: collapse; }
+    table.data th { font-weight: 600; font-size: 12px; color: var(--muted); text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; text-transform: uppercase; letter-spacing: .04em; }
+    table.data td { padding: 12px 14px; border-bottom: 1px solid #EEF2F0; font-size: 14px; vertical-align: middle; white-space: nowrap; }
+    table.data tr:hover td { background: #FAFCFB; }
+    .th-sort { border: 0; background: none; padding: 0; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; display: inline-flex; align-items: center; gap: 4px; }
+    .th-sort svg.lucide { width: 14px; height: 14px; }
+    .th-sort[data-active="true"] { color: var(--primary); }
+    .person { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 36px; height: 36px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex: none; }
+    .av-0 { background: #E3F1ED; color: #0B5446; } .av-1 { background: #E6EEFE; color: #1E40AF; } .av-2 { background: #FDEBDD; color: #9A3412; }
+    .person-text { display: flex; flex-direction: column; min-width: 0; }
+    .person-text strong { font-weight: 700; }
+    .person-text span { font-size: 12px; color: var(--muted); }
+    .hub { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+    .hub code { font-family: ui-monospace, monospace; font-weight: 700; background: var(--track); border-radius: 6px; padding: 2px 7px; }
+    .tag { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 4px 10px; color: var(--primary-ink); background: var(--primary-soft); }
+    .tag-warn { color: var(--warn-ink); background: var(--warn-bg); font-weight: 700; }
+    .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+    .status::before { content: ''; width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+    .status.on { color: var(--primary); }
+    .edit-btn { color: var(--primary); }
+    .table-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 20px; font-size: 13px; color: var(--muted); }
+    .table-foot span { flex: 1; }
+    .empty { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 14px; }
+
+    /* Mobile cards */
+    .cards { display: none; flex-direction: column; gap: 10px; padding: 12px; }
+    .m-card { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; width: 100%; text-align: left; }
+    .m-card .person-text { flex: 1; gap: 4px; }
+    .m-card .person-text strong { font-size: 15px; }
+    .m-card .ell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .m-meta { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
+    .m-meta .tag { font-size: 11px; padding: 3px 8px; }
+    .m-status { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    .m-status .status { font-size: 11px; }
+
+    .mobile-top, .bottom-nav, .fab { display: none; }
+
+    /* ---------- Drawer ---------- */
+    .drawer-backdrop { position: fixed; inset: 0; background: rgba(13, 43, 36, .45); z-index: 40; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(480px, 100%); background: var(--surface); border-left: 1px solid var(--line); z-index: 50; display: flex; flex-direction: column; box-shadow: -12px 0 40px rgba(13, 43, 36, .15); }
+    .drawer-head { display: flex; align-items: center; gap: 12px; padding: 20px 24px; border-bottom: 1px solid var(--line); }
+    .drawer-head div { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .drawer-head h2 { margin: 0; font-size: 20px; font-weight: 800; }
+    .drawer-head span { font-size: 13px; color: var(--muted); }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 26px; }
+    .drawer-foot { display: flex; gap: 12px; padding: 16px 24px; border-top: 1px solid var(--line); background: var(--surface); }
+    .drawer-foot .btn { height: 50px; border-radius: 14px; font-size: 15px; }
+    fieldset.step { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    fieldset.step legend { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; padding: 0; margin-bottom: 14px; }
+    .step-no { width: 26px; height: 26px; border-radius: 999px; background: var(--primary); color: #fff; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field > label, .field-label { font-size: 13px; font-weight: 600; }
+    .input { height: 46px; border-radius: 12px; border: 1px solid var(--line-3); padding: 0 14px; font-size: 15px; background: #fff; width: 100%; }
+    textarea.input { height: auto; padding: 12px 14px; resize: vertical; font-size: 14px; }
+    .input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(11, 110, 91, .15); }
+    .help { font-size: 12px; color: var(--muted); }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .seg { display: grid; gap: 8px; }
+    .seg-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .seg-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .seg label { position: relative; }
+    .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+    .seg span { height: 44px; border-radius: 12px; border: 1px solid var(--line-3); background: #fff; color: var(--ink-2); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 4px; }
+    .seg input:checked + span { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .seg input:focus-visible + span { outline: 3px solid #5FD4B4; outline-offset: 2px; }
+    .seg input:disabled + span { opacity: .4; cursor: not-allowed; }
+    .kk-selected { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; border: 2px solid var(--primary); background: var(--primary-tint); }
+    .kk-selected > svg.lucide { color: var(--primary); width: 20px; height: 20px; }
+    .kk-selected div { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .kk-selected strong { font-size: 15px; }
+    .kk-selected span { font-size: 13px; color: var(--muted); }
+    .kk-results { border: 1px solid var(--line-2); border-radius: 12px; max-height: 260px; overflow-y: auto; }
+    .kk-option { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 12px 14px; border: 0; border-bottom: 1px solid var(--track); background: #fff; text-align: left; }
+    .kk-option:hover, .kk-option:focus-visible { background: var(--primary-tint); }
+    .kk-option strong { font-size: 14px; }
+    .kk-option span { font-size: 12px; color: var(--muted); }
+    .kk-option.new { color: var(--primary); font-weight: 700; font-size: 14px; flex-direction: row; align-items: center; gap: 6px; border-bottom: 0; }
+    .new-kk { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 14px; background: var(--soft); border: 1px dashed var(--line-3); }
+    .new-kk-head { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; color: var(--primary-ink); }
+    .preview { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--primary-tint); font-size: 14px; }
+    .preview svg.lucide { color: var(--primary); }
+    .preview.warn { background: var(--warn-bg); color: var(--warn-ink); }
+    .preview.warn svg.lucide { color: var(--warn-ink); }
+    .toggle { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); cursor: pointer; }
+    .toggle div { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .toggle strong { font-size: 14px; }
+    .toggle span { font-size: 12px; color: var(--muted); }
+    .toggle input { width: 22px; height: 22px; accent-color: var(--primary); }
+    .form-error { padding: 12px 14px; border-radius: 12px; background: var(--danger-bg); color: var(--danger); font-size: 14px; font-weight: 600; }
+
+    /* ---------- States & toast ---------- */
+    .state { max-width: 460px; margin: 18vh auto; text-align: center; padding: 0 20px; }
+    .spinner { width: 44px; height: 44px; border: 4px solid var(--primary-soft); border-top-color: var(--primary); border-radius: 50%; margin: 0 auto 18px; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .state h2 { margin: 0 0 6px; font-size: 20px; }
+    .state p { margin: 0 0 18px; color: var(--muted); }
+    #toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 60; background: var(--deep); color: #fff; padding: 12px 18px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(13, 43, 36, .25); max-width: calc(100% - 32px); display: flex; align-items: center; gap: 10px; }
+    #toast.err { background: var(--danger); }
+
+    /* ---------- Mobile ---------- */
+    @media (max-width: 860px) {
+      .sidebar { display: none; }
+      .content { padding: 16px 16px 112px; gap: 16px; }
+      .page-head .page-title, .page-head > .btn-primary { display: none; }
+      .search { flex: 1 1 100%; }
+      .mobile-top { display: flex; flex-direction: column; gap: 14px; background: var(--deep); color: #fff; padding: 20px 20px 18px; }
+      .mobile-top-row { display: flex; align-items: center; gap: 12px; }
+      .mobile-top-row div { flex: 1; display: flex; flex-direction: column; }
+      .mobile-top-row span { font-size: 12px; color: var(--deep-muted); }
+      .mobile-top-row h1 { margin: 0; font-size: 22px; font-weight: 800; }
+      .mobile-top .icon-btn { background: transparent; border-color: var(--deep-line); color: #E6F0EC; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .kpi { padding: 14px; }
+      .kpi-value { font-size: 26px; }
+      .panel { padding: 18px; }
+      .bar-row { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; }
+      .bar-row .bar-track { grid-column: 1 / -1; grid-row: 2; height: 8px; }
+      .section-head { padding: 14px; }
+      .chips-scroll { display: flex; gap: 8px; overflow-x: auto; width: 100%; padding-bottom: 2px; }
+      table.data { display: none; }
+      .cards { display: flex; }
+      .bottom-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; height: 72px; background: var(--surface); border-top: 1px solid var(--line); z-index: 30; }
+      .bottom-nav button { border: 0; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--muted); font-size: 12px; font-weight: 600; }
+      .bottom-nav button[aria-current="page"] { color: var(--primary); font-weight: 700; }
+      .bottom-nav svg.lucide { width: 22px; height: 22px; }
+      .fab { display: flex; align-items: center; gap: 8px; position: fixed; right: 18px; bottom: 92px; height: 56px; padding: 0 22px; border-radius: 18px; border: 0; background: var(--primary); color: #fff; font-weight: 700; font-size: 15px; box-shadow: 0 10px 24px rgba(11, 110, 91, .35); z-index: 31; }
+      .drawer { width: 100%; border-left: 0; }
+      .seg-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #toast { bottom: 96px; }
+    }
+    @media (min-width: 861px) { .chips-scroll { display: contents; } }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <header>
-      <div class="header-title">
-        <h1>Sensus Jiwa & Jamaah</h1>
-        <p>Kelompok Babakan Barat - Desa Babakan Tangerang Selatan</p>
-      </div>
-      <div class="header-actions">
-        <div id="mode-badge" class="badge" style="background: var(--color-primary);">
-          <i data-lucide="database"></i>
-          <span>Memuat...</span>
+  <!-- ================= LOGIN ================= -->
+  <section id="login-state" hidden>
+    <div class="login-band">
+      <div class="login-band-inner">
+        <div class="brand-mark"><i data-lucide="users"></i></div>
+        <div>
+          <h1>Sensus Jiwa &amp; Jamaah</h1>
+          <p>Kelompok Babakan Barat</p>
         </div>
-        <button id="logout-btn" class="btn btn-secondary" onclick="handleLogout()">
-          <i data-lucide="log-out" style="width: 15px; height: 15px;"></i>
-          <span>Keluar</span>
-        </button>
+      </div>
+    </div>
+    <form class="login-card" onsubmit="handleLogin(event)">
+      <div class="login-head">
+        <span class="pill pill-green"><i data-lucide="lock"></i> Halaman Admin</span>
+        <h2>Masukkan PIN</h2>
+        <p>PIN dari pengelola aplikasi (minimal 6 digit)</p>
+      </div>
+      <div class="pin-field" onclick="document.getElementById('pin-input').focus()">
+        <label for="pin-input" class="sr-only">PIN</label>
+        <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" oninput="onPinInput()">
+        <div id="pin-boxes" style="display: contents" aria-hidden="true"></div>
+      </div>
+      <div class="keypad" aria-label="Papan angka">
+        <button type="button" class="key" onclick="pressKey('1')">1</button>
+        <button type="button" class="key" onclick="pressKey('2')">2</button>
+        <button type="button" class="key" onclick="pressKey('3')">3</button>
+        <button type="button" class="key" onclick="pressKey('4')">4</button>
+        <button type="button" class="key" onclick="pressKey('5')">5</button>
+        <button type="button" class="key" onclick="pressKey('6')">6</button>
+        <button type="button" class="key" onclick="pressKey('7')">7</button>
+        <button type="button" class="key" onclick="pressKey('8')">8</button>
+        <button type="button" class="key" onclick="pressKey('9')">9</button>
+        <span></span>
+        <button type="button" class="key" onclick="pressKey('0')">0</button>
+        <button type="button" class="key key-ghost" onclick="pressKey('back')" aria-label="Hapus satu digit"><i data-lucide="delete"></i></button>
+      </div>
+      <button type="submit" id="login-btn" class="btn btn-primary"><span>Masuk</span></button>
+      <p id="login-error" role="alert"></p>
+    </form>
+    <div class="login-note">
+      <i data-lucide="info"></i>
+      <span>5 kali PIN salah, login dikunci 15 menit. Sesi berakhir otomatis setelah 6 jam.</span>
+    </div>
+  </section>
+
+  <!-- ================= LOADING / ERROR ================= -->
+  <section id="loading-state" class="state" hidden>
+    <div class="spinner"></div>
+    <h2>Memuat data sensus…</h2>
+    <p>Mengambil data dari Google Sheet.</p>
+  </section>
+  <section id="error-state" class="state" hidden>
+    <h2>Gagal memuat data</h2>
+    <p id="error-message"></p>
+    <button class="btn btn-primary" onclick="loadData()">Coba lagi</button>
+  </section>
+
+  <!-- ================= APP ================= -->
+  <div id="main-content" hidden>
+    <header class="mobile-top">
+      <div class="mobile-top-row">
+        <div>
+          <span id="mode-badge-m">Sensus BBK02 · Admin</span>
+          <h1 id="mobile-title">Data Jamaah</h1>
+        </div>
+        <button type="button" class="icon-btn" onclick="handleLogout()" aria-label="Keluar"><i data-lucide="log-out"></i></button>
       </div>
     </header>
 
-    <!-- Login PIN -->
-    <div id="login-state" class="card">
-      <i data-lucide="lock" class="lock-icon"></i>
-      <h2>Masuk Admin Sensus</h2>
-      <p style="color: var(--text-muted); margin-top: 0.5rem;">Masukkan PIN admin untuk menambah &amp; mengedit data.</p>
-      <form onsubmit="handleLogin(event)">
-        <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••••" required>
-        <button type="submit" id="login-btn" class="btn btn-primary" style="width: 100%;"><span>Masuk</span></button>
-      </form>
-      <p id="login-error"></p>
-    </div>
-
-    <!-- Loading State -->
-    <div id="loading-state" style="display: none;">
-      <div class="spinner"></div>
-      <h2>Memuat Data Sensus...</h2>
-      <p style="color: var(--text-muted); margin-top: 0.5rem;">Silakan tunggu, sistem sedang memproses data.</p>
-    </div>
-
-    <!-- Error State -->
-    <div id="error-state" style="display: none;">
-      <i data-lucide="alert-triangle"
-        style="color: var(--color-danger); width: 64px; height: 64px; margin-bottom: 1rem;"></i>
-      <h2>Gagal Memuat Data</h2>
-      <p id="error-message" style="color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 1.5rem;"></p>
-      <button class="btn btn-primary" onclick="loadData()" style="width: auto; margin: 0 auto;">Coba Lagi</button>
-    </div>
-
-    <!-- Main Content Area -->
-    <div id="main-content" style="display: none; flex-direction: column; gap: 2rem;">
-      <!-- KPI Stats -->
-      <div class="grid-5">
-        <div class="card stat-card">
-          <div class="stat-icon">
-            <i data-lucide="users"></i>
-          </div>
-          <div class="stat-info">
-            <h3>Total Jamaah</h3>
-            <p id="kpi-total">0</p>
-          </div>
+    <div class="app">
+      <nav class="sidebar" aria-label="Menu utama">
+        <div class="brand">
+          <div class="brand-mark"><i data-lucide="users"></i></div>
+          <div class="brand-text"><strong>Sensus BBK02</strong><span>Kelompok Babakan Barat</span></div>
         </div>
-        <div class="card stat-card accent">
-          <div class="stat-icon">
-            <i data-lucide="home"></i>
-          </div>
-          <div class="stat-info">
-            <h3>Total Keluarga (KK)</h3>
-            <p id="kpi-kk">0</p>
-          </div>
+        <div class="nav">
+          <button type="button" class="nav-item" data-nav="data" onclick="setView('data')"><i data-lucide="layout-dashboard"></i> Dashboard &amp; Data Jamaah</button>
+          <button type="button" class="nav-item" data-nav="kk" onclick="setView('kk')"><i data-lucide="home"></i> Keluarga (KK)</button>
+          <button type="button" class="nav-item" data-nav="lengkapi" onclick="showPerluDilengkapi()"><i data-lucide="triangle-alert"></i> Perlu Dilengkapi <span class="nav-badge" id="nav-lengkapi-count" hidden>0</span></button>
         </div>
-        <div class="card stat-card">
-          <div class="stat-icon" style="color: #60a5fa; background: rgba(96, 165, 250, 0.1);">
-            <i data-lucide="user"></i>
+        <div class="session-box">
+          <div class="session-user">
+            <span class="avatar-sm">AD</span>
+            <div><strong>Admin</strong><span id="mode-badge">Google Sheet Live</span></div>
           </div>
-          <div class="stat-info">
-            <h3>Laki-Laki</h3>
-            <p id="kpi-laki">0</p>
-          </div>
+          <button type="button" id="logout-btn" class="btn-deep" onclick="handleLogout()"><i data-lucide="log-out"></i> Keluar</button>
         </div>
-        <div class="card stat-card" style="border-color: rgba(244, 63, 94, 0.2);">
-          <div class="stat-icon" style="color: #f43f5e; background: rgba(244, 63, 94, 0.1);">
-            <i data-lucide="user-plus"></i>
-          </div>
-          <div class="stat-info">
-            <h3>Perempuan</h3>
-            <p id="kpi-perempuan">0</p>
-          </div>
-        </div>
-        <div class="card stat-card" style="border-color: rgba(217, 119, 6, 0.2);">
-          <div class="stat-icon" style="color: #d97706; background: rgba(217, 119, 6, 0.08);">
-            <i data-lucide="heart"></i>
-          </div>
-          <div class="stat-info">
-            <h3>Lansia (≥ 57 th)</h3>
-            <p id="kpi-lansia">0</p>
-          </div>
-        </div>
-      </div>
-      <br>
+      </nav>
 
-      <!-- Toggle Button for Analytics Dashboard -->
-      <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
-        <button id="toggle-analytics-btn" class="btn btn-primary" onclick="toggleAnalyticsDashboard()" style="gap: 0.75rem; padding: 0.75rem 1.5rem; font-size: 1rem;">
-          <i id="toggle-analytics-icon" data-lucide="eye"></i>
-          <span id="toggle-analytics-text">Tampilkan Visualisasi Data</span>
-        </button>
-      </div>
-
-      <!-- High Level Visual Analytics Dashboard (Hidden by Default) -->
-      <div id="analytics-dashboard" style="display: none; grid-template-columns: 1fr 1.2fr; gap: 1.5rem;">
-        <!-- Chart Card -->
-        <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column;">
-          <h3 class="section-title" style="font-size: 1.05rem; margin-bottom: 1.25rem;">
-            <i data-lucide="pie-chart" style="color: var(--color-primary); width: 18px; height: 18px;"></i>
-            <span>Proporsi Kategori Sensus (Doughnut)</span>
-          </h3>
-          <div style="flex: 1; display: flex; align-items: center; justify-content: center; position: relative; min-height: 250px;">
-            <canvas id="categoryChart"></canvas>
-            <div id="chart-no-data" style="display: none; color: var(--text-muted); font-size: 0.9rem;">Belum ada data aktif untuk divisualisasikan.</div>
+      <main class="content">
+        <div class="page-head">
+          <div class="page-title">
+            <h1 id="page-title">Data Jamaah</h1>
+            <p id="sync-info">Sensus Jiwa Kelompok Babakan Barat</p>
           </div>
+          <label class="search">
+            <i data-lucide="search"></i>
+            <span class="sr-only">Cari</span>
+            <input type="search" id="search-input" placeholder="Cari nama, nama absen, atau KK…" oninput="onSearch()">
+          </label>
+          <button type="button" class="btn btn-primary" onclick="openDrawer()"><i data-lucide="plus"></i> Tambah Jamaah</button>
         </div>
 
-        <!-- Stats Details Card -->
-        <div class="card" style="padding: 1.5rem;">
-          <h3 class="section-title" style="font-size: 1.05rem; margin-bottom: 1.25rem;">
-            <i data-lucide="bar-chart-3" style="color: var(--color-accent); width: 18px; height: 18px;"></i>
-            <span>Distribusi Jumlah & Presentase Gender</span>
-          </h3>
-          <div id="visual-stats-list">
-            <!-- Dynamically populated list with dual progress bars -->
+        <!-- ===== VIEW: DATA ===== -->
+        <div id="view-data" style="display: flex; flex-direction: column; gap: 24px">
+          <section class="kpis" aria-label="Ringkasan angka">
+            <div class="card kpi"><span class="kpi-label">Jiwa aktif wilayah</span><span class="kpi-value num" id="kpi-total">0</span><span class="kpi-hint" id="kpi-total-hint"></span></div>
+            <div class="card kpi"><span class="kpi-label">Keluarga (KK) aktif</span><span class="kpi-value num" id="kpi-kk">0</span><span class="kpi-hint" id="kpi-kk-hint"></span></div>
+            <div class="card kpi"><span class="kpi-label">Laki-laki</span><span class="kpi-value num" id="kpi-laki" style="color: var(--male-ink)">0</span><span class="kpi-hint" id="kpi-laki-hint"></span></div>
+            <div class="card kpi"><span class="kpi-label">Perempuan</span><span class="kpi-value num" id="kpi-perempuan" style="color: var(--female-ink)">0</span><span class="kpi-hint" id="kpi-perempuan-hint"></span></div>
+            <div class="card kpi"><span class="kpi-label">Lansia ≥ 57 th</span><span class="kpi-value num" id="kpi-lansia" style="color: var(--primary)">0</span><span class="kpi-hint">termasuk dalam kategori</span></div>
+          </section>
+
+          <div class="banner" id="banner-lengkapi" role="status" hidden>
+            <i data-lucide="triangle-alert"></i>
+            <span><strong id="banner-lengkapi-count">0 jamaah</strong> belum punya tahun lahir, sehingga belum masuk kategori usia mana pun.</span>
+            <button type="button" class="link-btn" onclick="showPerluDilengkapi()">Lengkapi sekarang →</button>
           </div>
-        </div>
-      </div>
-      <br>
 
-      <!-- Rekapitulasi Kategori Usia (Full Width at Top) -->
-      <div class="card">
-        <h2 class="section-title">
-          <i data-lucide="bar-chart-2" style="color: var(--color-accent);"></i>
-          <span>Rekapitulasi Kategori Usia Sensus 2026</span>
-        </h2>
-        <div class="rekap-table-container">
-          <table>
-            <thead>
-              <tr>
-                <th rowspan="2" style="text-align: center; vertical-align: middle;">JUMLAH KK</th>
-                <th colspan="3" style="text-align: center;">TOTAL GENDER</th>
-                <th colspan="2" style="text-align: center;">BALITA</th>
-                <th colspan="2" style="text-align: center;">CABERAWIT</th>
-                <th colspan="2" style="text-align: center;">PRA REMAJA</th>
-                <th colspan="2" style="text-align: center;">REMAJA</th>
-                <th colspan="2" style="text-align: center;">PRA NIKAH</th>
-                <th colspan="2" style="text-align: center;">DEWASA MENIKAH</th>
-                <th rowspan="2" style="text-align: center; vertical-align: middle;">Duda</th>
-                <th rowspan="2" style="text-align: center; vertical-align: middle;">Janda</th>
-                <th rowspan="2" style="text-align: center; vertical-align: middle;">TOTAL JAMAAH</th>
-              </tr>
-              <tr>
-                <th style="text-align: center;">Laki</th>
-                <th style="text-align: center;">Perempuan</th>
-                <th style="text-align: center;">Total</th>
-                <th style="text-align: center;">L</th>
-                <th style="text-align: center;">P</th>
-                <th style="text-align: center;">L</th>
-                <th style="text-align: center;">P</th>
-                <th style="text-align: center;">L</th>
-                <th style="text-align: center;">P</th>
-                <th style="text-align: center;">L</th>
-                <th style="text-align: center;">P</th>
-                <th style="text-align: center;">L</th>
-                <th style="text-align: center;">P</th>
-                <th style="text-align: center;">L</th>
-                <th style="text-align: center;">P</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style="font-weight: 700; font-size: 1.05rem;">
-                <td id="rekap-kk" style="text-align: center; color: var(--color-accent);">0</td>
-                <td id="rekap-laki" style="text-align: center; color: #60a5fa;">0</td>
-                <td id="rekap-perempuan" style="text-align: center; color: #f43f5e;">0</td>
-                <td id="rekap-total-gender" style="text-align: center;">0</td>
-
-                <td id="rekap-balita-l" style="text-align: center; font-weight: normal;">0</td>
-                <td id="rekap-balita-p" style="text-align: center; font-weight: normal;">0</td>
-
-                <td id="rekap-caberawit-l" style="text-align: center; font-weight: normal;">0</td>
-                <td id="rekap-caberawit-p" style="text-align: center; font-weight: normal;">0</td>
-
-                <td id="rekap-pra-remaja-l" style="text-align: center; font-weight: normal;">0</td>
-                <td id="rekap-pra-remaja-p" style="text-align: center; font-weight: normal;">0</td>
-
-                <td id="rekap-remaja-l" style="text-align: center; font-weight: normal;">0</td>
-                <td id="rekap-remaja-p" style="text-align: center; font-weight: normal;">0</td>
-
-                <td id="rekap-pra-nikah-l" style="text-align: center; font-weight: normal;">0</td>
-                <td id="rekap-pra-nikah-p" style="text-align: center; font-weight: normal;">0</td>
-
-                <td id="rekap-dewasa-l" style="text-align: center; font-weight: normal;">0</td>
-                <td id="rekap-dewasa-p" style="text-align: center; font-weight: normal;">0</td>
-
-                <td id="rekap-duda" style="text-align: center; color: var(--color-warning);">0</td>
-                <td id="rekap-janda" style="text-align: center; color: var(--color-warning);">0</td>
-
-                <td id="rekap-total-all"
-                  style="text-align: center; color: var(--color-primary); background: rgba(16,185,129,0.08);">0</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <br>
-
-      <!-- Main Layout -->
-      <div class="grid-layout">
-        <!-- Left Column: Form Input -->
-        <div class="card" id="form-container">
-          <h2 class="section-title" id="form-title">
-            <i data-lucide="user-plus" style="color: var(--color-primary);"></i>
-            <span>Tambah Jamaah Baru</span>
-          </h2>
-
-          <form id="sensus-form" onsubmit="handleFormSubmit(event)">
-            <!-- Hidden Fields for Editing -->
-            <input type="hidden" id="form-id-jamaah" name="id_jamaah">
-            <input type="hidden" id="form-is-new-keluarga" name="is_new_keluarga" value="false">
-
-            <!-- Keluarga & Nama Lengkap Row -->
-            <div class="form-row">
-              <div class="form-group">
-                <label for="keluarga-search-input">Pilih Keluarga (KK)</label>
-                <!-- ✅ Real-time Semantic Search Input -->
-                <input 
-                  type="text" 
-                  id="keluarga-search-input" 
-                  placeholder="Ketik nama KK atau alamat untuk search..." 
-                  style="width: 100%; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; color: var(--text-main); font-family: var(--font-family); font-size: 0.95rem; outline: none; transition: var(--transition);"
-                  oninput="filterKeluargaSearch()">
-                
-                <!-- Hidden input to store selected value -->
-                <input type="hidden" id="form-id-keluarga" name="id_keluarga" required>
-                
-                <!-- Results Container - shows filtered list below input -->
-                <div id="keluarga-results-container" style="margin-top: 0.5rem; max-height: 300px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; display: none;">
-                  <!-- Populated by JavaScript -->
-                </div>
+          <section class="row-wrap" id="rekap-section">
+            <div class="card panel" style="flex: 2 1 520px">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+                <h2 style="flex: 1">Komposisi Kategori Usia</h2>
+                <span class="legend"><span class="swatch" style="background: var(--male)"></span>Laki-laki</span>
+                <span class="legend"><span class="swatch" style="background: var(--female)"></span>Perempuan</span>
               </div>
-              <div class="form-group">
-                <label for="form-nama-lengkap">Nama Lengkap</label>
-                <input type="text" id="form-nama-lengkap" name="nama_lengkap" placeholder="Nama sesuai KTP/Akte"
-                  required>
-              </div>
+              <div class="bars" id="kategori-bars"></div>
             </div>
-
-            <!-- New Keluarga Sub-form (Shown when 'NEW' selected) -->
-            <div id="new-keluarga-fields" class="new-keluarga-section" style="display: none;">
-              <h3 class="section-title" style="font-size: 0.95rem; color: var(--color-accent); margin-bottom: 0.75rem;">
-                <i data-lucide="plus-circle"></i> Detail Keluarga Baru
-              </h3>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="form-nama-kk">Nama Kepala Keluarga (Bapak/Ibu)</label>
-                  <input type="text" id="form-nama-kk" name="nama_kk" placeholder="Contoh: H. Sutardjo">
-                </div>
-                <div class="form-group">
-                  <label for="form-telepon">No. Telepon / WA</label>
-                  <input type="text" id="form-telepon" name="telepon" placeholder="0812...">
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="form-alamat">Alamat Lengkap</label>
-                <textarea id="form-alamat" name="alamat" rows="2" placeholder="Alamat rumah..."></textarea>
-              </div>
+            <div class="card panel" style="flex: 1 1 280px; gap: 14px">
+              <h2>Keberadaan &amp; Absen</h2>
+              <div id="keberadaan-list" style="display: flex; flex-direction: column; gap: 10px"></div>
+              <div class="stat-foot"><span>Aktif &amp; masuk daftar absen</span><strong id="absen-count" class="num">0 jiwa</strong></div>
             </div>
+          </section>
 
-            <!-- Jamaah Fields Row 1 -->
-            <div class="form-row">
-              <div class="form-group">
-                <label for="form-nama-absen">Nama di Absen</label>
-                <input type="text" id="form-nama-absen" name="nama_absen" placeholder="Nama panggilan" required>
+          <section class="card" aria-labelledby="daftar-title">
+            <div class="section-head">
+              <h2 id="daftar-title">Daftar Jamaah</h2>
+              <div class="chips-scroll" id="chips">
+                <button type="button" class="chip" data-chip="semua" aria-pressed="true" onclick="setChip('semua')">Semua</button>
+                <button type="button" class="chip" data-chip="aktif" aria-pressed="false" onclick="setChip('aktif')">Aktif wilayah</button>
+                <button type="button" class="chip" data-chip="luar" aria-pressed="false" onclick="setChip('luar')">Luar kota</button>
+                <button type="button" class="chip" data-chip="absen" aria-pressed="false" onclick="setChip('absen')">Masuk absen</button>
+                <button type="button" class="chip" data-chip="tidakabsen" aria-pressed="false" onclick="setChip('tidakabsen')">Tidak absen</button>
+                <button type="button" class="chip chip-warn" data-chip="lengkapi" aria-pressed="false" onclick="setChip('lengkapi')">Perlu dilengkapi</button>
               </div>
-              <div class="form-group">
-                <label for="form-hubungan-keluarga">Hubungan Keluarga</label>
-                <select id="form-hubungan-keluarga" name="hubungan_keluarga" required>
-                  <option value="A">A - Kepala Keluarga</option>
-                  <option value="B">B - Istri</option>
-                  <option value="C" selected>C - Anak</option>
-                  <option value="D">D - Bukan Keluarga Inti</option>
+              <span class="spacer"></span>
+              <label class="select-label">Kategori
+                <select id="filter-kategori" class="select" onchange="resetPageAndRender()">
+                  <option value="">Semua</option>
+                  <option value="BALITA-PAUD">BALITA-PAUD</option>
+                  <option value="Caberawit">Caberawit</option>
+                  <option value="Pra Remaja (SMP)">Pra Remaja (SMP)</option>
+                  <option value="Remaja (SMA)">Remaja (SMA)</option>
+                  <option value="Usia (Pra) Menikah">Usia (Pra) Menikah</option>
+                  <option value="Dewasa Menikah">Dewasa Menikah</option>
                 </select>
-              </div>
-            </div>
-
-            <!-- Jamaah Fields Row 2 -->
-            <div class="form-row">
-              <div class="form-group">
-                <label for="form-jenis-kelamin">Jenis Kelamin</label>
-                <select id="form-jenis-kelamin" name="jenis_kelamin" required>
-                  <option value="L">Laki-Laki</option>
+              </label>
+              <label class="select-label">Gender
+                <select id="filter-gender" class="select" onchange="resetPageAndRender()">
+                  <option value="">Semua</option>
+                  <option value="L">Laki-laki</option>
                   <option value="P">Perempuan</option>
                 </select>
-              </div>
-              <div class="form-group">
-                <label for="form-tahun-lahir">Tahun Lahir (TTL)</label>
-                <input type="number" id="form-tahun-lahir" name="tahun_lahir" min="1900" max="2030"
-                  placeholder="Contoh: 1997" required>
-              </div>
+              </label>
+              <button type="button" class="btn btn-sm" onclick="printTable()"><i data-lucide="printer"></i> Cetak</button>
+              <button type="button" class="btn btn-sm" onclick="exportCSV()"><i data-lucide="download"></i> CSV</button>
             </div>
-
-            <!-- Jamaah Fields Row 3 -->
-            <div class="form-row">
-              <div class="form-group">
-                <label for="form-status-nikah">Status Pernikahan (Opsional)</label>
-                <select id="form-status-nikah" name="status_nikah">
-                  <option value="" selected>-- Pilih Status (Opsional / Belum) --</option>
-                  <option value="MENIKAH">MENIKAH</option>
-                  <option value="DUDA">DUDA</option>
-                  <option value="JANDA">JANDA</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="form-status-keberadaan">Status Keberadaan</label>
-                <select id="form-status-keberadaan" name="status_keberadaan" required>
-                  <option value="Menetap" selected>Menetap</option>
-                  <option value="Mondok">Mondok</option>
-                  <option value="Tugas">Tugas</option>
-                  <option value="Kerja Luar">Kerja Luar</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Flags & Catatan Row -->
-            <div class="form-row">
-              <div class="form-group">
-                <label>Pengaturan Penanda (Flags)</label>
-                <div class="form-group checkbox-group" style="margin-top: 0.75rem;">
-                  <label class="checkbox-item">
-                    <input type="checkbox" id="form-is-aktif" name="is_aktif" checked value="Y">
-                    <span>Aktif Wilayah (Lokal)</span>
-                  </label>
-                  <label class="checkbox-item">
-                    <input type="checkbox" id="form-flag-absen" name="flag_absen" checked value="Y">
-                    <span>Masuk Daftar Absen</span>
-                  </label>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="form-catatan">Catatan / Keterangan</label>
-                <input type="text" id="form-catatan" name="catatan" placeholder="Keterangan tambahan (opsional)"
-                  style="margin-top: 0.2rem;">
-              </div>
-            </div>
-
-            <!-- Form Action Buttons -->
-            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-              <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 1;">
-                <i data-lucide="save"></i>
-                <span>Simpan Data</span>
-              </button>
-              <button type="button" id="cancel-btn" class="btn btn-secondary" onclick="resetForm()"
-                style="display: none; flex: 1; margin-top: 0;">
-                Batal / Reset
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Right Column: Daftar Sensus Jamaah -->
-        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-          <!-- List Data Jamaah -->
-          <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-              <h2 class="section-title" style="margin-bottom: 0;">
-                <i data-lucide="list" style="color: var(--color-primary);"></i>
-                <span>Daftar Sensus Jamaah</span>
-              </h2>
-              <button class="btn btn-secondary" onclick="printTable()" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; margin-top: 0; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-main);">
-                <i data-lucide="printer" style="width: 15px; height: 15px; color: var(--color-accent);"></i>
-                <span>Cetak Hasil</span>
-              </button>
-            </div>
-
-            <!-- Filters -->
-            <div class="filters-card">
-              <div class="search-box">
-                <i data-lucide="search" style="width: 18px; height: 18px;"></i>
-                <input type="text" id="search-input" placeholder="Cari nama jamaah atau KK..."
-                  oninput="filterAndRenderTable()">
-              </div>
-              <select id="filter-kategori" class="filter-select" onchange="filterAndRenderTable()">
-                <option value="">Semua Kategori</option>
-                <option value="BALITA-PAUD">BALITA-PAUD</option>
-                <option value="Caberawit">Caberawit</option>
-                <option value="Pra Remaja (SMP)">Pra Remaja (SMP)</option>
-                <option value="Remaja (SMA)">Remaja (SMA)</option>
-                <option value="Usia (Pra) Menikah">Usia (Pra) Menikah</option>
-                <option value="Dewasa Menikah">Dewasa Menikah</option>
-              </select>
-              <select id="filter-gender" class="filter-select" onchange="filterAndRenderTable()">
-                <option value="">Semua Gender</option>
-                <option value="L">Laki-Laki</option>
-                <option value="P">Perempuan</option>
-              </select>
-              <select id="filter-aktif" class="filter-select" onchange="filterAndRenderTable()">
-                <option value="">Semua Keaktifan</option>
-                <option value="Y">Aktif Wilayah (Y)</option>
-                <option value="N">Luar Kota (N)</option>
-              </select>
-              <select id="filter-absen" class="filter-select" onchange="filterAndRenderTable()">
-                <option value="">Semua List Absen</option>
-                <option value="Y">Masuk Absen</option>
-                <option value="N">Tidak Masuk Absen</option>
-              </select>
-            </div>
-
-            <!-- Table -->
-            <div class="list-table-container">
-              <table>
+            <div class="table-wrap">
+              <table class="data">
                 <thead>
                   <tr>
-                    <th style="width: 50px; text-align: center;">No</th>
-                    <th class="sortable" onclick="setSort('nama_lengkap')">Nama Lengkap <span id="sort-nama_lengkap" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
-                    <th class="sortable" onclick="setSort('hubungan_keluarga')" style="text-align: center;">Hub KK <span id="sort-hubungan_keluarga" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
-                    <th class="sortable" onclick="setSort('nama_kk')">Nama KK <span id="sort-nama_kk" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
-                    <th class="sortable" onclick="setSort('kategori_usia')">Kategori Usia <span id="sort-kategori_usia" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
-                    <th class="sortable" onclick="setSort('umur')" style="text-align: center;">Umur <span id="sort-umur" class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 14px; height: 14px;"></i></span></th>
-                    <th style="text-align: center; width: 80px;">Aktif</th>
-                    <th style="text-align: center; width: 80px;">Absen</th>
-                    <th style="text-align: center; width: 100px;">Aksi</th>
+                    <th scope="col"><button type="button" class="th-sort" data-sort="nama_lengkap" onclick="setSort('nama_lengkap')">Nama <i data-lucide="chevrons-up-down"></i></button></th>
+                    <th scope="col"><button type="button" class="th-sort" data-sort="nama_kk" onclick="setSort('nama_kk')">Keluarga (KK) <i data-lucide="chevrons-up-down"></i></button></th>
+                    <th scope="col"><button type="button" class="th-sort" data-sort="hubungan_keluarga" onclick="setSort('hubungan_keluarga')">Hubungan <i data-lucide="chevrons-up-down"></i></button></th>
+                    <th scope="col"><button type="button" class="th-sort" data-sort="kategori_usia" onclick="setSort('kategori_usia')">Kategori <i data-lucide="chevrons-up-down"></i></button></th>
+                    <th scope="col" style="text-align: right"><button type="button" class="th-sort" data-sort="umur" onclick="setSort('umur')">Umur <i data-lucide="chevrons-up-down"></i></button></th>
+                    <th scope="col">Wilayah</th>
+                    <th scope="col">Absen</th>
+                    <th scope="col"><span class="sr-only">Aksi</span></th>
                   </tr>
                 </thead>
-                <tbody id="jamaah-table-rows">
-                  <!-- Javascript populated -->
-                </tbody>
+                <tbody id="jamaah-table-rows"></tbody>
               </table>
             </div>
-          </div>
+            <div class="cards" id="jamaah-cards"></div>
+            <div class="table-foot">
+              <span id="page-info"></span>
+              <button type="button" class="btn btn-sm" id="prev-page" onclick="changePage(-1)">Sebelumnya</button>
+              <button type="button" class="btn btn-sm" id="next-page" onclick="changePage(1)" style="border-color: var(--primary); color: var(--primary)">Berikutnya</button>
+            </div>
+          </section>
         </div>
-      </div>
 
-
-
+        <!-- ===== VIEW: KELUARGA ===== -->
+        <section id="view-kk" class="card" hidden aria-labelledby="kk-title">
+          <div class="section-head">
+            <h2 id="kk-title">Daftar Keluarga (KK)</h2>
+            <span class="spacer"></span>
+            <span style="font-size: 13px; color: var(--muted)" id="kk-info"></span>
+          </div>
+          <div class="table-wrap">
+            <table class="data">
+              <thead>
+                <tr><th scope="col">Kepala Keluarga</th><th scope="col">Alamat</th><th scope="col">Telepon</th><th scope="col" style="text-align: right">Anggota aktif</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Aksi</span></th></tr>
+              </thead>
+              <tbody id="kk-table-rows"></tbody>
+            </table>
+          </div>
+          <div class="cards" id="kk-cards"></div>
+        </section>
+      </main>
     </div>
+
+    <button type="button" class="fab" onclick="openDrawer()"><i data-lucide="plus"></i> Tambah</button>
+    <nav class="bottom-nav" aria-label="Navigasi bawah">
+      <button type="button" data-nav="data" onclick="setView('data')"><i data-lucide="users"></i> Jamaah</button>
+      <button type="button" data-nav="kk" onclick="setView('kk')"><i data-lucide="home"></i> Keluarga</button>
+      <button type="button" data-nav="rekap" onclick="goRekap()"><i data-lucide="chart-column"></i> Rekap</button>
+    </nav>
   </div>
 
-  <script>
-    // --- Global Data Store ---
-    let appData = {
-      jamaah: [],
-      keluarga: [],
-      rekap: {}
-    };
+  <!-- ================= DRAWER FORM ================= -->
+  <div class="drawer-backdrop" id="drawer-backdrop" hidden onclick="closeDrawer()"></div>
+  <aside class="drawer" id="form-drawer" hidden role="dialog" aria-modal="true" aria-labelledby="form-title">
+    <div class="drawer-head">
+      <div>
+        <h2 id="form-title">Tambah Jamaah</h2>
+        <span>Kolom bertanda * wajib diisi</span>
+      </div>
+      <button type="button" class="icon-btn" onclick="closeDrawer()" aria-label="Tutup panel"><i data-lucide="x"></i></button>
+    </div>
 
-    // --- Sorting State ---
+    <form id="sensus-form" onsubmit="handleFormSubmit(event)" style="display: contents" novalidate>
+      <div class="drawer-body">
+        <input type="hidden" id="form-id-jamaah">
+        <input type="hidden" id="form-id-keluarga">
+        <input type="hidden" id="form-is-new-keluarga" value="false">
+
+        <fieldset class="step">
+          <legend><span class="step-no">1</span> Keluarga (KK) *</legend>
+
+          <div class="kk-selected" id="kk-selected" hidden>
+            <i data-lucide="home"></i>
+            <div><strong id="kk-selected-name"></strong><span id="kk-selected-meta"></span></div>
+            <button type="button" class="btn btn-sm" onclick="clearKeluarga()" style="border-color: #B9D8CE; color: var(--primary); font-weight: 700">Ganti</button>
+          </div>
+
+          <div id="kk-picker" class="field">
+            <label for="keluarga-search-input">Cari keluarga</label>
+            <input type="search" id="keluarga-search-input" class="input" placeholder="Ketik nama kepala keluarga atau alamat…" oninput="filterKeluargaSearch()" autocomplete="off">
+            <div class="kk-results" id="keluarga-results-container" hidden></div>
+            <button type="button" class="link-btn" onclick="selectKeluargaBaru()" style="margin-top: 4px"><i data-lucide="plus"></i> Buat Keluarga (KK) baru</button>
+          </div>
+
+          <div class="new-kk" id="new-keluarga-fields" hidden>
+            <div class="new-kk-head">Keluarga (KK) baru <button type="button" class="link-btn" onclick="clearKeluarga()" style="font-size: 13px">Batal</button></div>
+            <div class="field"><label for="form-nama-kk">Nama kepala keluarga *</label><input id="form-nama-kk" class="input" type="text" maxlength="100"></div>
+            <div class="field"><label for="form-alamat">Alamat *</label><textarea id="form-alamat" class="input" rows="2" maxlength="300"></textarea></div>
+            <div class="field"><label for="form-telepon">No. telepon / WA</label><input id="form-telepon" class="input" type="tel" inputmode="tel" maxlength="20" placeholder="08…"></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="step">
+          <legend><span class="step-no">2</span> Data diri</legend>
+          <div class="field"><label for="form-nama-lengkap">Nama lengkap *</label><input id="form-nama-lengkap" class="input" type="text" maxlength="100" placeholder="Sesuai KTP / akta"></div>
+          <div class="field">
+            <label for="form-nama-absen">Nama di absen</label>
+            <input id="form-nama-absen" class="input" type="text" maxlength="100" placeholder="Nama panggilan">
+            <span class="help">Kosongkan bila sama dengan nama lengkap</span>
+          </div>
+          <div class="field">
+            <span class="field-label" id="lbl-hub">Hubungan dalam KK *</span>
+            <div class="seg seg-4" role="radiogroup" aria-labelledby="lbl-hub">
+              <label><input type="radio" name="hubungan" value="A"><span>A · Kepala</span></label>
+              <label><input type="radio" name="hubungan" value="B"><span>B · Istri</span></label>
+              <label><input type="radio" name="hubungan" value="C" checked><span>C · Anak</span></label>
+              <label><input type="radio" name="hubungan" value="D"><span>D · Lain</span></label>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <span class="field-label" id="lbl-jk">Jenis kelamin *</span>
+              <div class="seg seg-2" role="radiogroup" aria-labelledby="lbl-jk">
+                <label><input type="radio" name="jk" value="L" checked onchange="syncNikahOptions()"><span>L</span></label>
+                <label><input type="radio" name="jk" value="P" onchange="syncNikahOptions()"><span>P</span></label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="form-tahun-lahir">Tahun lahir *</label>
+              <input id="form-tahun-lahir" class="input" type="number" inputmode="numeric" min="1900" placeholder="mis. 1997" oninput="updateUsiaPreview()">
+            </div>
+          </div>
+          <div class="preview" id="usia-preview" hidden></div>
+          <div class="field">
+            <span class="field-label" id="lbl-nikah">Status pernikahan</span>
+            <div class="seg seg-4" role="radiogroup" aria-labelledby="lbl-nikah">
+              <label><input type="radio" name="nikah" value="BELUM" checked onchange="updateUsiaPreview()"><span>Belum</span></label>
+              <label><input type="radio" name="nikah" value="MENIKAH" onchange="updateUsiaPreview()"><span>Menikah</span></label>
+              <label><input type="radio" name="nikah" value="DUDA" onchange="updateUsiaPreview()"><span>Duda</span></label>
+              <label><input type="radio" name="nikah" value="JANDA" onchange="updateUsiaPreview()"><span>Janda</span></label>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="step">
+          <legend><span class="step-no">3</span> Status &amp; absen</legend>
+          <div class="field">
+            <label for="form-status-keberadaan">Keberadaan</label>
+            <select id="form-status-keberadaan" class="input">
+              <option value="Menetap">Menetap</option>
+              <option value="Mondok">Mondok</option>
+              <option value="Tugas">Tugas</option>
+              <option value="Kerja Luar">Kerja Luar</option>
+            </select>
+          </div>
+          <label class="toggle"><div><strong>Aktif di wilayah</strong><span>Dihitung dalam rekap sensus</span></div><input type="checkbox" id="form-is-aktif" checked></label>
+          <label class="toggle"><div><strong>Masuk daftar absen</strong><span>Wajib hadir pengajian rutin</span></div><input type="checkbox" id="form-flag-absen" checked></label>
+          <div class="field"><label for="form-catatan">Catatan</label><textarea id="form-catatan" class="input" rows="2" maxlength="500" placeholder="Keterangan tambahan (opsional)"></textarea></div>
+        </fieldset>
+
+        <div class="form-error" id="form-error" role="alert" hidden></div>
+      </div>
+      <div class="drawer-foot">
+        <button type="button" id="cancel-btn" class="btn" style="flex: 1" onclick="closeDrawer()">Batal</button>
+        <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 2"><span>Simpan Jamaah</span></button>
+      </div>
+    </form>
+  </aside>
+
+  <div id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script>
+    // ================= STATE =================
+    let appData = { jamaah: [], keluarga: [], rekap: {} };
+    let currentView = 'data';
+    let currentChip = 'semua';
     let sortField = '';
     let sortOrder = 'asc';
+    let currentPage = 1;
+    const PAGE_SIZE = 25;
+    let lastSync = null;
 
-    // --- Chart State ---
-    let categoryChartInstance = null;
-
-    // --- Analytics Dashboard Toggle State ---
-    let analyticsDashboardVisible = false;
-
-    // --- Auth State ---
     const TOKEN_KEY = 'sensus_token_admin';
     let authToken = null;
 
-    // --- Helpers keamanan ---
+    const KATEGORI = ["BALITA-PAUD", "Caberawit", "Pra Remaja (SMP)", "Remaja (SMA)", "Usia (Pra) Menikah", "Dewasa Menikah"];
+    const HUB_LABEL = { A: 'Kepala', B: 'Istri', C: 'Anak', D: 'Lainnya' };
+    const KEBERADAAN = [
+      { key: 'Menetap', color: '#0B6E5B' }, { key: 'Mondok', color: '#2563EB' },
+      { key: 'Tugas', color: '#F59E5B' }, { key: 'Kerja Luar', color: '#94A3A0' }
+    ];
+
+    // ================= HELPERS =================
     // Escape semua data dari spreadsheet sebelum masuk ke innerHTML / template HTML (anti-XSS)
     function esc(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
       }[c]));
     }
+    const $ = id => document.getElementById(id);
+    const fmt = n => Number(n || 0).toLocaleString('id-ID');
+    const pct = (n, total) => total > 0 ? (n / total * 100).toFixed(1).replace('.', ',') + '%' : '0%';
+    function umurText(umur) { return (umur === null || umur === undefined) ? '–' : umur + ' th'; }
+    function initials(name) { return String(name || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase(); }
+    function avatarClass(id) { let h = 0; for (const c of String(id)) h = (h + c.charCodeAt(0)) % 3; return 'av-' + h; }
+    function icons() { if (window.lucide) lucide.createIcons(); }
+    function radioValue(name) { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; }
+    function setRadio(name, value) { document.querySelectorAll(`input[name="${name}"]`).forEach(r => { r.checked = r.value === value; }); }
 
-    function umurText(umur) {
-      return (umur === null || umur === undefined) ? '-' : umur + ' th';
+    // Sel CSV yang diawali = + - @ bisa dieksekusi sebagai rumus oleh Excel/Sheets
+    function csvCell(value) {
+      let s = String(value == null ? '' : value);
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+
+    let toastTimer = null;
+    function showToast(msg, isError) {
+      const t = $('toast');
+      t.textContent = msg;
+      t.className = isError ? 'err' : '';
+      t.hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { t.hidden = true; }, isError ? 6000 : 3500);
     }
 
     // Penyimpanan token: sessionStorage bila tersedia, fallback ke memori (login ulang saat refresh)
@@ -1064,11 +687,9 @@
       authToken = t;
       try { t ? sessionStorage.setItem(TOKEN_KEY, t) : sessionStorage.removeItem(TOKEN_KEY); } catch (e) {}
     }
-    function loadToken() {
-      try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; }
-    }
+    function loadToken() { try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; } }
 
-    // --- Rule engine lokal (HANYA untuk Mode Simulasi; data live dihitung di server) ---
+    // Rule engine lokal: untuk pratinjau di form & Mode Simulasi. Data live tetap dihitung di server.
     function kategoriUsiaLokal(tahunLahir, statusNikah) {
       const s = (statusNikah || '').toUpperCase();
       if (s === 'MENIKAH' || s === 'DUDA' || s === 'JANDA') return 'Dewasa Menikah';
@@ -1080,36 +701,7 @@
       return 'Usia (Pra) Menikah';
     }
 
-    // --- Mock Data FIKTIF (halaman ini bisa dibuka siapa saja sebelum login, jangan isi nama asli) ---
-    const mockKeluarga = [
-      { id_keluarga: "KK-1", nama_kk: "Bapak Contoh Satu", alamat: "Alamat Contoh RT 01", telepon: "080000000001" },
-      { id_keluarga: "KK-2", nama_kk: "Bapak Contoh Dua", alamat: "Alamat Contoh RT 02", telepon: "080000000002" },
-      { id_keluarga: "KK-3", nama_kk: "Bapak Contoh Tiga", alamat: "Alamat Contoh RT 03", telepon: "080000000003" }
-    ];
-
-    const mockJamaahSeed = [
-      ["JM-1", "KK-1", "A", "Bapak Contoh Satu", "Contoh Satu", "L", 1956, "MENIKAH", "Y", "Y"],
-      ["JM-2", "KK-1", "B", "Ibu Contoh Satu", "Ibu Satu", "P", 1968, "MENIKAH", "Y", "Y"],
-      ["JM-3", "KK-2", "A", "Bapak Contoh Dua", "Contoh Dua", "L", 1997, "MENIKAH", "Y", "Y"],
-      ["JM-4", "KK-2", "B", "Ibu Contoh Dua", "Ibu Dua", "P", 1999, "MENIKAH", "Y", "Y"],
-      ["JM-5", "KK-2", "C", "Anak Contoh Dua", "Anak Dua", "L", 2025, "BELUM", "Y", "N"],
-      ["JM-6", "KK-3", "A", "Bapak Contoh Tiga", "Contoh Tiga", "L", 1967, "MENIKAH", "Y", "Y"],
-      ["JM-7", "KK-3", "B", "Ibu Contoh Tiga", "Ibu Tiga", "P", 1964, "MENIKAH", "Y", "Y"]
-    ];
-
-    function buildMockJamaah() {
-      const thisYear = new Date().getFullYear();
-      return mockJamaahSeed.map(r => ({
-        id_jamaah: r[0], id_keluarga: r[1],
-        nama_kk: (mockKeluarga.find(k => k.id_keluarga === r[1]) || {}).nama_kk || 'Tidak Terdaftar',
-        hubungan_keluarga: r[2], nama_lengkap: r[3], nama_absen: r[4], jenis_kelamin: r[5],
-        tahun_lahir: r[6], umur: thisYear - r[6], status_nikah: r[7], is_aktif: r[8], flag_absen: r[9],
-        status_keberadaan: "Menetap", kategori_usia: kategoriUsiaLokal(r[6], r[7]), catatan: ""
-      }));
-    }
-
-    // Check if we are running in Google Apps Script or Local Browser
-    // --- Koneksi ke server ---
+    // ================= KONEKSI SERVER =================
     // 1) Dibuka dari URL Apps Script  -> google.script.run
     // 2) Dibuka dari GitHub Pages      -> fetch ke API_URL di config.js
     // 3) Dibuka langsung dari file     -> Mode Simulasi (data fiktif)
@@ -1137,80 +729,162 @@
       });
     }
 
+    // ================= MODE SIMULASI (data fiktif) =================
+    const mockKeluarga = [
+      { id_keluarga: "KK-1", nama_kk: "Bapak Contoh Satu", alamat: "Alamat Contoh RT 01", telepon: "080000000001" },
+      { id_keluarga: "KK-2", nama_kk: "Bapak Contoh Dua", alamat: "Alamat Contoh RT 02", telepon: "080000000002" },
+      { id_keluarga: "KK-3", nama_kk: "Bapak Contoh Tiga", alamat: "Alamat Contoh RT 03", telepon: "080000000003" }
+    ];
+    const mockJamaahSeed = [
+      ["JM-1", "KK-1", "A", "Bapak Contoh Satu", "Contoh Satu", "L", 1956, "MENIKAH", "Y", "Y", "Menetap"],
+      ["JM-2", "KK-1", "B", "Ibu Contoh Satu", "Ibu Satu", "P", 1968, "MENIKAH", "Y", "Y", "Menetap"],
+      ["JM-3", "KK-2", "A", "Bapak Contoh Dua", "Contoh Dua", "L", 1997, "MENIKAH", "Y", "Y", "Menetap"],
+      ["JM-4", "KK-2", "B", "Ibu Contoh Dua", "Ibu Dua", "P", 1999, "MENIKAH", "Y", "Y", "Menetap"],
+      ["JM-5", "KK-2", "C", "Anak Contoh Dua", "Anak Dua", "L", 2025, "BELUM", "Y", "N", "Menetap"],
+      ["JM-6", "KK-3", "A", "Bapak Contoh Tiga", "Contoh Tiga", "L", 1967, "MENIKAH", "Y", "Y", "Menetap"],
+      ["JM-7", "KK-3", "B", "Ibu Contoh Tiga", "Ibu Tiga", "P", 1964, "MENIKAH", "Y", "Y", "Menetap"],
+      ["JM-8", "KK-3", "C", "Anak Contoh Tiga", "Anak Tiga", "P", 2008, "BELUM", "N", "N", "Mondok"],
+      ["JM-9", "KK-3", "C", "Anak Tanpa Tahun", "Tanpa Tahun", "L", null, "BELUM", "Y", "Y", "Menetap"]
+    ];
+    function buildMockJamaah() {
+      const thisYear = new Date().getFullYear();
+      return mockJamaahSeed.map(r => ({
+        id_jamaah: r[0], id_keluarga: r[1],
+        nama_kk: (mockKeluarga.find(k => k.id_keluarga === r[1]) || {}).nama_kk || 'Tidak Terdaftar',
+        hubungan_keluarga: r[2], nama_lengkap: r[3], nama_absen: r[4], jenis_kelamin: r[5],
+        tahun_lahir: r[6], umur: r[6] ? thisYear - r[6] : null, status_nikah: r[7], is_aktif: r[8], flag_absen: r[9],
+        status_keberadaan: r[10], kategori_usia: r[6] || r[7] !== 'BELUM' ? kategoriUsiaLokal(r[6], r[7]) : 'Tanpa Tahun Lahir', catatan: ""
+      }));
+    }
+    function simulateLoadData() {
+      showState('loading');
+      setTimeout(() => {
+        appData.keluarga = mockKeluarga.map(k => Object.assign({}, k));
+        appData.jamaah = buildMockJamaah();
+        calculateMockRekap();
+        lastSync = new Date();
+        showState('app');
+        renderAll();
+      }, 400);
+    }
+    function calculateMockRekap() {
+      const active = appData.jamaah.filter(j => j.is_aktif === 'Y');
+      const inactiveKK = {};
+      appData.jamaah.forEach(j => { if (j.hubungan_keluarga === 'A' && j.is_aktif === 'N') inactiveKK[j.id_keluarga] = true; });
+      const rekap = {
+        total: active.length,
+        laki: active.filter(j => j.jenis_kelamin === 'L').length,
+        perempuan: active.filter(j => j.jenis_kelamin === 'P').length,
+        duda: active.filter(j => j.status_nikah === 'DUDA').length,
+        janda: active.filter(j => j.status_nikah === 'JANDA').length,
+        lansia: active.filter(j => j.umur !== null && j.umur >= 57).length,
+        kkCount: appData.keluarga.filter(k => !inactiveKK[k.id_keluarga]).length,
+        tanpaTahunLahir: active.filter(j => !j.tahun_lahir).length,
+        detail: {}
+      };
+      KATEGORI.forEach(k => { rekap.detail[k] = { L: 0, P: 0 }; });
+      active.forEach(j => {
+        if (rekap.detail[j.kategori_usia] && (j.jenis_kelamin === 'L' || j.jenis_kelamin === 'P') &&
+            j.status_nikah !== 'DUDA' && j.status_nikah !== 'JANDA') rekap.detail[j.kategori_usia][j.jenis_kelamin]++;
+      });
+      appData.rekap = rekap;
+    }
+
+    // ================= INIT & STATES =================
     window.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-      setupKeluargaSearch(); // cukup sekali, bukan setiap render
+      renderPinBoxes();
+      icons();
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('form-drawer').hidden) closeDrawer(); });
+      document.addEventListener('click', e => {
+        const box = $('keluarga-results-container');
+        if (!box.hidden && e.target !== $('keluarga-search-input') && !box.contains(e.target)) box.hidden = true;
+      });
       initApp();
     });
 
     function initApp() {
-      const modeBadge = document.getElementById('mode-badge');
       if (isLocalMode) {
-        modeBadge.style.background = 'var(--color-warning)';
-        modeBadge.querySelector('span').innerText = 'Mode Simulasi (Lokal)';
+        $('mode-badge').textContent = 'Mode Simulasi (data fiktif)';
+        $('mode-badge-m').textContent = 'Sensus BBK02 · Mode Simulasi';
         simulateLoadData();
         return;
       }
-      modeBadge.style.background = 'var(--color-primary)';
-      modeBadge.querySelector('span').innerText = 'Google Sheet Live';
-
       authToken = loadToken();
-      if (authToken) {
-        loadData();
-      } else {
-        showLogin();
+      if (authToken) loadData(); else showLogin();
+    }
+
+    function showState(which) {
+      $('login-state').hidden = which !== 'login';
+      $('loading-state').hidden = which !== 'loading';
+      $('error-state').hidden = which !== 'error';
+      $('main-content').hidden = which !== 'app';
+    }
+
+    // ================= LOGIN =================
+    function renderPinBoxes() {
+      const len = $('pin-input').value.length;
+      const slots = Math.max(6, len + (len >= 6 && len < 12 ? 1 : 0));
+      let html = '';
+      for (let i = 0; i < slots; i++) {
+        html += `<span class="pin-box${i < len ? ' filled' : ''}${i === len ? ' current' : ''}"></span>`;
       }
+      $('pin-boxes').innerHTML = html;
     }
-
-    // --- Auth UI ---
+    function onPinInput() {
+      const el = $('pin-input');
+      el.value = el.value.replace(/\D/g, '').slice(0, 12);
+      $('login-error').textContent = '';
+      renderPinBoxes();
+    }
+    function pressKey(k) {
+      const el = $('pin-input');
+      if (k === 'back') el.value = el.value.slice(0, -1);
+      else if (el.value.length < 12) el.value += k;
+      onPinInput();
+    }
     function showLogin(message) {
-      document.getElementById('loading-state').style.display = 'none';
-      document.getElementById('main-content').style.display = 'none';
-      document.getElementById('error-state').style.display = 'none';
-      document.getElementById('logout-btn').style.display = 'none';
-      document.getElementById('login-state').style.display = 'block';
-      document.getElementById('login-error').innerText = message || '';
-      const pin = document.getElementById('pin-input');
-      pin.value = '';
-      pin.focus();
+      closeDrawer(true);
+      showState('login');
+      $('login-error').textContent = message || '';
+      $('pin-input').value = '';
+      renderPinBoxes();
+      $('pin-input').focus();
     }
-
     function handleLogin(event) {
       event.preventDefault();
-      const btn = document.getElementById('login-btn');
-      const pin = document.getElementById('pin-input').value;
+      const btn = $('login-btn');
+      const pin = $('pin-input').value;
+      if (!pin) { $('login-error').textContent = 'Masukkan PIN terlebih dahulu.'; return; }
       btn.disabled = true;
-      btn.querySelector('span').innerText = 'Memeriksa...';
-      document.getElementById('login-error').innerText = '';
+      btn.querySelector('span').textContent = 'Memeriksa…';
+      $('login-error').textContent = '';
 
       callApi('login', pin, 'index')
         .then(res => {
           btn.disabled = false;
-          btn.querySelector('span').innerText = 'Masuk';
+          btn.querySelector('span').textContent = 'Masuk';
           if (res && res.success) {
             saveToken(res.token);
-            document.getElementById('login-state').style.display = 'none';
             loadData();
           } else {
-            document.getElementById('pin-input').value = '';
-            document.getElementById('login-error').innerText = (res && res.message) || 'PIN salah.';
+            $('pin-input').value = '';
+            renderPinBoxes();
+            $('login-error').textContent = (res && res.message) || 'PIN salah.';
           }
         }, err => {
           btn.disabled = false;
-          btn.querySelector('span').innerText = 'Masuk';
-          document.getElementById('login-error').innerText = 'Gagal terhubung: ' + (err.message || err);
+          btn.querySelector('span').textContent = 'Masuk';
+          $('login-error').textContent = 'Gagal terhubung: ' + (err.message || err);
         });
     }
-
     function handleLogout() {
       const t = authToken;
       saveToken(null);
       appData = { jamaah: [], keluarga: [], rekap: {} };
-      resetForm();
       if (!isLocalMode && t) callApi('logout', t).catch(() => {});
+      if (isLocalMode) { showToast('Mode Simulasi tidak memakai PIN.'); return; }
       showLogin('Anda sudah keluar.');
     }
-
     // Dipanggil saat server menolak token (kedaluwarsa / tidak valid)
     function handleAuthError(res) {
       if (res && res.authError) {
@@ -1221,358 +895,121 @@
       return false;
     }
 
-    // --- Loading Live Data from GAS ---
-    function loadData() {
+    // ================= DATA =================
+    // silent = muat ulang di belakang layar (setelah simpan) tanpa layar loading
+    function loadData(silent) {
       if (isLocalMode) { simulateLoadData(); return; }
-      showLoading(true);
+      if (silent !== true) showState('loading');
       callApi('getSensusData', authToken)
         .then((response) => {
           if (handleAuthError(response)) return;
           if (response.success && response.data) {
             appData = response.data;
-            document.getElementById('logout-btn').style.display = 'inline-flex';
-            showLoading(false);
+            lastSync = new Date();
+            showState('app');
             renderAll();
+          } else if (silent === true) {
+            showToast(response.message || 'Gagal memuat ulang data.', true);
           } else {
             showError(response.message || "Gagal mengambil data dari Google Sheets.");
           }
         }, (err) => {
-          showError(err.message || err.toString());
+          if (silent === true) showToast(err.message || String(err), true);
+          else showError(err.message || String(err));
         });
     }
-
-    // --- Loading Mock Data ---
-    function simulateLoadData() {
-      showLoading(true);
-      setTimeout(() => {
-        appData.keluarga = [...mockKeluarga];
-        appData.jamaah = buildMockJamaah();
-        calculateMockRekap();
-        showLoading(false);
-        renderAll();
-      }, 500);
+    function showError(msg) {
+      showState('error');
+      $('error-message').textContent = msg;
     }
 
-    function calculateMockRekap() {
-      const activeJamaah = appData.jamaah.filter(j => j.is_aktif === 'Y');
-
-      const inactiveKeluargaIds = {};
-      appData.jamaah.forEach(j => {
-        if (j.hubungan_keluarga === 'A' && j.is_aktif === 'N') {
-          inactiveKeluargaIds[j.id_keluarga] = true;
-        }
-      });
-
-      const rekap = {
-        total: activeJamaah.length,
-        laki: activeJamaah.filter(j => j.jenis_kelamin === 'L').length,
-        perempuan: activeJamaah.filter(j => j.jenis_kelamin === 'P').length,
-        duda: activeJamaah.filter(j => j.status_nikah === 'DUDA').length,
-        janda: activeJamaah.filter(j => j.status_nikah === 'JANDA').length,
-        lansia: activeJamaah.filter(j => j.umur >= 57).length,
-        kkCount: appData.keluarga.filter(k => !inactiveKeluargaIds[k.id_keluarga]).length,
-        detail: {
-          "BALITA-PAUD": { L: 0, P: 0 },
-          "Caberawit": { L: 0, P: 0 },
-          "Pra Remaja (SMP)": { L: 0, P: 0 },
-          "Remaja (SMA)": { L: 0, P: 0 },
-          "Usia (Pra) Menikah": { L: 0, P: 0 },
-          "Dewasa Menikah": { L: 0, P: 0 }
-        }
-      };
-
-      activeJamaah.forEach(j => {
-        if (rekap.detail[j.kategori_usia] && (j.jenis_kelamin === 'L' || j.jenis_kelamin === 'P') &&
-            j.status_nikah !== 'DUDA' && j.status_nikah !== 'JANDA') {
-          rekap.detail[j.kategori_usia][j.jenis_kelamin]++;
-        }
-      });
-
-      appData.rekap = rekap;
-    }
-
-    // --- Pencarian Keluarga (KK) ---
-    function filterKeluargaSearch() {
-      const searchInput = document.getElementById('keluarga-search-input');
-      const query = searchInput.value.toLowerCase().trim();
-      const resultsContainer = document.getElementById('keluarga-results-container');
-
-      // Teks diketik ulang => pilihan KK sebelumnya tidak berlaku lagi sampai dipilih dari daftar
-      document.getElementById('form-id-keluarga').value = '';
-      toggleKeluargaFields();
-
-      if (!query) {
-        resultsContainer.style.display = 'none';
-        return;
-      }
-
-      const filtered = (appData.keluarga || []).filter(k => {
-        const nama = (k.nama_kk || '').toLowerCase();
-        const alamat = (k.alamat || '').toLowerCase();
-        if (nama.includes(query) || alamat.includes(query)) return true;
-
-        // Fuzzy: semua huruf query muncul berurutan di nama
-        let queryIdx = 0;
-        for (let i = 0; i < nama.length && queryIdx < query.length; i++) {
-          if (nama[i] === query[queryIdx]) queryIdx++;
-        }
-        return queryIdx === query.length;
-      });
-
-      renderKeluargaResults(filtered);
-    }
-
-    function renderKeluargaResults(keluargaList) {
-      const resultsContainer = document.getElementById('keluarga-results-container');
-      resultsContainer.innerHTML = '';
-
-      if (keluargaList.length === 0) {
-        resultsContainer.innerHTML = `
-          <div style="padding: 1rem; text-align: center; color: #999;">
-            Tidak ada hasil cocok. <a href="#" onclick="selectKeluargaBaru(); return false;" style="color: #667eea; text-decoration: underline;">Buat Keluarga Baru</a>
-          </div>
-        `;
-        resultsContainer.style.display = 'block';
-        return;
-      }
-
-      keluargaList.forEach(k => {
-        const item = document.createElement('div');
-        item.style.cssText = 'padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid #eee; transition: 0.2s;';
-        item.innerHTML = `
-          <div style="font-weight: 600; color: #333;">${esc(k.nama_kk)}</div>
-          <div style="font-size: 0.85rem; color: #999;">${esc(k.alamat)}</div>
-        `;
-        item.onclick = function() { selectKeluarga(k.id_keluarga, k.nama_kk); };
-        item.onmouseover = function() { this.style.background = '#f0f0f0'; };
-        item.onmouseout = function() { this.style.background = 'transparent'; };
-        resultsContainer.appendChild(item);
-      });
-
-      // Opsi KK baru selalu tersedia di bawah hasil
-      const newItem = document.createElement('div');
-      newItem.style.cssText = 'padding: 0.75rem 1rem; cursor: pointer; color: var(--color-accent); font-weight: 600;';
-      newItem.textContent = '+ Buat Keluarga (KK) Baru';
-      newItem.onclick = selectKeluargaBaru;
-      resultsContainer.appendChild(newItem);
-
-      resultsContainer.style.display = 'block';
-    }
-
-    function selectKeluarga(keluargaId, keluargaNama) {
-      document.getElementById('form-id-keluarga').value = keluargaId;
-      document.getElementById('keluarga-search-input').value = keluargaNama;
-      document.getElementById('keluarga-results-container').style.display = 'none';
-      toggleKeluargaFields();
-    }
-
-    function selectKeluargaBaru() {
-      selectKeluarga('NEW', 'Buat Keluarga Baru');
-    }
-
-    // Tutup daftar hasil saat klik di luar (didaftarkan sekali saja)
-    function setupKeluargaSearch() {
-      document.addEventListener('click', function(e) {
-        const searchInput = document.getElementById('keluarga-search-input');
-        const resultsContainer = document.getElementById('keluarga-results-container');
-        if (e.target !== searchInput && !resultsContainer.contains(e.target)) {
-          resultsContainer.style.display = 'none';
-        }
-      });
-    }
-
-    // --- View Rendering ---
+    // ================= RENDER =================
     function renderAll() {
-      document.getElementById('kpi-total').innerText = appData.rekap.total || 0;
-      document.getElementById('kpi-kk').innerText = appData.rekap.kkCount || 0;
-      document.getElementById('kpi-laki').innerText = appData.rekap.laki || 0;
-      document.getElementById('kpi-perempuan').innerText = appData.rekap.perempuan || 0;
-      document.getElementById('kpi-lansia').innerText = appData.rekap.lansia || 0;
-
-      if (analyticsDashboardVisible) renderVisualStats();
-      renderRekapTable();
-      filterAndRenderTable();
-      lucide.createIcons();
-    }
-
-    function renderVisualStats() {
-      const rekap = appData.rekap;
-      const totalJamaah = rekap.total || 0;
-
-      const categories = ["BALITA-PAUD", "Caberawit", "Pra Remaja (SMP)", "Remaja (SMA)", "Usia (Pra) Menikah", "Dewasa Menikah"];
-      const dudaCount = rekap.duda || 0;
-      const jandaCount = rekap.janda || 0;
-      const pct = n => totalJamaah > 0 ? ((n / totalJamaah) * 100).toFixed(1) : 0;
-
-      const items = categories.map(label => {
-        const detail = (rekap.detail && rekap.detail[label]) || { L: 0, P: 0 };
-        const total = detail.L + detail.P;
-        return { label, L: detail.L, P: detail.P, total, percentage: pct(total) };
-      });
-      items.push({ label: "Duda", L: dudaCount, P: 0, total: dudaCount, percentage: pct(dudaCount) });
-      items.push({ label: "Janda", L: 0, P: jandaCount, total: jandaCount, percentage: pct(jandaCount) });
-
-      const listEl = document.getElementById('visual-stats-list');
-      if (listEl) {
-        listEl.innerHTML = '';
-        items.forEach(item => {
-          const pctOfTotal = totalJamaah > 0 ? (item.total / totalJamaah) * 100 : 0;
-          const pctL = item.total > 0 ? (item.L / item.total) * 100 : 0;
-          const pctP = item.total > 0 ? (item.P / item.total) * 100 : 0;
-
-          const itemEl = document.createElement('div');
-          itemEl.className = 'visual-stat-item';
-          itemEl.innerHTML = `
-            <div class="visual-stat-info">
-              <span class="visual-stat-label">${esc(item.label)}</span>
-              <span class="visual-stat-value">
-                <strong>${item.total} Jiwa</strong> (${item.percentage}%) &middot;
-                <span style="color: #60a5fa;">L: ${item.L}</span> | <span style="color: #f43f5e;">P: ${item.P}</span>
-              </span>
-            </div>
-            <div class="progress-bar-bg" style="width: 100%;">
-              <div class="progress-bar-fill-l" style="width: ${pctOfTotal * (pctL / 100)}%;"></div>
-              <div class="progress-bar-fill-p" style="width: ${pctOfTotal * (pctP / 100)}%;"></div>
-            </div>
-          `;
-          listEl.appendChild(itemEl);
-        });
-      }
-
-      const ctx = document.getElementById('categoryChart');
-      const noDataEl = document.getElementById('chart-no-data');
-      if (!ctx) return;
-
-      if (categoryChartInstance) {
-        categoryChartInstance.destroy();
-        categoryChartInstance = null;
-      }
-
-      const activeItems = items.filter(x => x.total > 0);
-      const colorByLabel = {
-        "BALITA-PAUD": '#10b981', "Caberawit": '#6366f1', "Pra Remaja (SMP)": '#3b82f6', "Remaja (SMA)": '#f59e0b',
-        "Usia (Pra) Menikah": '#ec4899', "Dewasa Menikah": '#8b5cf6', "Duda": '#ef4444', "Janda": '#06b6d4'
-      };
-
-      if (activeItems.length === 0) {
-        ctx.style.display = 'none';
-        if (noDataEl) noDataEl.style.display = 'block';
-        return;
-      }
-      ctx.style.display = 'block';
-      if (noDataEl) noDataEl.style.display = 'none';
-
-      categoryChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: activeItems.map(x => x.label),
-          datasets: [{
-            data: activeItems.map(x => x.total),
-            // warna mengikuti kategori, tidak bergeser saat ada kategori kosong
-            backgroundColor: activeItems.map(x => colorByLabel[x.label]),
-            borderWidth: 2,
-            borderColor: '#ffffff'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right',
-              labels: { boxWidth: 12, font: { family: 'Outfit', size: 11 }, padding: 8 }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const val = context.raw || 0;
-                  return ` ${context.label || ''}: ${val} Jiwa (${pct(val)}%)`;
-                }
-              }
-            }
-          },
-          cutout: '65%'
-        }
-      });
-    }
-
-    function renderRekapTable() {
       const r = appData.rekap || {};
-      document.getElementById('rekap-kk').innerText = r.kkCount || 0;
-      document.getElementById('rekap-laki').innerText = r.laki || 0;
-      document.getElementById('rekap-perempuan').innerText = r.perempuan || 0;
-      document.getElementById('rekap-total-gender').innerText = (r.laki || 0) + (r.perempuan || 0);
+      const jamaah = appData.jamaah || [];
+      const aktif = jamaah.filter(j => j.is_aktif === 'Y');
+      const tanpaTahun = jamaah.filter(j => !j.tahun_lahir).length;
 
-      const categories = {
-        "BALITA-PAUD": "balita",
-        "Caberawit": "caberawit",
-        "Pra Remaja (SMP)": "pra-remaja",
-        "Remaja (SMA)": "remaja",
-        "Usia (Pra) Menikah": "pra-nikah",
-        "Dewasa Menikah": "dewasa"
-      };
-      for (let key in categories) {
-        const detail = (r.detail && r.detail[key]) || { L: 0, P: 0 };
-        document.getElementById(`rekap-${categories[key]}-l`).innerText = detail.L;
-        document.getElementById(`rekap-${categories[key]}-p`).innerText = detail.P;
-      }
+      $('sync-info').textContent = 'Sensus Jiwa Kelompok Babakan Barat · diperbarui ' +
+        (lastSync ? lastSync.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-');
 
-      document.getElementById('rekap-duda').innerText = r.duda || 0;
-      document.getElementById('rekap-janda').innerText = r.janda || 0;
-      document.getElementById('rekap-total-all').innerText = r.total || 0;
+      $('kpi-total').textContent = fmt(r.total);
+      $('kpi-total-hint').textContent = 'dari ' + fmt(jamaah.length) + ' terdaftar';
+      $('kpi-kk').textContent = fmt(r.kkCount);
+      const kkLuar = (appData.keluarga || []).length - (r.kkCount || 0);
+      $('kpi-kk-hint').textContent = kkLuar > 0 ? fmt(kkLuar) + ' KK luar kota' : 'semua KK aktif';
+      $('kpi-laki').textContent = fmt(r.laki);
+      $('kpi-laki-hint').textContent = pct(r.laki, r.total) + ' jiwa aktif';
+      $('kpi-perempuan').textContent = fmt(r.perempuan);
+      $('kpi-perempuan-hint').textContent = pct(r.perempuan, r.total) + ' jiwa aktif';
+      $('kpi-lansia').textContent = fmt(r.lansia);
+
+      $('banner-lengkapi').hidden = tanpaTahun === 0;
+      $('banner-lengkapi-count').textContent = fmt(tanpaTahun) + ' jamaah';
+      $('nav-lengkapi-count').hidden = tanpaTahun === 0;
+      $('nav-lengkapi-count').textContent = tanpaTahun;
+
+      renderKategoriBars();
+      renderKeberadaan(jamaah, aktif);
+      renderTable();
+      renderKeluargaList();
+      updateNav();
+      icons();
     }
 
-    function setSort(field) {
-      if (sortField === field) {
-        sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
-      } else {
-        sortField = field;
-        sortOrder = 'asc';
-      }
-      filterAndRenderTable();
-      updateSortIcons();
-    }
-
-    function updateSortIcons() {
-      const fields = ['nama_lengkap', 'hubungan_keluarga', 'nama_kk', 'kategori_usia', 'umur'];
-      fields.forEach(f => {
-        const el = document.getElementById(`sort-${f}`);
-        if (!el) return;
-        let iconName = 'chevrons-up-down';
-        if (sortField === f) {
-          iconName = (sortOrder === 'asc') ? 'chevron-up' : 'chevron-down';
-          el.parentElement.classList.add('sorted');
-        } else {
-          el.parentElement.classList.remove('sorted');
-        }
-        el.innerHTML = `<i data-lucide="${iconName}" style="width: 14px; height: 14px;"></i>`;
+    function renderKategoriBars() {
+      const r = appData.rekap || {};
+      const items = KATEGORI.map(k => {
+        const d = (r.detail && r.detail[k]) || { L: 0, P: 0 };
+        return { label: k, L: d.L, P: d.P };
       });
-      lucide.createIcons();
+      items.push({ label: 'Duda', L: r.duda || 0, P: 0 });
+      items.push({ label: 'Janda', L: 0, P: r.janda || 0 });
+      const max = Math.max(1, ...items.map(i => i.L + i.P));
+      $('kategori-bars').innerHTML = items.map(i => `
+        <div class="bar-row">
+          <span class="bar-label">${esc(i.label)}</span>
+          <div class="bar-track" aria-hidden="true">
+            <span class="bar-l" style="width: ${i.L / max * 100}%"></span>
+            <span class="bar-p" style="width: ${i.P / max * 100}%"></span>
+          </div>
+          <span class="bar-val num"><strong>${i.L + i.P}</strong> · L ${i.L} / P ${i.P}</span>
+        </div>`).join('');
     }
 
-    // Satu fungsi filter+sort dipakai tabel dan cetak (sebelumnya diduplikasi)
+    function renderKeberadaan(jamaah, aktif) {
+      $('keberadaan-list').innerHTML = KEBERADAAN.map(k => {
+        const n = jamaah.filter(j => (j.status_keberadaan || 'Menetap') === k.key).length;
+        return `<div class="stat-line"><span class="dot" style="background: ${k.color}"></span><span>${esc(k.key)}</span><strong class="num">${fmt(n)}</strong></div>`;
+      }).join('');
+      $('absen-count').textContent = fmt(aktif.filter(j => j.flag_absen === 'Y').length) + ' jiwa';
+    }
+
+    // ---- Filter, sort, page ----
     function getFilteredJamaah() {
-      const q = document.getElementById('search-input').value.toLowerCase();
-      const fKategori = document.getElementById('filter-kategori').value;
-      const fGender = document.getElementById('filter-gender').value;
-      const fAktif = document.getElementById('filter-aktif').value;
-      const fAbsen = document.getElementById('filter-absen').value;
+      const q = $('search-input').value.toLowerCase().trim();
+      const fKategori = $('filter-kategori').value;
+      const fGender = $('filter-gender').value;
+      const chipFn = {
+        semua: () => true,
+        aktif: j => j.is_aktif === 'Y',
+        luar: j => j.is_aktif === 'N',
+        absen: j => j.flag_absen === 'Y',
+        tidakabsen: j => j.flag_absen === 'N',
+        lengkapi: j => !j.tahun_lahir
+      }[currentChip] || (() => true);
 
       const filtered = (appData.jamaah || []).filter(j => {
-        const matchesQ = String(j.nama_lengkap).toLowerCase().includes(q) ||
-          String(j.nama_absen).toLowerCase().includes(q) ||
-          String(j.nama_kk).toLowerCase().includes(q);
-        return matchesQ &&
+        const matchesQ = !q || String(j.nama_lengkap).toLowerCase().includes(q) ||
+          String(j.nama_absen).toLowerCase().includes(q) || String(j.nama_kk).toLowerCase().includes(q);
+        return matchesQ && chipFn(j) &&
           (!fKategori || j.kategori_usia === fKategori) &&
-          (!fGender || j.jenis_kelamin === fGender) &&
-          (!fAktif || j.is_aktif === fAktif) &&
-          (!fAbsen || j.flag_absen === fAbsen);
+          (!fGender || j.jenis_kelamin === fGender);
       });
 
       if (sortField) {
         filtered.sort((a, b) => {
-          let valA = a[sortField];
-          let valB = b[sortField];
+          let valA = a[sortField], valB = b[sortField];
           if (valA === null || valA === undefined) return 1;
           if (valB === null || valB === undefined) return -1;
           if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = String(valB).toLowerCase(); }
@@ -1584,255 +1021,427 @@
       return filtered;
     }
 
-    function filterAndRenderTable() {
+    function renderTable() {
       const filtered = getFilteredJamaah();
-      const tbody = document.getElementById('jamaah-table-rows');
-      tbody.innerHTML = '';
+      const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      if (currentPage > pages) currentPage = pages;
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const pageRows = filtered.slice(start, start + PAGE_SIZE);
 
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted);">Tidak ada data jamaah yang cocok dengan filter.</td></tr>';
+      if (pageRows.length === 0) {
+        $('jamaah-table-rows').innerHTML = '<tr><td colspan="8" class="empty">Tidak ada jamaah yang cocok dengan filter.</td></tr>';
+        $('jamaah-cards').innerHTML = '<div class="empty">Tidak ada jamaah yang cocok dengan filter.</div>';
+      } else {
+        $('jamaah-table-rows').innerHTML = pageRows.map(j => {
+          const kategori = j.tahun_lahir || j.status_nikah !== 'BELUM'
+            ? `<span class="tag">${esc(j.kategori_usia)}</span>` : '<span class="tag tag-warn">Tanpa tahun lahir</span>';
+          return `<tr>
+            <td><div class="person"><span class="avatar ${avatarClass(j.id_jamaah)}">${esc(initials(j.nama_lengkap))}</span>
+              <div class="person-text"><strong>${esc(j.nama_lengkap)}</strong><span>Absen: ${esc(j.nama_absen)}</span></div></div></td>
+            <td style="color: var(--ink-2)">${esc(j.nama_kk)}</td>
+            <td><span class="hub"><code>${esc(j.hubungan_keluarga)}</code>${esc(HUB_LABEL[j.hubungan_keluarga] || '')}</span></td>
+            <td>${kategori}</td>
+            <td class="num" style="text-align: right">${esc(umurText(j.umur))}</td>
+            <td><span class="status ${j.is_aktif === 'Y' ? 'on' : ''}">${j.is_aktif === 'Y' ? 'Aktif' : 'Luar kota'}</span></td>
+            <td><span class="status ${j.flag_absen === 'Y' ? 'on' : ''}">${j.flag_absen === 'Y' ? 'Masuk' : 'Tidak'}</span></td>
+            <td style="text-align: right"><button type="button" class="icon-btn edit-btn" data-id="${esc(j.id_jamaah)}" aria-label="Edit ${esc(j.nama_lengkap)}"><i data-lucide="pencil"></i></button></td>
+          </tr>`;
+        }).join('');
+
+        $('jamaah-cards').innerHTML = pageRows.map(j => {
+          const kategori = j.tahun_lahir || j.status_nikah !== 'BELUM'
+            ? `<span class="tag">${esc(j.kategori_usia)}</span>` : '<span class="tag tag-warn">Tanpa tahun lahir</span>';
+          return `<button type="button" class="m-card edit-btn" data-id="${esc(j.id_jamaah)}" aria-label="Edit ${esc(j.nama_lengkap)}">
+            <span class="avatar ${avatarClass(j.id_jamaah)}" style="width: 42px; height: 42px">${esc(initials(j.nama_lengkap))}</span>
+            <span class="person-text"><strong>${esc(j.nama_lengkap)}</strong>
+              <span class="ell">${esc(HUB_LABEL[j.hubungan_keluarga] || '')} · ${esc(j.nama_kk)}</span>
+              <span class="m-meta">${kategori}<span>${j.umur === null || j.umur === undefined ? '' : esc(j.umur + ' th')}</span></span></span>
+            <span class="m-status"><span class="status ${j.is_aktif === 'Y' ? 'on' : ''}">${j.is_aktif === 'Y' ? 'Aktif' : 'Luar kota'}</span>
+              <span class="status ${j.flag_absen === 'Y' ? 'on' : ''}">${j.flag_absen === 'Y' ? 'Absen' : 'Tidak absen'}</span></span>
+          </button>`;
+        }).join('');
+      }
+
+      document.querySelectorAll('#jamaah-table-rows .edit-btn, #jamaah-cards .edit-btn').forEach(b => {
+        b.onclick = () => editJamaah(b.dataset.id);
+      });
+
+      $('page-info').textContent = filtered.length
+        ? `Menampilkan ${start + 1}–${start + pageRows.length} dari ${fmt(filtered.length)} jamaah`
+        : '0 jamaah';
+      $('prev-page').disabled = currentPage <= 1;
+      $('next-page').disabled = currentPage >= pages;
+
+      document.querySelectorAll('.th-sort').forEach(b => {
+        const active = b.dataset.sort === sortField;
+        b.dataset.active = active ? 'true' : 'false';
+        b.querySelector('svg, i')?.remove();
+        b.insertAdjacentHTML('beforeend', `<i data-lucide="${active ? (sortOrder === 'asc' ? 'chevron-up' : 'chevron-down') : 'chevrons-up-down'}"></i>`);
+      });
+      icons();
+    }
+
+    function setSort(field) {
+      if (sortField === field) sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+      else { sortField = field; sortOrder = 'asc'; }
+      renderTable();
+    }
+    function setChip(chip) {
+      currentChip = chip;
+      document.querySelectorAll('#chips .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.chip === chip ? 'true' : 'false'));
+      resetPageAndRender();
+    }
+    function resetPageAndRender() { currentPage = 1; renderTable(); }
+    function changePage(d) { currentPage += d; renderTable(); $('daftar-title').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    function onSearch() { if (currentView === 'kk') renderKeluargaList(); else resetPageAndRender(); }
+
+    function showPerluDilengkapi() {
+      setView('data');
+      setChip('lengkapi');
+      $('daftar-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function goRekap() {
+      setView('data');
+      $('rekap-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ---- Views ----
+    function setView(view) {
+      currentView = view;
+      $('view-data').hidden = view !== 'data';
+      $('view-kk').hidden = view !== 'kk';
+      const title = view === 'kk' ? 'Keluarga (KK)' : 'Data Jamaah';
+      $('page-title').textContent = title;
+      $('mobile-title').textContent = title;
+      $('search-input').placeholder = view === 'kk' ? 'Cari nama kepala keluarga atau alamat…' : 'Cari nama, nama absen, atau KK…';
+      if (view === 'kk') renderKeluargaList(); else renderTable();
+      updateNav();
+      if (view === 'data') window.scrollTo({ top: 0 });
+    }
+    function updateNav() {
+      document.querySelectorAll('[data-nav]').forEach(b => {
+        const on = b.dataset.nav === currentView && !(currentChip === 'lengkapi' && b.dataset.nav === 'data' && b.classList.contains('nav-item'));
+        const lengkapiOn = b.dataset.nav === 'lengkapi' && currentView === 'data' && currentChip === 'lengkapi';
+        if (on || lengkapiOn) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+      });
+    }
+
+    function keluargaStats() {
+      const stats = {};
+      (appData.keluarga || []).forEach(k => { stats[k.id_keluarga] = { total: 0, aktif: 0, headInactive: false }; });
+      (appData.jamaah || []).forEach(j => {
+        const s = stats[j.id_keluarga];
+        if (!s) return;
+        s.total++;
+        if (j.is_aktif === 'Y') s.aktif++;
+        if (j.hubungan_keluarga === 'A' && j.is_aktif === 'N') s.headInactive = true;
+      });
+      return stats;
+    }
+
+    function renderKeluargaList() {
+      const q = currentView === 'kk' ? $('search-input').value.toLowerCase().trim() : '';
+      const stats = keluargaStats();
+      const list = (appData.keluarga || [])
+        .filter(k => !q || String(k.nama_kk).toLowerCase().includes(q) || String(k.alamat).toLowerCase().includes(q))
+        .sort((a, b) => String(a.nama_kk).localeCompare(String(b.nama_kk), 'id'));
+      $('kk-info').textContent = fmt(list.length) + ' keluarga';
+
+      if (!list.length) {
+        $('kk-table-rows').innerHTML = '<tr><td colspan="6" class="empty">Tidak ada keluarga yang cocok.</td></tr>';
+        $('kk-cards').innerHTML = '<div class="empty">Tidak ada keluarga yang cocok.</div>';
         return;
       }
-
-      filtered.forEach((j, index) => {
-        const tr = document.createElement('tr');
-        // Semua nilai dari data di-escape sebelum masuk HTML
-        const cells = [
-          { text: String(index + 1), style: 'color: var(--text-muted);' },
-          { html: `${esc(j.nama_lengkap)} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">(${esc(j.nama_absen)})</span>`, style: 'font-weight: 600;' },
-          { html: `<span style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 0.2rem 0.4rem; border-radius: 4px;">${esc(j.hubungan_keluarga)}</span>`, style: 'text-align: center;' },
-          { text: j.nama_kk, style: '' },
-          { text: j.kategori_usia, style: '' },
-          { text: umurText(j.umur), style: 'text-align: center;' },
-          { html: `<span class="active-badge ${j.is_aktif === 'Y' ? 'yes' : 'no'}">${esc(j.is_aktif)}</span>`, style: 'text-align: center;' },
-          { html: `<span class="active-badge ${j.flag_absen === 'Y' ? 'yes' : 'no'}">${esc(j.flag_absen)}</span>`, style: 'text-align: center;' }
-        ];
-
-        cells.forEach(cell => {
-          const td = document.createElement('td');
-          if (cell.style) td.style.cssText = cell.style;
-          if (cell.html) td.innerHTML = cell.html;
-          else td.textContent = cell.text;
-          tr.appendChild(td);
-        });
-
-        const tdEdit = document.createElement('td');
-        const editBtn = document.createElement('button');
-        editBtn.className = 'edit-btn';
-        editBtn.innerHTML = '<i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> Edit';
-        editBtn.onclick = function() { editJamaah(j.id_jamaah); };
-        tdEdit.appendChild(editBtn);
-        tr.appendChild(tdEdit);
-
-        tbody.appendChild(tr);
-      });
-
-      lucide.createIcons();
+      $('kk-table-rows').innerHTML = list.map(k => {
+        const s = stats[k.id_keluarga] || { total: 0, aktif: 0 };
+        return `<tr>
+          <td><div class="person"><span class="avatar ${avatarClass(k.id_keluarga)}">${esc(initials(k.nama_kk))}</span><div class="person-text"><strong>${esc(k.nama_kk)}</strong></div></div></td>
+          <td style="white-space: normal; min-width: 200px; color: var(--ink-2)">${esc(k.alamat)}</td>
+          <td class="num">${esc(k.telepon || '–')}</td>
+          <td class="num" style="text-align: right"><strong>${s.aktif}</strong> / ${s.total}</td>
+          <td><span class="status ${s.headInactive ? '' : 'on'}">${s.headInactive ? 'Luar kota' : 'Aktif'}</span></td>
+          <td style="text-align: right"><button type="button" class="btn btn-sm add-member" data-id="${esc(k.id_keluarga)}"><i data-lucide="user-plus"></i> Anggota</button></td>
+        </tr>`;
+      }).join('');
+      $('kk-cards').innerHTML = list.map(k => {
+        const s = stats[k.id_keluarga] || { total: 0, aktif: 0 };
+        return `<button type="button" class="m-card add-member" data-id="${esc(k.id_keluarga)}" aria-label="Tambah anggota ke ${esc(k.nama_kk)}">
+          <span class="avatar ${avatarClass(k.id_keluarga)}" style="width: 42px; height: 42px">${esc(initials(k.nama_kk))}</span>
+          <span class="person-text"><strong>${esc(k.nama_kk)}</strong><span class="ell">${esc(k.alamat)}</span>
+          <span class="m-meta">${s.aktif} aktif dari ${s.total} anggota${k.telepon ? ' · ' + esc(k.telepon) : ''}</span></span>
+          <i data-lucide="user-plus" style="color: var(--primary)"></i>
+        </button>`;
+      }).join('');
+      document.querySelectorAll('.add-member').forEach(b => { b.onclick = () => openDrawer({ keluargaId: b.dataset.id }); });
+      icons();
     }
 
+    // ================= PRINT & CSV =================
     function printTable() {
       const filtered = getFilteredJamaah();
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) { alert('Pop-up diblokir browser. Izinkan pop-up untuk mencetak.'); return; }
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Cetak Data Sensus Jamaah</title>
-            <style>
-              body { font-family: system-ui, -apple-system, sans-serif; color: #1e293b; padding: 2.5rem; line-height: 1.5; }
-              h2 { text-align: center; margin-top: 0; margin-bottom: 0.25rem; color: #0f766e; font-size: 1.6rem; }
-              .sub-title { text-align: center; font-size: 1.1rem; font-weight: 500; color: #475569; margin-bottom: 0.5rem; }
-              .meta-info { text-align: center; font-size: 0.85rem; color: #64748b; margin-bottom: 2rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; }
-              table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-              th, td { border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; text-align: left; }
-              th { background: #f8fafc; font-weight: 600; color: #334155; }
-              .text-center { text-align: center; }
-              tr:nth-child(even) { background: #f8fafc; }
-            </style>
-          </head>
-          <body>
-            <h2>Sensus Jamaah Babakan Barat</h2>
-            <div class="sub-title">Daftar Hasil Pencarian Sensus</div>
-            <div class="meta-info">
-              Dicetak pada: ${esc(new Date().toLocaleString('id-ID'))} &bull; Filter Aktif: ${filtered.length} Jiwa
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th style="width: 40px;" class="text-center">No</th>
-                  <th>Nama Lengkap</th>
-                  <th style="width: 80px;" class="text-center">Hub KK</th>
-                  <th>Nama KK</th>
-                  <th>Kategori Usia</th>
-                  <th style="width: 70px;" class="text-center">Umur</th>
-                  <th style="width: 60px;" class="text-center">Aktif</th>
-                  <th style="width: 60px;" class="text-center">Absen</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${filtered.length === 0 ? `
-                  <tr>
-                    <td colspan="8" class="text-center" style="color: #64748b; padding: 2rem;">Tidak ada data yang cocok dengan kriteria filter.</td>
-                  </tr>
-                ` : filtered.map((j, index) => `
-                  <tr>
-                    <td class="text-center">${index + 1}</td>
-                    <td><strong>${esc(j.nama_lengkap)}</strong> (${esc(j.nama_absen)})</td>
-                    <td class="text-center" style="font-family: monospace;">${esc(j.hubungan_keluarga)}</td>
-                    <td>${esc(j.nama_kk)}</td>
-                    <td>${esc(j.kategori_usia)}</td>
-                    <td class="text-center">${esc(umurText(j.umur))}</td>
-                    <td class="text-center">${esc(j.is_aktif)}</td>
-                    <td class="text-center">${esc(j.flag_absen)}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-            <script>
-              window.onload = function() {
-                window.print();
-                window.onafterprint = function() { window.close(); };
-              };
-            <\/script>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
+      const w = window.open('', '_blank');
+      if (!w) { showToast('Pop-up diblokir browser. Izinkan pop-up untuk mencetak.', true); return; }
+      w.document.write(`<html><head><title>Cetak Data Sensus Jamaah</title><style>
+        body{font-family:system-ui,-apple-system,sans-serif;color:#13211D;padding:2rem;line-height:1.45}
+        h2{text-align:center;margin:0 0 .25rem;color:#0B6E5B}
+        .meta{text-align:center;font-size:.85rem;color:#5B6B66;margin-bottom:1.5rem;border-bottom:2px solid #E3E8E6;padding-bottom:1rem}
+        table{width:100%;border-collapse:collapse;font-size:.8rem}th,td{border:1px solid #C9D3CF;padding:.45rem .6rem;text-align:left}
+        th{background:#F6F8F7}.c{text-align:center}tr:nth-child(even){background:#F6F8F7}
+      </style></head><body>
+        <h2>Sensus Jamaah Babakan Barat</h2>
+        <div class="meta">Dicetak ${esc(new Date().toLocaleString('id-ID'))} · ${filtered.length} jiwa sesuai filter</div>
+        <table><thead><tr><th class="c">No</th><th>Nama Lengkap</th><th>Nama Absen</th><th class="c">Hub</th><th>Nama KK</th><th>Kategori</th><th class="c">Umur</th><th class="c">Aktif</th><th class="c">Absen</th></tr></thead><tbody>
+        ${filtered.length ? filtered.map((j, i) => `<tr><td class="c">${i + 1}</td><td><strong>${esc(j.nama_lengkap)}</strong></td><td>${esc(j.nama_absen)}</td><td class="c">${esc(j.hubungan_keluarga)}</td><td>${esc(j.nama_kk)}</td><td>${esc(j.kategori_usia)}</td><td class="c">${esc(umurText(j.umur))}</td><td class="c">${esc(j.is_aktif)}</td><td class="c">${esc(j.flag_absen)}</td></tr>`).join('')
+          : '<tr><td colspan="9" class="c" style="padding:2rem">Tidak ada data yang cocok dengan filter.</td></tr>'}
+        </tbody></table>
+        <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
+      </body></html>`);
+      w.document.close();
     }
 
-    // --- Form Logic ---
-    function toggleKeluargaFields() {
-      const isNew = document.getElementById('form-id-keluarga').value === 'NEW';
-      document.getElementById('new-keluarga-fields').style.display = isNew ? 'block' : 'none';
-      document.getElementById('form-is-new-keluarga').value = isNew ? 'true' : 'false';
-
-      // Telepon opsional; nama KK & alamat wajib bila membuat KK baru
-      ['form-nama-kk', 'form-alamat'].forEach(f => {
-        const el = document.getElementById(f);
-        if (isNew) el.setAttribute('required', 'true');
-        else el.removeAttribute('required');
+    function exportCSV() {
+      const rows = getFilteredJamaah();
+      const kkMap = {};
+      (appData.keluarga || []).forEach(k => { kkMap[k.id_keluarga] = k; });
+      const header = ['No', 'Nama Lengkap', 'Nama Absen', 'Nama KK', 'Alamat', 'Telepon', 'Hubungan', 'Jenis Kelamin', 'Tahun Lahir', 'Umur', 'Kategori', 'Status Nikah', 'Aktif', 'Absen', 'Keberadaan', 'Catatan'];
+      const lines = rows.map((j, i) => {
+        const k = kkMap[j.id_keluarga] || {};
+        return [i + 1, csvCell(j.nama_lengkap), csvCell(j.nama_absen), csvCell(j.nama_kk), csvCell(k.alamat), csvCell(k.telepon),
+          csvCell(j.hubungan_keluarga), csvCell(j.jenis_kelamin), j.tahun_lahir || '', j.umur === null || j.umur === undefined ? '' : j.umur,
+          csvCell(j.kategori_usia), csvCell(j.status_nikah), csvCell(j.is_aktif), csvCell(j.flag_absen), csvCell(j.status_keberadaan), csvCell(j.catatan)].join(',');
       });
-      if (!isNew) {
-        ['form-nama-kk', 'form-alamat', 'form-telepon'].forEach(f => document.getElementById(f).value = '');
+      const blob = new Blob(['﻿' + [header.join(','), ...lines].join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `sensus_jamaah_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a); a.click(); a.remove();
+      showToast(`${rows.length} baris diekspor ke CSV.`);
+    }
+
+    // ================= DRAWER / FORM =================
+    function openDrawer(opts) {
+      opts = opts || {};
+      resetForm();
+      if (opts.keluargaId) {
+        const k = (appData.keluarga || []).find(x => x.id_keluarga === opts.keluargaId);
+        if (k) selectKeluarga(k.id_keluarga, k.nama_kk);
       }
+      $('drawer-backdrop').hidden = false;
+      $('form-drawer').hidden = false;
+      document.body.style.overflow = 'hidden';
+      icons();
+      setTimeout(() => (opts.focus ? $(opts.focus) : ($('form-id-keluarga').value ? $('form-nama-lengkap') : $('keluarga-search-input'))).focus(), 50);
+    }
+    function closeDrawer(silent) {
+      $('drawer-backdrop').hidden = true;
+      $('form-drawer').hidden = true;
+      document.body.style.overflow = '';
+      if (!silent) resetForm();
+    }
+
+    function filterKeluargaSearch() {
+      const query = $('keluarga-search-input').value.toLowerCase().trim();
+      const box = $('keluarga-results-container');
+      if (!query) { box.hidden = true; return; }
+      const stats = keluargaStats();
+      const filtered = (appData.keluarga || []).filter(k => {
+        const nama = String(k.nama_kk || '').toLowerCase();
+        const alamat = String(k.alamat || '').toLowerCase();
+        if (nama.includes(query) || alamat.includes(query)) return true;
+        let qi = 0;
+        for (let i = 0; i < nama.length && qi < query.length; i++) if (nama[i] === query[qi]) qi++;
+        return qi === query.length;
+      }).slice(0, 30);
+
+      box.innerHTML = filtered.map(k => {
+        const s = stats[k.id_keluarga] || { total: 0 };
+        return `<button type="button" class="kk-option" data-id="${esc(k.id_keluarga)}"><strong>${esc(k.nama_kk)}</strong><span>${esc(k.alamat)} · ${s.total} anggota</span></button>`;
+      }).join('') + `<button type="button" class="kk-option new" data-new="1">+ Buat Keluarga (KK) baru</button>`;
+      if (!filtered.length) box.insertAdjacentHTML('afterbegin', '<div class="kk-option" style="cursor: default"><span>Tidak ada keluarga yang cocok.</span></div>');
+      box.querySelectorAll('.kk-option[data-id]').forEach(b => {
+        b.onclick = () => {
+          const k = appData.keluarga.find(x => x.id_keluarga === b.dataset.id);
+          selectKeluarga(k.id_keluarga, k.nama_kk);
+        };
+      });
+      box.querySelector('.kk-option[data-new]').onclick = selectKeluargaBaru;
+      box.hidden = false;
+    }
+
+    function selectKeluarga(keluargaId, keluargaNama) {
+      $('form-id-keluarga').value = keluargaId;
+      $('form-is-new-keluarga').value = 'false';
+      $('keluarga-results-container').hidden = true;
+      $('keluarga-search-input').value = keluargaNama || '';
+      const k = (appData.keluarga || []).find(x => x.id_keluarga === keluargaId) || { nama_kk: keluargaNama, alamat: '' };
+      const s = keluargaStats()[keluargaId] || { total: 0 };
+      $('kk-selected-name').textContent = k.nama_kk || keluargaNama || '';
+      $('kk-selected-meta').textContent = [k.alamat, s.total + ' anggota'].filter(Boolean).join(' · ');
+      $('kk-selected').hidden = false;
+      $('kk-picker').hidden = true;
+      $('new-keluarga-fields').hidden = true;
+      clearNewKkFields();
+    }
+    function selectKeluargaBaru() {
+      $('form-id-keluarga').value = 'NEW';
+      $('form-is-new-keluarga').value = 'true';
+      $('keluarga-results-container').hidden = true;
+      $('kk-selected').hidden = true;
+      $('kk-picker').hidden = true;
+      $('new-keluarga-fields').hidden = false;
+      const typed = $('keluarga-search-input').value.trim();
+      if (typed && !$('form-nama-kk').value) $('form-nama-kk').value = typed;
+      setTimeout(() => $('form-nama-kk').focus(), 30);
+    }
+    function clearKeluarga() {
+      $('form-id-keluarga').value = '';
+      $('form-is-new-keluarga').value = 'false';
+      $('kk-selected').hidden = true;
+      $('new-keluarga-fields').hidden = true;
+      $('kk-picker').hidden = false;
+      $('keluarga-search-input').value = '';
+      $('keluarga-results-container').hidden = true;
+      clearNewKkFields();
+      setTimeout(() => $('keluarga-search-input').focus(), 30);
+    }
+    function clearNewKkFields() { ['form-nama-kk', 'form-alamat', 'form-telepon'].forEach(f => { $(f).value = ''; }); }
+
+    function syncNikahOptions() {
+      const jk = radioValue('jk');
+      const duda = document.querySelector('input[name="nikah"][value="DUDA"]');
+      const janda = document.querySelector('input[name="nikah"][value="JANDA"]');
+      duda.disabled = jk === 'P';
+      janda.disabled = jk === 'L';
+      if ((duda.checked && duda.disabled) || (janda.checked && janda.disabled)) setRadio('nikah', 'BELUM');
+      updateUsiaPreview();
+    }
+
+    function updateUsiaPreview() {
+      const box = $('usia-preview');
+      const raw = $('form-tahun-lahir').value;
+      const tahun = parseInt(raw, 10);
+      const now = new Date().getFullYear();
+      if (!raw) { box.hidden = true; return; }
+      box.hidden = false;
+      if (!(tahun >= 1900 && tahun <= now)) {
+        box.className = 'preview warn';
+        box.innerHTML = `<i data-lucide="triangle-alert"></i><span>Tahun lahir harus antara 1900 dan ${now}.</span>`;
+      } else {
+        box.className = 'preview';
+        box.innerHTML = `<i data-lucide="check"></i><span>Umur <strong>${now - tahun} th</strong> → otomatis masuk <strong style="color: var(--primary-ink)">${esc(kategoriUsiaLokal(tahun, radioValue('nikah')))}</strong></span>`;
+      }
+      icons();
     }
 
     function editJamaah(id) {
-      const j = appData.jamaah.find(x => x.id_jamaah === id);
+      const j = (appData.jamaah || []).find(x => x.id_jamaah === id);
       if (!j) return;
-
-      document.getElementById('form-title').querySelector('span').innerText = "Edit Detail Jamaah";
-      document.getElementById('submit-btn').querySelector('span').innerText = "Update Data";
-      document.getElementById('cancel-btn').style.display = 'block';
-
-      document.getElementById('form-id-jamaah').value = j.id_jamaah;
-      // Isi juga kotak pencarian supaya KK yang sedang dipakai terlihat
+      openDrawer({ focus: 'form-nama-lengkap' });
+      $('form-title').textContent = 'Edit Jamaah';
+      $('submit-btn').querySelector('span').textContent = 'Simpan Perubahan';
+      $('form-id-jamaah').value = j.id_jamaah;
       selectKeluarga(j.id_keluarga, j.nama_kk);
-      document.getElementById('form-nama-lengkap').value = j.nama_lengkap;
-      document.getElementById('form-nama-absen').value = j.nama_absen;
-      document.getElementById('form-hubungan-keluarga').value = j.hubungan_keluarga;
-      document.getElementById('form-jenis-kelamin').value = j.jenis_kelamin;
-      document.getElementById('form-tahun-lahir').value = j.tahun_lahir || '';
-      document.getElementById('form-status-nikah').value = j.status_nikah === 'BELUM' ? '' : j.status_nikah;
-      document.getElementById('form-status-keberadaan').value = j.status_keberadaan || 'Menetap';
-      document.getElementById('form-is-aktif').checked = (j.is_aktif === 'Y');
-      document.getElementById('form-flag-absen').checked = (j.flag_absen === 'Y');
-      document.getElementById('form-catatan').value = j.catatan || '';
-
-      document.getElementById('form-container').scrollIntoView({ behavior: 'smooth' });
+      $('form-nama-lengkap').value = j.nama_lengkap || '';
+      $('form-nama-absen').value = j.nama_absen === j.nama_lengkap ? '' : (j.nama_absen || '');
+      setRadio('hubungan', j.hubungan_keluarga || 'C');
+      setRadio('jk', j.jenis_kelamin === 'P' ? 'P' : 'L');
+      $('form-tahun-lahir').value = j.tahun_lahir || '';
+      setRadio('nikah', ['MENIKAH', 'DUDA', 'JANDA'].includes(j.status_nikah) ? j.status_nikah : 'BELUM');
+      $('form-status-keberadaan').value = j.status_keberadaan || 'Menetap';
+      $('form-is-aktif').checked = j.is_aktif === 'Y';
+      $('form-flag-absen').checked = j.flag_absen === 'Y';
+      $('form-catatan').value = j.catatan || '';
+      syncNikahOptions();
     }
 
     function resetForm() {
-      document.getElementById('form-title').querySelector('span').innerText = "Tambah Jamaah Baru";
-      document.getElementById('submit-btn').querySelector('span').innerText = "Simpan Data";
-      document.getElementById('cancel-btn').style.display = 'none';
-
-      document.getElementById('sensus-form').reset();
+      $('form-title').textContent = 'Tambah Jamaah';
+      $('submit-btn').querySelector('span').textContent = 'Simpan Jamaah';
+      $('sensus-form').reset();
       // form.reset() TIDAK mengosongkan <input type="hidden">, jadi dikosongkan manual
-      document.getElementById('form-id-jamaah').value = '';
-      document.getElementById('form-id-keluarga').value = '';
-      document.getElementById('form-is-new-keluarga').value = 'false';
-      document.getElementById('keluarga-search-input').value = '';
-      document.getElementById('keluarga-results-container').style.display = 'none';
-      toggleKeluargaFields();
+      $('form-id-jamaah').value = '';
+      $('form-id-keluarga').value = '';
+      $('form-is-new-keluarga').value = 'false';
+      $('kk-selected').hidden = true;
+      $('new-keluarga-fields').hidden = true;
+      $('kk-picker').hidden = false;
+      $('keluarga-results-container').hidden = true;
+      $('form-error').hidden = true;
+      $('usia-preview').hidden = true;
+      setRadio('hubungan', 'C'); setRadio('jk', 'L'); setRadio('nikah', 'BELUM');
+      syncNikahOptions();
+    }
+
+    function formError(msg, focusId) {
+      $('form-error').textContent = msg;
+      $('form-error').hidden = false;
+      if (focusId) $(focusId).focus();
+      else $('form-error').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function handleFormSubmit(event) {
       event.preventDefault();
+      $('form-error').hidden = true;
 
       // Validasi klien (server tetap memvalidasi ulang)
-      const idKeluarga = document.getElementById('form-id-keluarga').value;
-      if (!idKeluarga) {
-        alert("Pilih Keluarga (KK) dari daftar hasil pencarian, atau pilih '+ Buat Keluarga (KK) Baru'.");
-        document.getElementById('keluarga-search-input').focus();
-        return;
-      }
+      const idKeluarga = $('form-id-keluarga').value;
+      const isNew = $('form-is-new-keluarga').value === 'true';
+      const tahun = parseInt($('form-tahun-lahir').value, 10);
+      const now = new Date().getFullYear();
+      if (!idKeluarga) return formError('Pilih Keluarga (KK) dari hasil pencarian, atau buat KK baru.', 'keluarga-search-input');
+      if (isNew && !$('form-nama-kk').value.trim()) return formError('Nama kepala keluarga wajib diisi.', 'form-nama-kk');
+      if (isNew && !$('form-alamat').value.trim()) return formError('Alamat KK baru wajib diisi.', 'form-alamat');
+      if (!$('form-nama-lengkap').value.trim()) return formError('Nama lengkap wajib diisi.', 'form-nama-lengkap');
+      if (!(tahun >= 1900 && tahun <= now)) return formError(`Tahun lahir wajib diisi (1900–${now}).`, 'form-tahun-lahir');
 
-      const submitBtn = document.getElementById('submit-btn');
-      const originalText = submitBtn.querySelector('span').innerText;
+      const submitBtn = $('submit-btn');
+      const originalText = submitBtn.querySelector('span').textContent;
       submitBtn.disabled = true;
-      submitBtn.querySelector('span').innerText = "Menyimpan...";
+      submitBtn.querySelector('span').textContent = 'Menyimpan…';
 
       const formData = {
-        id_jamaah: document.getElementById('form-id-jamaah').value || null,
+        id_jamaah: $('form-id-jamaah').value || null,
         id_keluarga: idKeluarga,
-        is_new_keluarga: document.getElementById('form-is-new-keluarga').value === 'true',
-
-        nama_kk: document.getElementById('form-nama-kk').value || null,
-        alamat: document.getElementById('form-alamat').value || null,
-        telepon: document.getElementById('form-telepon').value || null,
-
-        nama_lengkap: document.getElementById('form-nama-lengkap').value,
-        nama_absen: document.getElementById('form-nama-absen').value,
-        hubungan_keluarga: document.getElementById('form-hubungan-keluarga').value,
-        jenis_kelamin: document.getElementById('form-jenis-kelamin').value,
-        tahun_lahir: parseInt(document.getElementById('form-tahun-lahir').value, 10),
-        status_nikah: document.getElementById('form-status-nikah').value || "BELUM",
-        status_keberadaan: document.getElementById('form-status-keberadaan').value,
-        is_aktif: document.getElementById('form-is-aktif').checked ? 'Y' : 'N',
-        flag_absen: document.getElementById('form-flag-absen').checked ? 'Y' : 'N',
-        catatan: document.getElementById('form-catatan').value || ""
+        is_new_keluarga: isNew,
+        nama_kk: $('form-nama-kk').value || null,
+        alamat: $('form-alamat').value || null,
+        telepon: $('form-telepon').value || null,
+        nama_lengkap: $('form-nama-lengkap').value,
+        nama_absen: $('form-nama-absen').value.trim() || $('form-nama-lengkap').value,
+        hubungan_keluarga: radioValue('hubungan'),
+        jenis_kelamin: radioValue('jk'),
+        tahun_lahir: tahun,
+        status_nikah: radioValue('nikah') || 'BELUM',
+        status_keberadaan: $('form-status-keberadaan').value,
+        is_aktif: $('form-is-aktif').checked ? 'Y' : 'N',
+        flag_absen: $('form-flag-absen').checked ? 'Y' : 'N',
+        catatan: $('form-catatan').value || ''
       };
-
-      const done = () => {
-        submitBtn.disabled = false;
-        submitBtn.querySelector('span').innerText = originalText;
-      };
+      const done = () => { submitBtn.disabled = false; submitBtn.querySelector('span').textContent = originalText; };
 
       if (isLocalMode) {
         setTimeout(() => {
-          let targetKeluargaId = formData.id_keluarga;
+          let targetKK = formData.id_keluarga;
           if (formData.is_new_keluarga) {
-            targetKeluargaId = "KK-" + new Date().getTime();
-            appData.keluarga.push({ id_keluarga: targetKeluargaId, nama_kk: formData.nama_kk, alamat: formData.alamat, telepon: formData.telepon });
+            targetKK = 'KK-' + Date.now();
+            appData.keluarga.push({ id_keluarga: targetKK, nama_kk: formData.nama_kk, alamat: formData.alamat, telepon: formData.telepon || '' });
           }
-          const kk = appData.keluarga.find(k => k.id_keluarga === targetKeluargaId);
-          const jamaah = {
-            id_jamaah: formData.id_jamaah || ("JM-" + new Date().getTime()),
-            id_keluarga: targetKeluargaId,
+          const kk = appData.keluarga.find(k => k.id_keluarga === targetKK);
+          const j = Object.assign({}, formData, {
+            id_jamaah: formData.id_jamaah || ('JM-' + Date.now()),
+            id_keluarga: targetKK,
             nama_kk: kk ? kk.nama_kk : 'Tidak Terdaftar',
-            hubungan_keluarga: formData.hubungan_keluarga,
-            nama_lengkap: formData.nama_lengkap,
-            nama_absen: formData.nama_absen,
-            jenis_kelamin: formData.jenis_kelamin,
-            tahun_lahir: formData.tahun_lahir,
-            umur: new Date().getFullYear() - formData.tahun_lahir,
-            status_nikah: formData.status_nikah,
-            is_aktif: formData.is_aktif,
-            flag_absen: formData.flag_absen,
-            status_keberadaan: formData.status_keberadaan,
-            kategori_usia: kategoriUsiaLokal(formData.tahun_lahir, formData.status_nikah),
-            catatan: formData.catatan
-          };
-          const idx = appData.jamaah.findIndex(j => j.id_jamaah === jamaah.id_jamaah);
-          if (idx !== -1) appData.jamaah[idx] = jamaah; else appData.jamaah.push(jamaah);
-
+            umur: now - formData.tahun_lahir,
+            kategori_usia: kategoriUsiaLokal(formData.tahun_lahir, formData.status_nikah)
+          });
+          const idx = appData.jamaah.findIndex(x => x.id_jamaah === j.id_jamaah);
+          if (idx !== -1) appData.jamaah[idx] = j; else appData.jamaah.push(j);
           calculateMockRekap();
-          renderAll();
-          resetForm();
           done();
-          alert("Simulasi lokal: Data berhasil disimpan!");
-        }, 600);
+          closeDrawer();
+          renderAll();
+          showToast('Simulasi: data berhasil disimpan!');
+        }, 400);
         return;
       }
 
@@ -1841,50 +1450,16 @@
           done();
           if (handleAuthError(response)) return;
           if (response.success) {
-            alert(response.message);
-            resetForm();
-            loadData();
+            closeDrawer();
+            showToast(response.message);
+            loadData(true);
           } else {
-            alert(response.message);
+            formError(response.message);
           }
         }, (err) => {
           done();
-          alert("Error: " + (err.message || err));
+          formError('Error: ' + (err.message || err));
         });
-    }
-
-    // --- Helper UI Functions ---
-    function showLoading(show) {
-      document.getElementById('login-state').style.display = 'none';
-      document.getElementById('loading-state').style.display = show ? 'block' : 'none';
-      document.getElementById('main-content').style.display = show ? 'none' : 'block';
-      document.getElementById('error-state').style.display = 'none';
-    }
-
-    function showError(msg) {
-      document.getElementById('loading-state').style.display = 'none';
-      document.getElementById('main-content').style.display = 'none';
-      document.getElementById('error-state').style.display = 'block';
-      document.getElementById('error-message').innerText = msg;
-    }
-
-    function toggleAnalyticsDashboard() {
-      analyticsDashboardVisible = !analyticsDashboardVisible;
-      const dashboard = document.getElementById('analytics-dashboard');
-      const btnText = document.getElementById('toggle-analytics-text');
-      const btnIcon = document.getElementById('toggle-analytics-icon');
-
-      if (analyticsDashboardVisible) {
-        dashboard.style.display = 'grid';
-        btnText.innerText = 'Sembunyikan Visualisasi Data';
-        btnIcon.setAttribute('data-lucide', 'eye-off');
-        renderVisualStats();
-      } else {
-        dashboard.style.display = 'none';
-        btnText.innerText = 'Tampilkan Visualisasi Data';
-        btnIcon.setAttribute('data-lucide', 'eye');
-      }
-      lucide.createIcons();
     }
   </script>
 </body>
