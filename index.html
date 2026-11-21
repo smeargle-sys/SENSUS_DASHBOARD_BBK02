@@ -592,7 +592,6 @@
                     <th scope="col"><button type="button" class="th-sort" data-sort="hubungan_keluarga" onclick="setSort('hubungan_keluarga')">Hubungan <i data-lucide="chevrons-up-down"></i></button></th>
                     <th scope="col"><button type="button" class="th-sort" data-sort="kategori_usia" onclick="setSort('kategori_usia')">Kategori <i data-lucide="chevrons-up-down"></i></button></th>
                     <th scope="col" style="text-align: right"><button type="button" class="th-sort" data-sort="umur" onclick="setSort('umur')">Umur <i data-lucide="chevrons-up-down"></i></button></th>
-                    <th scope="col">Kontak</th>
                     <th scope="col">Status</th>
                     <th scope="col"><span class="sr-only">Aksi</span></th>
                   </tr>
@@ -626,7 +625,7 @@
           <div class="table-wrap">
             <table class="data">
               <thead>
-                <tr><th scope="col">Kepala Keluarga</th><th scope="col">Alamat</th><th scope="col">Telepon KK</th><th scope="col" style="text-align: right">Anggota aktif</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Aksi</span></th></tr>
+                <tr><th scope="col">Kepala Keluarga</th><th scope="col">Alamat</th><th scope="col" style="text-align: right">Anggota aktif</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Aksi</span></th></tr>
               </thead>
               <tbody id="kk-table-rows"></tbody>
             </table>
@@ -1348,7 +1347,7 @@
 
       if (pageRows.length === 0) {
         const msg = emptyMessage(q);
-        $('jamaah-table-rows').innerHTML = `<tr><td colspan="8" class="empty">${msg}</td></tr>`;
+        $('jamaah-table-rows').innerHTML = `<tr><td colspan="7" class="empty">${msg}</td></tr>`;
         $('jamaah-cards').innerHTML = `<div class="empty">${msg}</div>`;
       } else {
         let rowsHtml = '', cardsHtml = '', lastKK = null;
@@ -1356,7 +1355,7 @@
           if (grouped && j.id_keluarga !== lastKK) {
             lastKK = j.id_keluarga;
             const g = groupHeader(j.id_keluarga, j.nama_kk, familyCount[j.id_keluarga]);
-            rowsHtml += `<tr class="group-row"><td colspan="8"><strong>KK ${esc(g.name)}</strong><span>${esc(g.alamat)}${g.alamat ? ' · ' : ''}${g.count} jiwa sesuai filter</span></td></tr>`;
+            rowsHtml += `<tr class="group-row"><td colspan="7"><strong>KK ${esc(g.name)}</strong><span>${esc(g.alamat)}${g.alamat ? ' · ' : ''}${g.count} jiwa sesuai filter</span></td></tr>`;
             cardsHtml += `<div class="m-group">KK ${esc(g.name)} <span>· ${g.count} jiwa</span></div>`;
           }
           const head = j.hubungan_keluarga === 'A' ? ' is-head' : '';
@@ -1368,7 +1367,6 @@
             <td><span class="hub"><code>${esc(j.hubungan_keluarga)}</code>${esc(HUB_LABEL[j.hubungan_keluarga] || '')}</span></td>
             <td>${kategoriTag(j)}</td>
             <td class="num" style="text-align: right">${esc(umurText(j.umur))}</td>
-            <td>${waHtml(j.no_telepon, { name: j.nama_lengkap })}</td>
             <td><div class="status-stack">${statusStack(j)}</div></td>
             <td style="text-align: right"><button type="button" class="icon-btn edit-btn" data-id="${esc(j.id_jamaah)}" aria-label="Edit ${esc(j.nama_lengkap)}"><i data-lucide="pencil"></i></button></td>
           </tr>`;
@@ -1524,7 +1522,7 @@
       $('kk-info').textContent = fmt(list.length) + ' keluarga';
 
       if (!list.length) {
-        $('kk-table-rows').innerHTML = '<tr><td colspan="6" class="empty">Tidak ada keluarga yang cocok.</td></tr>';
+        $('kk-table-rows').innerHTML = '<tr><td colspan="5" class="empty">Tidak ada keluarga yang cocok.</td></tr>';
         $('kk-cards').innerHTML = '<div class="empty">Tidak ada keluarga yang cocok.</div>';
         return;
       }
@@ -1533,7 +1531,6 @@
         return `<tr>
           <td><div class="person"><span class="avatar ${avatarClass(k.id_keluarga)}">${esc(initials(k.nama_kk))}</span><div class="person-text"><strong>${esc(k.nama_kk)}</strong></div></div></td>
           <td style="white-space: normal; min-width: 200px; color: var(--ink-2)">${esc(k.alamat)}</td>
-          <td>${waHtml(k.telepon, { name: k.nama_kk })}</td>
           <td class="num" style="text-align: right"><strong>${s.aktif}</strong> / ${s.total}</td>
           <td><span class="status ${s.headInactive ? '' : 'on'}">${s.headInactive ? 'Luar kota' : 'Aktif'}</span></td>
           <td style="text-align: right"><div style="display: flex; gap: 8px; justify-content: flex-end">

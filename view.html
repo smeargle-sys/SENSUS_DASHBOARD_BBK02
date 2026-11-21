@@ -404,7 +404,7 @@
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th scope="col">No</th><th scope="col">Nama di absen</th><th scope="col" class="hide-m">Nama lengkap</th><th scope="col">Keluarga (KK)</th><th scope="col" class="hide-m">Kategori</th><th scope="col" class="r">Umur</th><th scope="col">Kontak</th></tr></thead>
+            <thead><tr><th scope="col">No</th><th scope="col">Nama di absen</th><th scope="col" class="hide-m">Nama lengkap</th><th scope="col">Keluarga (KK)</th><th scope="col" class="hide-m">Kategori</th><th scope="col" class="r">Umur</th></tr></thead>
             <tbody id="jamaah-table-rows"></tbody>
           </table>
         </div>
@@ -773,14 +773,14 @@
       if (grouped) list.forEach(j => { famCount[j.grup_kk] = (famCount[j.grup_kk] || 0) + 1; });
 
       if (!pageRows.length) {
-        $('jamaah-table-rows').innerHTML = '<tr><td colspan="7" class="empty">Tidak ada jamaah yang cocok dengan pencarian / filter.</td></tr>';
+        $('jamaah-table-rows').innerHTML = '<tr><td colspan="6" class="empty">Tidak ada jamaah yang cocok dengan pencarian / filter.</td></tr>';
         $('jamaah-cards').innerHTML = '<div class="empty">Tidak ada jamaah yang cocok dengan pencarian / filter.</div>';
       } else {
         let rows = '', cards = '', lastGroup = null;
         pageRows.forEach((j, i) => {
           if (grouped && j.grup_kk !== lastGroup) {
             lastGroup = j.grup_kk;
-            rows += `<tr class="group-row"><td colspan="7">KK ${esc(j.nama_kk)}<span>${famCount[j.grup_kk]} jiwa</span></td></tr>`;
+            rows += `<tr class="group-row"><td colspan="6">KK ${esc(j.nama_kk)}<span>${famCount[j.grup_kk]} jiwa</span></td></tr>`;
             cards += `<div class="m-group">KK ${esc(j.nama_kk)} · ${famCount[j.grup_kk]} jiwa</div>`;
           }
           const idx = list.indexOf(j);
@@ -792,11 +792,10 @@
             <td style="color: var(--ink-2)">${esc(j.nama_kk)}</td>
             <td class="hide-m"><span class="tag">${esc(j.kategori_usia)}</span></td>
             <td class="r num">${esc(umurText(j.umur))}</td>
-            <td>${waHtml(j.no_telepon, j.nama_lengkap)}</td>
           </tr>`;
           cards += `<div class="m-row ${head}">
             <button type="button" class="name-btn grow" data-idx="${idx}"><strong>${esc(j.nama_absen)}</strong><span>${esc(HUB_LABEL[j.hubungan_keluarga] || '')} · ${esc(j.nama_kk)} · ${esc(umurText(j.umur))}</span></button>
-            ${waNumber(j.no_telepon) ? `<a class="wa" href="https://wa.me/${waNumber(j.no_telepon)}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp ${esc(j.nama_lengkap)}"><i data-lucide="message-circle"></i>WA</a>` : ''}
+            <i data-lucide="chevron-right" style="color: var(--muted)"></i>
           </div>`;
         });
         $('jamaah-table-rows').innerHTML = rows;
