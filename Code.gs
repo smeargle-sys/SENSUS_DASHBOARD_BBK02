@@ -219,7 +219,7 @@ var HEADER_JAMAAH = [
   "Status Keaktifan", "Flag Absen", "Status Keberadaan", "Catatan",
   "No Telepon", "Perlu Dibantu"
 ];
-var JAMAAH_COLS = HEADER_JAMAAH.length; // 14
+var JAMAAH_CORE_COLS = 12; // kolom A–L selalu berurutan seperti HEADER_JAMAAH
 var HEADER_KATEGORI = ["Urutan", "Nama Kategori", "Umur Min", "Umur Maks", "Penanda"];
 
 function getSpreadsheet_() {
@@ -241,8 +241,9 @@ function getSpreadsheet_() {
 
 /**
  * Membuat sheet Keluarga & Jamaah dengan header standar jika belum ada.
- * Sheet lama yang baru punya 12 kolom otomatis diberi header kolom baru
- * (No Telepon, Perlu Dibantu) tanpa mengubah data yang ada.
+ * Kolom tambahan (No Telepon, Perlu Dibantu) dicari BERDASARKAN NAMA HEADER.
+ * Bila belum ada, ditambahkan di kolom kosong pertama setelah header terakhir,
+ * sehingga kolom milik pengguna (mis. "Umur" di kolom M) tidak pernah ditimpa.
  */
 function initializeSheets_(ss) {
   var keluargaSheet = ss.getSheetByName(CONFIG.SHEET_KELUARGA);
@@ -255,13 +256,39 @@ function initializeSheets_(ss) {
   if (!jamaahSheet) {
     jamaahSheet = ss.insertSheet(CONFIG.SHEET_JAMAAH);
     jamaahSheet.appendRow(HEADER_JAMAAH);
-  } else {
-    var head = jamaahSheet.getRange(1, 13, 1, 2).getValues()[0];
-    if (!head[0] || !head[1]) {
-      jamaahSheet.getRange(1, 13, 1, 2).setValues([[HEADER_JAMAAH[12], HEADER_JAMAAH[13]]]);
-    }
   }
-  return { keluarga: keluargaSheet, jamaah: jamaahSheet };
+  return { keluarga: keluargaSheet, jamaah: jamaahSheet, jamaahCols: jamaahExtraCols_(jamaahSheet) };
+}
+
+/** Posisi kolom (1-based) No Telepon & Perlu Dibantu di sheet Jamaah; dibuat bila belum ada. */
+function jamaahExtraCols_(sheet) {
+  var width = Math.max(sheet.getLastColumn(), JAMAAH_CORE_COLS);
+  var header = sheet.getRange(1, 1, 1, width).getValues()[0];
+  var norm = header.map(function (h) { return String(h == null ? '' : h).trim().toLowerCase(); });
+  var lastFilled = JAMAAH_CORE_COLS;
+  for (var i = norm.length - 1; i >= 0; i--) { if (norm[i]) { lastFilled = Math.max(lastFilled, i + 1); break; } }
+
+  function find(name) {
+    for (var c = JAMAAH_CORE_COLS; c < norm.length; c++) if (norm[c] === name.toLowerCase()) return c + 1;
+    return 0;
+  }
+  var tel = find(HEADER_JAMAAH[12]);
+  var bantu = find(HEADER_JAMAAH[13]);
+  if (!tel) { tel = ++lastFilled; sheet.getRange(1, tel, 1, 1).setValues([[HEADER_JAMAAH[12]]]); }
+  if (!bantu) { bantu = ++lastFilled; sheet.getRange(1, bantu, 1, 1).setValues([[HEADER_JAMAAH[13]]]); }
+  return { telepon: tel, dibantu: bantu, width: Math.max(width, tel, bantu) };
+}
+
+/**
+ * Baris data terakhir berdasarkan kolom A (ID). getLastRow() bisa jauh lebih besar
+ * bila ada kolom rumus yang di-copy sampai bawah, sehingga baris baru salah tempat.
+ */
+function lastDataRow_(sheet) {
+  var last = sheet.getLastRow();
+  if (last < 2) return 1;
+  var ids = sheet.getRange(2, 1, last - 1, 1).getValues();
+  for (var i = ids.length - 1; i >= 0; i--) if (String(ids[i][0]).trim() !== '') return i + 2;
+  return 1;
 }
 
 /**
@@ -462,6 +489,9 @@ function readSensus_() {
   var batasLansia = lansiaMin_(cfg);
   var shKeluarga = sheets.keluarga;
   var shJamaah = sheets.jamaah;
+  var cols = sheets.jamaahCols;
+  var warnings = [];
+  var teleponTidakValid = 0;
 
   // 1. Data keluarga
   var keluargaList = [];
@@ -500,7 +530,7 @@ function readSensus_() {
 
   var lastRowJamaah = shJamaah.getLastRow();
   if (lastRowJamaah > 1) {
-    var valJamaah = shJamaah.getRange(2, 1, lastRowJamaah - 1, JAMAAH_COLS).getValues();
+    var valJamaah = shJamaah.getRange(2, 1, lastRowJamaah - 1, cols.width).getValues();
 
     for (var j = 0; j < valJamaah.length; j++) {
       var jRow = valJamaah[j];
@@ -514,7 +544,14 @@ function readSensus_() {
       var statusNikah = String(jRow[7]).toUpperCase();
       var isAktif = String(jRow[8]).toUpperCase() === "N" ? "N" : "Y";
       var flagAbsen = String(jRow[9]).toUpperCase() === "N" ? "N" : "Y";
-      var perluDibantu = String(jRow[13]).toUpperCase() === "Y" ? "Y" : "N";
+      var perluDibantu = String(jRow[cols.dibantu - 1]).toUpperCase() === "Y" ? "Y" : "N";
+      // Nomor telepon wajar punya minimal 6 angka. Nilai seperti "70" (mis. umur) tidak ditampilkan.
+      var telRaw = jRow[cols.telepon - 1];
+      var telepon = String(telRaw == null ? '' : telRaw).trim();
+      if (telepon && !(/^[0-9+\-\s().]{6,20}$/.test(telepon) && telepon.replace(/\D/g, '').length >= 6)) {
+        teleponTidakValid++;
+        telepon = '';
+      }
 
       if (hubKeluarga === "A" && isAktif === "N") {
         inactiveKeluargaIds[idKeluarga] = true;
@@ -539,7 +576,7 @@ function readSensus_() {
         status_keberadaan: String(jRow[10]),
         kategori_usia: kategoriUsia,
         catatan: String(jRow[11]),
-        no_telepon: String(jRow[12] || ''),
+        no_telepon: telepon,
         perlu_dibantu: perluDibantu
       });
 
@@ -572,7 +609,20 @@ function readSensus_() {
   }
   rekap.kkCount = activeKkCount;
 
-  return { jamaah: jamaahList, keluarga: keluargaList, rekap: rekap, kategoriConfig: cfg };
+  if (teleponTidakValid > 0) {
+    warnings.push(teleponTidakValid + " isian di kolom '" + HEADER_JAMAAH[12] + "' (kolom " + columnLetter_(cols.telepon) +
+      " sheet Jamaah) bukan nomor telepon, misalnya angka umur. Nilai itu tidak ditampilkan. " +
+      "Bila kolom tersebut sebenarnya kolom lain (mis. Umur), ganti header-nya kembali; aplikasi akan membuat kolom '" +
+      HEADER_JAMAAH[12] + "' baru di kolom kosong berikutnya.");
+  }
+
+  return { jamaah: jamaahList, keluarga: keluargaList, rekap: rekap, kategoriConfig: cfg, warnings: warnings };
+}
+
+function columnLetter_(n) {
+  var s = '';
+  while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); }
+  return s;
 }
 
 /**
@@ -647,7 +697,7 @@ function saveSensusData(token, formData) {
     // 1. KK baru
     if (d.is_new_keluarga) {
       idKeluarga = newId_("KK");
-      writeRowAsText_(shKeluarga, shKeluarga.getLastRow() + 1,
+      writeRowAsText_(shKeluarga, lastDataRow_(shKeluarga) + 1,
         [idKeluarga, d.nama_kk, d.alamat, d.telepon], []);
     }
 
@@ -664,11 +714,15 @@ function saveSensusData(token, formData) {
       d.is_aktif,
       d.flag_absen,
       d.status_keberadaan,
-      d.catatan,
-      d.no_telepon,
-      d.perlu_dibantu
+      d.catatan
     ];
-    writeRowAsText_(shJamaah, foundRowIndex || shJamaah.getLastRow() + 1, row, [6]);
+    // Kolom A–L ditulis berurutan; kolom tambahan ditulis per sel sesuai posisi header-nya,
+    // jadi kolom lain milik pengguna (mis. rumus Umur) tidak tersentuh.
+    var targetRow = foundRowIndex || lastDataRow_(shJamaah) + 1;
+    writeRowAsText_(shJamaah, targetRow, row, [6]);
+    var cols = sheets.jamaahCols;
+    shJamaah.getRange(targetRow, cols.telepon, 1, 1).setNumberFormat('@').setValues([[d.no_telepon]]);
+    shJamaah.getRange(targetRow, cols.dibantu, 1, 1).setNumberFormat('@').setValues([[d.perlu_dibantu]]);
     SpreadsheetApp.flush();
 
     return { success: true, message: d.id_jamaah ? "Data berhasil diperbarui!" : "Data berhasil disimpan!" };
@@ -785,7 +839,7 @@ function deleteJamaah(token, idJamaah, mode) {
       return { success: true, message: "Keluarga beserta " + res.jamaah + " anggota dihapus dan disimpan di arsip.", deleted: res };
     }
 
-    archiveAndDeleteRows_(ss, sheets.jamaah, CONFIG.SHEET_ARSIP_JAMAAH, HEADER_JAMAAH, [row], "Hapus jamaah");
+    archiveAndDeleteRows_(ss, sheets.jamaah, CONFIG.SHEET_ARSIP_JAMAAH, [row], "Hapus jamaah");
     SpreadsheetApp.flush();
     return { success: true, message: "Data jamaah dihapus dan disimpan di arsip.", deleted: { jamaah: 1, keluarga: 0 } };
   } catch (err) {
@@ -825,16 +879,21 @@ function deleteKeluargaRows_(ss, sheets, idKeluarga, keterangan) {
     var vals = sheets.jamaah.getRange(2, 2, last - 1, 1).getValues();
     for (var i = 0; i < vals.length; i++) if (String(vals[i][0]) === idKeluarga) memberRows.push(i + 2);
   }
-  archiveAndDeleteRows_(ss, sheets.jamaah, CONFIG.SHEET_ARSIP_JAMAAH, HEADER_JAMAAH, memberRows, keterangan);
+  archiveAndDeleteRows_(ss, sheets.jamaah, CONFIG.SHEET_ARSIP_JAMAAH, memberRows, keterangan);
   var kkRow = findRowById_(sheets.keluarga, idKeluarga);
-  if (kkRow) archiveAndDeleteRows_(ss, sheets.keluarga, CONFIG.SHEET_ARSIP_KELUARGA, HEADER_KELUARGA, [kkRow], keterangan);
+  if (kkRow) archiveAndDeleteRows_(ss, sheets.keluarga, CONFIG.SHEET_ARSIP_KELUARGA, [kkRow], keterangan);
   SpreadsheetApp.flush();
   return { jamaah: memberRows.length, keluarga: kkRow ? 1 : 0 };
 }
 
-/** Salin baris ke sheet arsip (dengan waktu & keterangan) lalu hapus dari sheet asal, dari bawah ke atas. */
-function archiveAndDeleteRows_(ss, sheet, archiveName, header, rowIndexes, keterangan) {
+/**
+ * Salin baris (semua kolom, termasuk kolom tambahan milik pengguna) ke sheet arsip
+ * beserta waktu & keterangan, lalu hapus dari sheet asal, dari bawah ke atas.
+ */
+function archiveAndDeleteRows_(ss, sheet, archiveName, rowIndexes, keterangan) {
   if (!rowIndexes.length) return;
+  var width = sheet.getLastColumn();
+  var header = sheet.getRange(1, 1, 1, width).getValues()[0];
   var arsip = ss.getSheetByName(archiveName);
   if (!arsip) {
     arsip = ss.insertSheet(archiveName);
@@ -843,8 +902,8 @@ function archiveAndDeleteRows_(ss, sheet, archiveName, header, rowIndexes, keter
   var waktu = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
   var sorted = rowIndexes.slice().sort(function (a, b) { return b - a; });
   sorted.forEach(function (r) {
-    var values = sheet.getRange(r, 1, 1, header.length).getValues()[0];
-    writeRowAsText_(arsip, arsip.getLastRow() + 1, [waktu, keterangan].concat(values), []);
+    var values = sheet.getRange(r, 1, 1, width).getValues()[0];
+    writeRowAsText_(arsip, lastDataRow_(arsip) + 1, [waktu, keterangan].concat(values), []);
   });
   sorted.forEach(function (r) { sheet.deleteRow(r); });
 }
@@ -980,7 +1039,11 @@ function jalankanMigrasiSensus() {
       shKeluarga.getRange(2, 1, shKeluarga.getLastRow() - 1, shKeluarga.getLastColumn()).clearContent();
     }
     if (shJamaah.getLastRow() > 1) {
-      shJamaah.getRange(2, 1, shJamaah.getLastRow() - 1, shJamaah.getLastColumn()).clearContent();
+      // Hanya kolom milik aplikasi yang dikosongkan; kolom tambahan pengguna (mis. rumus) dibiarkan
+      var jl = shJamaah.getLastRow() - 1;
+      shJamaah.getRange(2, 1, jl, JAMAAH_CORE_COLS).clearContent();
+      shJamaah.getRange(2, sheets.jamaahCols.telepon, jl, 1).clearContent();
+      shJamaah.getRange(2, sheets.jamaahCols.dibantu, jl, 1).clearContent();
     }
 
     shKeluarga.getRange(2, 1, keluargaRows.length, 4).setNumberFormat('@').setValues(keluargaRows);

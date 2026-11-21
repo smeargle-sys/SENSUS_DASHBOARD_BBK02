@@ -500,6 +500,10 @@
             <span><strong id="banner-lengkapi-count">0 jamaah</strong> belum punya tahun lahir, sehingga umur &amp; kategorinya belum bisa dihitung.</span>
             <button type="button" class="link-btn" onclick="showChip('lengkapi')">Lengkapi sekarang →</button>
           </div>
+          <div class="banner" id="banner-warnings" role="status" hidden>
+            <i data-lucide="triangle-alert"></i>
+            <span id="banner-warnings-text"></span>
+          </div>
           <div class="banner" id="banner-config" role="status" hidden>
             <i data-lucide="triangle-alert"></i>
             <span id="banner-config-text"></span>
@@ -532,8 +536,8 @@
                 <button type="button" class="chip" data-chip="mondok" aria-pressed="false" onclick="setChip('mondok')">Mondok</button>
                 <button type="button" class="chip" data-chip="absen" aria-pressed="false" onclick="setChip('absen')">Masuk absen</button>
                 <button type="button" class="chip" data-chip="tidakabsen" aria-pressed="false" onclick="setChip('tidakabsen')">Tidak absen</button>
-                <button type="button" class="chip chip-help" data-chip="dibantu" aria-pressed="false" onclick="setChip('dibantu')">Perlu dibantu</button>
-                <button type="button" class="chip chip-warn" data-chip="lengkapi" aria-pressed="false" onclick="setChip('lengkapi')">Perlu dilengkapi</button>
+                <button type="button" class="chip chip-help" data-chip="dibantu" aria-pressed="false" onclick="setChip('dibantu')">Perlu dibantu · <span id="chip-dibantu-count">0</span></button>
+                <button type="button" class="chip chip-warn" data-chip="lengkapi" aria-pressed="false" onclick="setChip('lengkapi')" title="Jamaah yang tahun lahirnya belum diisi">Perlu dilengkapi · <span id="chip-lengkapi-count">0</span></button>
               </div>
             </div>
             <div class="list-tools">
@@ -1180,6 +1184,11 @@
       $('nav-lengkapi-count').textContent = tanpaTahun;
       $('nav-dibantu-count').hidden = dibantu === 0;
       $('nav-dibantu-count').textContent = dibantu;
+      $('chip-lengkapi-count').textContent = tanpaTahun;
+      $('chip-dibantu-count').textContent = dibantu;
+      const warns = appData.warnings || [];
+      $('banner-warnings').hidden = warns.length === 0;
+      $('banner-warnings-text').textContent = warns.join(' ');
       const invalid = appData.kategoriConfig && appData.kategoriConfig.invalid;
       $('banner-config').hidden = !invalid;
       if (invalid) $('banner-config-text').textContent = 'Sheet Pengaturan_Kategori tidak valid, sementara memakai kategori bawaan. (' + invalid + ')';
@@ -1338,8 +1347,9 @@
         : `${fmt(filtered.length)} jamaah`;
 
       if (pageRows.length === 0) {
-        $('jamaah-table-rows').innerHTML = '<tr><td colspan="8" class="empty">Tidak ada jamaah yang cocok dengan pencarian / filter.</td></tr>';
-        $('jamaah-cards').innerHTML = '<div class="empty">Tidak ada jamaah yang cocok dengan pencarian / filter.</div>';
+        const msg = emptyMessage(q);
+        $('jamaah-table-rows').innerHTML = `<tr><td colspan="8" class="empty">${msg}</td></tr>`;
+        $('jamaah-cards').innerHTML = `<div class="empty">${msg}</div>`;
       } else {
         let rowsHtml = '', cardsHtml = '', lastKK = null;
         pageRows.forEach(j => {
@@ -1393,6 +1403,21 @@
       const sv = sortField ? `${sortField}:${sortOrder}` : '';
       $('sort-select').value = [...$('sort-select').options].some(o => o.value === sv) ? sv : '';
       icons();
+    }
+
+    // Pesan daftar kosong yang menjelaskan kenapa kosong
+    function emptyMessage(q) {
+      const otherFilter = q || $('filter-kategori').value || $('filter-keberadaan').value || $('filter-gender').value;
+      if (!otherFilter && currentChip === 'lengkapi') return '✓ Semua jamaah sudah punya tahun lahir. Tidak ada data yang perlu dilengkapi.';
+      if (!otherFilter && currentChip === 'dibantu') return 'Belum ada jamaah yang ditandai <strong>Perlu dibantu</strong>. Tandai lewat tombol Edit → bagian “Status &amp; absen”.';
+      if (!otherFilter && currentChip === 'mondok') return 'Tidak ada jamaah berstatus Mondok.';
+      if (q) return `Tidak ada jamaah yang cocok dengan “${esc(q)}”. <button type="button" class="link-btn" onclick="clearSearch()">Hapus pencarian</button>`;
+      return 'Tidak ada jamaah yang cocok dengan filter. <button type="button" class="link-btn" onclick="resetFilters()">Tampilkan semua</button>';
+    }
+    function resetFilters() {
+      $('search-input').value = '';
+      ['filter-kategori', 'filter-keberadaan', 'filter-gender'].forEach(id => { $(id).value = ''; });
+      setChip('semua');
     }
 
     // Pager: « ‹ 1 … 4 5 6 … 20 › »

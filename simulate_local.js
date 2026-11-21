@@ -16,7 +16,7 @@ const crypto = require('crypto');
 class MockSheet {
   constructor(name, headers, rows) {
     this.name = name;
-    this.rows = headers ? [headers, ...rows] : [];
+    this.rows = headers ? [headers.slice(), ...rows.map(r => r.slice())] : [];
     this.formats = {}; // "row,col" -> number format
   }
   getName() { return this.name; }
@@ -437,6 +437,65 @@ test("Validasi menolak telepon jamaah berisi huruf", () => {
   const t = env.gs.login('246810', 'index').token;
   const r = env.gs.saveSensusData(t, validJamaah({ no_telepon: 'telp 0812' }));
   eq(r.success, false); assert(/telepon jamaah/.test(r.message), r.message);
+});
+
+// --- Kolom tambahan milik pengguna tidak boleh tertimpa ----------------------
+function withUmurColumn(env) {
+  // Sheet asli pengguna: kolom M berisi "Umur" (mis. rumus), diisi juga di baris kosong di bawah data
+  const sh = env.ss.sheets.Jamaah;
+  sh.rows[0][12] = 'Umur';
+  for (let r = 1; r < sh.rows.length; r++) sh.rows[r][12] = sh.rows[r][6] ? THIS_YEAR - sh.rows[r][6] : '';
+  for (let k = 0; k < 5; k++) sh.rows.push(['', '', '', '', '', '', '', '', '', '', '', '', '#N/A']);
+  return sh;
+}
+
+test("Kolom 'Umur' milik pengguna di kolom M tidak ditimpa; kolom baru ditambah di N & O", () => {
+  const env = createSandbox();
+  const sh = withUmurColumn(env);
+  const t = env.gs.login('246810', 'index').token;
+  const d = env.gs.getSensusData(t).data;
+  eq(sh.rows[0][12], 'Umur', "header M tetap");
+  eq(sh.rows[0][13], 'No Telepon'); eq(sh.rows[0][14], 'Perlu Dibantu');
+  assert(d.jamaah.every(j => j.no_telepon === ''), "umur tidak boleh terbaca sebagai telepon");
+  eq((d.warnings || []).length, 0);
+});
+
+test("Simpan dengan kolom Umur: telepon masuk kolom N, umur di M tidak tersentuh, baris baru tepat setelah data", () => {
+  const env = createSandbox();
+  const sh = withUmurColumn(env);
+  const t = env.gs.login('246810', 'index').token;
+  const umurBefore = sh.rows[1][12];
+  eq(env.gs.saveSensusData(t, validJamaah({ id_jamaah: 'JM-1', id_keluarga: 'KK-A', hubungan_keluarga: 'A', nama_lengkap: 'Bapak Contoh Satu', status_nikah: 'MENIKAH', tahun_lahir: 1956, no_telepon: '081234567890', perlu_dibantu: 'Y' })).success, true);
+  eq(sh.rows[1][12], umurBefore, "kolom Umur baris JM-1");
+  eq(sh.rows[1][13], '081234567890'); eq(sh.rows[1][14], 'Y');
+  const r = env.gs.saveSensusData(t, validJamaah());
+  eq(r.success, true, r.message);
+  eq(sh.rows[10][0].startsWith('JM-'), true, "baris baru harus di baris 11 (setelah 9 data), bukan setelah baris rumus");
+  eq(sh.rows[10][3], 'Anak Contoh Baru');
+});
+
+test("Kolom 'No Telepon' berisi angka umur -> tidak ditampilkan & admin diberi peringatan", () => {
+  const env = createSandbox();
+  const sh = env.ss.sheets.Jamaah;
+  sh.rows[0][12] = 'No Telepon'; sh.rows[0][13] = 'Perlu Dibantu';
+  sh.rows[1][12] = 70; sh.rows[2][12] = 58; sh.rows[3][12] = '081234567890';
+  const t = env.gs.login('246810', 'index').token;
+  const d = env.gs.getSensusData(t).data;
+  eq(d.jamaah.find(j => j.id_jamaah === 'JM-1').no_telepon, '');
+  eq(d.jamaah.find(j => j.id_jamaah === 'JM-3').no_telepon, '081234567890');
+  eq(d.warnings.length, 1); assert(/2 isian/.test(d.warnings[0]) && /kolom M/.test(d.warnings[0]), d.warnings[0]);
+  const tv = env.gs.login('135790', 'view').token;
+  assert(!('warnings' in env.gs.getSensusData(tv).data), "peringatan tidak untuk viewer");
+});
+
+test("Hapus dengan kolom Umur: arsip menyalin semua kolom", () => {
+  const env = createSandbox();
+  withUmurColumn(env);
+  const t = env.gs.login('246810', 'index').token;
+  env.gs.getSensusData(t);
+  eq(env.gs.deleteJamaah(t, 'JM-2', 'single').success, true);
+  const arsip = env.ss.sheets.Arsip_Jamaah;
+  eq(arsip.rows[0][14], 'Umur'); eq(arsip.rows[1][2], 'JM-2'); eq(arsip.rows[1][14], THIS_YEAR - 1968);
 });
 
 // --- Hapus ------------------------------------------------------------------
