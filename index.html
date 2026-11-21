@@ -12,10 +12,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Lucide Icons for Clean Iconography -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@1.77.0"></script>
 
   <!-- Chart.js for High Level Data Visualization -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1"></script>
 
   <style>
     /* Design System: Sleek Light Mode & Premium Clean Aesthetics */
@@ -568,6 +568,15 @@
       color: var(--color-primary);
       border-bottom-color: var(--color-primary);
     }
+
+    /* Login PIN */
+    #login-state { display: none; max-width: 380px; margin: 4rem auto; text-align: center; padding: 2rem; }
+    #login-state .lock-icon { width: 48px; height: 48px; color: var(--color-primary); margin-bottom: 0.75rem; }
+    #pin-input { width: 100%; padding: 0.85rem 1rem; margin: 1rem 0 0.75rem; font-size: 1.4rem; letter-spacing: 0.5rem; text-align: center; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; outline: none; }
+    #pin-input:focus { border-color: var(--color-primary); }
+    #login-error { color: var(--color-danger); font-size: 0.9rem; min-height: 1.2rem; margin-top: 0.75rem; }
+    .header-actions { display: flex; align-items: center; gap: 0.75rem; }
+    #logout-btn { display: none; width: auto; margin-top: 0; padding: 0.45rem 0.9rem; font-size: 0.85rem; }
   </style>
 </head>
 
@@ -578,25 +587,35 @@
         <h1>Sensus Jiwa & Jamaah</h1>
         <p>Kelompok Babakan Barat - Desa Babakan Tangerang Selatan</p>
       </div>
-      <div id="mode-badge" class="badge" style="background: var(--color-primary);">
-        <i data-lucide="database"></i>
-        <span>Memuat...</span>
+      <div class="header-actions">
+        <div id="mode-badge" class="badge" style="background: var(--color-primary);">
+          <i data-lucide="database"></i>
+          <span>Memuat...</span>
+        </div>
+        <button id="logout-btn" class="btn btn-secondary" onclick="handleLogout()">
+          <i data-lucide="log-out" style="width: 15px; height: 15px;"></i>
+          <span>Keluar</span>
+        </button>
       </div>
     </header>
 
+    <!-- Login PIN -->
+    <div id="login-state" class="card">
+      <i data-lucide="lock" class="lock-icon"></i>
+      <h2>Masuk Admin Sensus</h2>
+      <p style="color: var(--text-muted); margin-top: 0.5rem;">Masukkan PIN admin untuk menambah &amp; mengedit data.</p>
+      <form onsubmit="handleLogin(event)">
+        <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••••" required>
+        <button type="submit" id="login-btn" class="btn btn-primary" style="width: 100%;"><span>Masuk</span></button>
+      </form>
+      <p id="login-error"></p>
+    </div>
+
     <!-- Loading State -->
-    <div id="loading-state">
+    <div id="loading-state" style="display: none;">
       <div class="spinner"></div>
       <h2>Memuat Data Sensus...</h2>
       <p style="color: var(--text-muted); margin-top: 0.5rem;">Silakan tunggu, sistem sedang memproses data.</p>
-      <div id="debug-info" style="margin-top: 1.5rem; padding: 1rem; background: #f0f0f0; border-radius: 8px; font-family: monospace; font-size: 0.85rem; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;">
-        <strong>Debug Info:</strong>
-        <div id="debug-text" style="white-space: pre-wrap; color: #333; margin-top: 0.5rem;">Initializing...</div>
-      </div>
-      <div style="margin-top: 1rem;">
-        <button class="btn btn-primary" onclick="loadData()" style="width: auto; margin: 0 auto;">Coba Load Data</button>
-        <button class="btn btn-secondary" onclick="simulateLoadData()" style="width: auto; margin: 0 auto; margin-top: 0.5rem;">Gunakan Mock Data</button>
-      </div>
     </div>
 
     <!-- Error State -->
@@ -609,7 +628,7 @@
     </div>
 
     <!-- Main Content Area -->
-    <div id="main-content" style="display: none; display: flex; flex-direction: column; gap: 2rem;">
+    <div id="main-content" style="display: none; flex-direction: column; gap: 2rem;">
       <!-- KPI Stats -->
       <div class="grid-5">
         <div class="card stat-card">
@@ -669,7 +688,7 @@
       </div>
 
       <!-- High Level Visual Analytics Dashboard (Hidden by Default) -->
-      <div id="analytics-dashboard" style="display: none; display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem;">
+      <div id="analytics-dashboard" style="display: none; grid-template-columns: 1fr 1.2fr; gap: 1.5rem;">
         <!-- Chart Card -->
         <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column;">
           <h3 class="section-title" style="font-size: 1.05rem; margin-bottom: 1.25rem;">
@@ -1021,28 +1040,77 @@
     // --- Analytics Dashboard Toggle State ---
     let analyticsDashboardVisible = false;
 
-    // --- Mock Data (for Local Development/Offline Mode) ---
+    // --- Auth State ---
+    const TOKEN_KEY = 'sensus_token_admin';
+    let authToken = null;
+
+    // --- Helpers keamanan ---
+    // Escape semua data dari spreadsheet sebelum masuk ke innerHTML / template HTML (anti-XSS)
+    function esc(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function umurText(umur) {
+      return (umur === null || umur === undefined) ? '-' : umur + ' th';
+    }
+
+    // Penyimpanan token: sessionStorage bila tersedia, fallback ke memori (login ulang saat refresh)
+    function saveToken(t) {
+      authToken = t;
+      try { t ? sessionStorage.setItem(TOKEN_KEY, t) : sessionStorage.removeItem(TOKEN_KEY); } catch (e) {}
+    }
+    function loadToken() {
+      try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; }
+    }
+
+    // --- Rule engine lokal (HANYA untuk Mode Simulasi; data live dihitung di server) ---
+    function kategoriUsiaLokal(tahunLahir, statusNikah) {
+      const s = (statusNikah || '').toUpperCase();
+      if (s === 'MENIKAH' || s === 'DUDA' || s === 'JANDA') return 'Dewasa Menikah';
+      const umur = new Date().getFullYear() - tahunLahir;
+      if (umur <= 5) return 'BALITA-PAUD';
+      if (umur <= 12) return 'Caberawit';
+      if (umur <= 15) return 'Pra Remaja (SMP)';
+      if (umur <= 17) return 'Remaja (SMA)';
+      return 'Usia (Pra) Menikah';
+    }
+
+    // --- Mock Data FIKTIF (halaman ini bisa dibuka siapa saja sebelum login, jangan isi nama asli) ---
     const mockKeluarga = [
-      { id_keluarga: "KK-1", nama_kk: "H. Sutardjo", alamat: "Babakan Barat RT 01/02", telepon: "08123456789" },
-      { id_keluarga: "KK-2", nama_kk: "Daud Wibisono", alamat: "Babakan Barat RT 02/02", telepon: "08571234567" },
-      { id_keluarga: "KK-3", nama_kk: "H. Slamet Riyadi", alamat: "Babakan Barat RT 03/02", telepon: "08139988776" }
+      { id_keluarga: "KK-1", nama_kk: "Bapak Contoh Satu", alamat: "Alamat Contoh RT 01", telepon: "080000000001" },
+      { id_keluarga: "KK-2", nama_kk: "Bapak Contoh Dua", alamat: "Alamat Contoh RT 02", telepon: "080000000002" },
+      { id_keluarga: "KK-3", nama_kk: "Bapak Contoh Tiga", alamat: "Alamat Contoh RT 03", telepon: "080000000003" }
     ];
 
-    const mockJamaah = [
-      { id_jamaah: "JM-1", id_keluarga: "KK-1", nama_kk: "H. Sutardjo", hubungan_keluarga: "A", nama_lengkap: "H. Sutardjo", nama_absen: "Sutardjo", jenis_kelamin: "L", tahun_lahir: 1956, umur: 70, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
-      { id_jamaah: "JM-2", id_keluarga: "KK-1", nama_kk: "H. Sutardjo", hubungan_keluarga: "B", nama_lengkap: "Sunarni", nama_absen: "Sunarni Sutardjo", jenis_kelamin: "P", tahun_lahir: 1968, umur: 58, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
-      { id_jamaah: "JM-3", id_keluarga: "KK-2", nama_kk: "Daud Wibisono", hubungan_keluarga: "A", nama_lengkap: "Daud Wibisono", nama_absen: "Daud Wibisono", jenis_kelamin: "L", tahun_lahir: 1997, umur: 29, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
-      { id_jamaah: "JM-4", id_keluarga: "KK-2", nama_kk: "Daud Wibisono", hubungan_keluarga: "B", nama_lengkap: "Amalia Istiqomah", nama_absen: "Amalia Isti Wibi", jenis_kelamin: "P", tahun_lahir: 1999, umur: 27, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
-      { id_jamaah: "JM-5", id_keluarga: "KK-2", nama_kk: "Daud Wibisono", hubungan_keluarga: "C", nama_lengkap: "Zafran Shaum Wibisono", nama_absen: "Zafran Shaum Wibisono", jenis_kelamin: "L", tahun_lahir: 2025, umur: 1, status_nikah: "BELUM", is_aktif: "Y", flag_absen: "N", status_keberadaan: "Menetap", kategori_usia: "BALITA-PAUD", catatan: "" },
-      { id_jamaah: "JM-6", id_keluarga: "KK-3", nama_kk: "H. Slamet Riyadi", hubungan_keluarga: "A", nama_lengkap: "H. Slamet Riyadi", nama_absen: "Slamet Riyadi", jenis_kelamin: "L", tahun_lahir: 1967, umur: 59, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
-      { id_jamaah: "JM-7", id_keluarga: "KK-3", nama_kk: "H. Slamet Riyadi", hubungan_keluarga: "B", nama_lengkap: "Yusrida Djamal", nama_absen: "Yusrida Djamal Slamet.R", jenis_kelamin: "P", tahun_lahir: 1964, umur: 62, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" }
+    const mockJamaahSeed = [
+      ["JM-1", "KK-1", "A", "Bapak Contoh Satu", "Contoh Satu", "L", 1956, "MENIKAH", "Y", "Y"],
+      ["JM-2", "KK-1", "B", "Ibu Contoh Satu", "Ibu Satu", "P", 1968, "MENIKAH", "Y", "Y"],
+      ["JM-3", "KK-2", "A", "Bapak Contoh Dua", "Contoh Dua", "L", 1997, "MENIKAH", "Y", "Y"],
+      ["JM-4", "KK-2", "B", "Ibu Contoh Dua", "Ibu Dua", "P", 1999, "MENIKAH", "Y", "Y"],
+      ["JM-5", "KK-2", "C", "Anak Contoh Dua", "Anak Dua", "L", 2025, "BELUM", "Y", "N"],
+      ["JM-6", "KK-3", "A", "Bapak Contoh Tiga", "Contoh Tiga", "L", 1967, "MENIKAH", "Y", "Y"],
+      ["JM-7", "KK-3", "B", "Ibu Contoh Tiga", "Ibu Tiga", "P", 1964, "MENIKAH", "Y", "Y"]
     ];
+
+    function buildMockJamaah() {
+      const thisYear = new Date().getFullYear();
+      return mockJamaahSeed.map(r => ({
+        id_jamaah: r[0], id_keluarga: r[1],
+        nama_kk: (mockKeluarga.find(k => k.id_keluarga === r[1]) || {}).nama_kk || 'Tidak Terdaftar',
+        hubungan_keluarga: r[2], nama_lengkap: r[3], nama_absen: r[4], jenis_kelamin: r[5],
+        tahun_lahir: r[6], umur: thisYear - r[6], status_nikah: r[7], is_aktif: r[8], flag_absen: r[9],
+        status_keberadaan: "Menetap", kategori_usia: kategoriUsiaLokal(r[6], r[7]), catatan: ""
+      }));
+    }
 
     // Check if we are running in Google Apps Script or Local Browser
     const isLocalMode = typeof google === 'undefined' || !google.script || !google.script.run;
 
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
+      setupKeluargaSearch(); // cukup sekali, bukan setiap render
       initApp();
     });
 
@@ -1052,62 +1120,111 @@
         modeBadge.style.background = 'var(--color-warning)';
         modeBadge.querySelector('span').innerText = 'Mode Simulasi (Lokal)';
         simulateLoadData();
-      } else {
-        modeBadge.style.background = 'var(--color-primary)';
-        modeBadge.querySelector('span').innerText = 'Google Sheet Live';
+        return;
+      }
+      modeBadge.style.background = 'var(--color-primary)';
+      modeBadge.querySelector('span').innerText = 'Google Sheet Live';
+
+      authToken = loadToken();
+      if (authToken) {
         loadData();
+      } else {
+        showLogin();
       }
     }
 
-    // --- Loading Live Data from GAS ---
-    // --- Debug Helper ---
-    function updateDebugInfo(msg) {
-      const debugText = document.getElementById('debug-text');
-      const timestamp = new Date().toLocaleTimeString();
-      debugText.innerText = `[${timestamp}] ${msg}`;
-      console.log(`[DEBUG] ${msg}`);
+    // --- Auth UI ---
+    function showLogin(message) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('error-state').style.display = 'none';
+      document.getElementById('logout-btn').style.display = 'none';
+      document.getElementById('login-state').style.display = 'block';
+      document.getElementById('login-error').innerText = message || '';
+      const pin = document.getElementById('pin-input');
+      pin.value = '';
+      pin.focus();
     }
 
+    function handleLogin(event) {
+      event.preventDefault();
+      const btn = document.getElementById('login-btn');
+      const pin = document.getElementById('pin-input').value;
+      btn.disabled = true;
+      btn.querySelector('span').innerText = 'Memeriksa...';
+      document.getElementById('login-error').innerText = '';
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false;
+          btn.querySelector('span').innerText = 'Masuk';
+          if (res && res.success) {
+            saveToken(res.token);
+            document.getElementById('login-state').style.display = 'none';
+            loadData();
+          } else {
+            document.getElementById('pin-input').value = '';
+            document.getElementById('login-error').innerText = (res && res.message) || 'PIN salah.';
+          }
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false;
+          btn.querySelector('span').innerText = 'Masuk';
+          document.getElementById('login-error').innerText = 'Gagal terhubung: ' + (err.message || err);
+        })
+        .login(pin, 'index');
+    }
+
+    function handleLogout() {
+      const t = authToken;
+      saveToken(null);
+      appData = { jamaah: [], keluarga: [], rekap: {} };
+      resetForm();
+      if (!isLocalMode && t) google.script.run.logout(t);
+      showLogin('Anda sudah keluar.');
+    }
+
+    // Dipanggil saat server menolak token (kedaluwarsa / tidak valid)
+    function handleAuthError(res) {
+      if (res && res.authError) {
+        saveToken(null);
+        showLogin(res.message);
+        return true;
+      }
+      return false;
+    }
+
+    // --- Loading Live Data from GAS ---
     function loadData() {
+      if (isLocalMode) { simulateLoadData(); return; }
       showLoading(true);
-      updateDebugInfo('Calling getSensusData()...');
       google.script.run
         .withSuccessHandler((response) => {
-          console.log('📥 getSensusData response:', response);
-          updateDebugInfo(`Response received. Success: ${response.success}`);
-          
+          if (handleAuthError(response)) return;
           if (response.success && response.data) {
             appData = response.data;
-            console.log('✅ appData loaded:', appData);
-            updateDebugInfo(`✅ Data loaded!\nKeluarga: ${appData.keluarga ? appData.keluarga.length : 0}\nJamaah: ${appData.jamaah ? appData.jamaah.length : 0}`);
-            console.log('📦 Total keluarga:', appData.keluarga ? appData.keluarga.length : 0);
-            renderAll();
+            document.getElementById('logout-btn').style.display = 'inline-flex';
             showLoading(false);
+            renderAll();
           } else {
-            console.error('❌ Response error:', response.message);
-            updateDebugInfo(`❌ Error: ${response.message}`);
             showError(response.message || "Gagal mengambil data dari Google Sheets.");
           }
         })
         .withFailureHandler((err) => {
-          console.error('❌ Failure:', err);
-          updateDebugInfo(`❌ Failure: ${err.message || err.toString()}`);
           showError(err.message || err.toString());
         })
-        .getSensusData();
+        .getSensusData(authToken);
     }
 
     // --- Loading Mock Data ---
     function simulateLoadData() {
       showLoading(true);
-      updateDebugInfo('Using mock data (local test mode)...');
       setTimeout(() => {
         appData.keluarga = [...mockKeluarga];
-        appData.jamaah = [...mockJamaah];
+        appData.jamaah = buildMockJamaah();
         calculateMockRekap();
-        updateDebugInfo(`✅ Mock Data Loaded!\nKeluarga: ${appData.keluarga.length}\nJamaah: ${appData.jamaah.length}`);
-        renderAll();
         showLoading(false);
+        renderAll();
       }, 500);
     }
 
@@ -1121,16 +1238,14 @@
         }
       });
 
-      const activeKkCount = appData.keluarga.filter(k => !inactiveKeluargaIds[k.id_keluarga]).length;
-
       const rekap = {
         total: activeJamaah.length,
         laki: activeJamaah.filter(j => j.jenis_kelamin === 'L').length,
         perempuan: activeJamaah.filter(j => j.jenis_kelamin === 'P').length,
         duda: activeJamaah.filter(j => j.status_nikah === 'DUDA').length,
         janda: activeJamaah.filter(j => j.status_nikah === 'JANDA').length,
-        lansia: activeJamaah.filter(j => j.umur >= 57 && j.is_aktif === 'Y').length,
-        kkCount: activeKkCount,
+        lansia: activeJamaah.filter(j => j.umur >= 57).length,
+        kkCount: appData.keluarga.filter(k => !inactiveKeluargaIds[k.id_keluarga]).length,
         detail: {
           "BALITA-PAUD": { L: 0, P: 0 },
           "Caberawit": { L: 0, P: 0 },
@@ -1142,66 +1257,50 @@
       };
 
       activeJamaah.forEach(j => {
-        if (rekap.detail[j.kategori_usia]) {
-          if (j.status_nikah !== 'DUDA' && j.status_nikah !== 'JANDA') {
-            rekap.detail[j.kategori_usia][j.jenis_kelamin]++;
-          }
+        if (rekap.detail[j.kategori_usia] && (j.jenis_kelamin === 'L' || j.jenis_kelamin === 'P') &&
+            j.status_nikah !== 'DUDA' && j.status_nikah !== 'JANDA') {
+          rekap.detail[j.kategori_usia][j.jenis_kelamin]++;
         }
       });
 
       appData.rekap = rekap;
     }
 
-    // --- View Rendering ---
-    
-    // ✅ Semantic Search for Keluarga
+    // --- Pencarian Keluarga (KK) ---
     function filterKeluargaSearch() {
       const searchInput = document.getElementById('keluarga-search-input');
       const query = searchInput.value.toLowerCase().trim();
       const resultsContainer = document.getElementById('keluarga-results-container');
-      
-      console.log('🔍 filterKeluargaSearch called. Query:', query);
-      console.log('📦 appData:', appData);
-      console.log('📦 appData.keluarga:', appData.keluarga);
-      
-      if (!appData || !appData.keluarga || appData.keluarga.length === 0) {
-        console.error('❌ appData.keluarga kosong atau tidak ada!');
-        resultsContainer.innerHTML = '<div style="padding: 1rem; color: red; font-size: 0.9rem;">Data keluarga tidak ada. Silakan refresh halaman atau hubungi admin.</div>';
-        resultsContainer.style.display = 'block';
-        return;
-      }
-      
+
+      // Teks diketik ulang => pilihan KK sebelumnya tidak berlaku lagi sampai dipilih dari daftar
+      document.getElementById('form-id-keluarga').value = '';
+      toggleKeluargaFields();
+
       if (!query) {
         resultsContainer.style.display = 'none';
         return;
       }
-      
-      // Semantic search: match nama_kk or alamat
-      const filtered = appData.keluarga.filter(k => {
+
+      const filtered = (appData.keluarga || []).filter(k => {
         const nama = (k.nama_kk || '').toLowerCase();
         const alamat = (k.alamat || '').toLowerCase();
-        
-        // Exact match gets priority, then partial match
-        if (nama.includes(query) || alamat.includes(query)) {
-          return true;
-        }
-        
-        // Fuzzy match: check if all query chars are in the name
+        if (nama.includes(query) || alamat.includes(query)) return true;
+
+        // Fuzzy: semua huruf query muncul berurutan di nama
         let queryIdx = 0;
         for (let i = 0; i < nama.length && queryIdx < query.length; i++) {
           if (nama[i] === query[queryIdx]) queryIdx++;
         }
         return queryIdx === query.length;
       });
-      
-      console.log('✅ Filtered results count:', filtered.length);
-      console.log('✅ Filtered results:', filtered);
+
       renderKeluargaResults(filtered);
     }
-    
+
     function renderKeluargaResults(keluargaList) {
       const resultsContainer = document.getElementById('keluarga-results-container');
-      
+      resultsContainer.innerHTML = '';
+
       if (keluargaList.length === 0) {
         resultsContainer.innerHTML = `
           <div style="padding: 1rem; text-align: center; color: #999;">
@@ -1211,59 +1310,42 @@
         resultsContainer.style.display = 'block';
         return;
       }
-      
-      resultsContainer.innerHTML = '';
-      
-      // Show filtered keluarga options
+
       keluargaList.forEach(k => {
         const item = document.createElement('div');
         item.style.cssText = 'padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid #eee; transition: 0.2s;';
         item.innerHTML = `
-          <div style="font-weight: 600; color: #333;">${k.nama_kk}</div>
-          <div style="font-size: 0.85rem; color: #999;">${k.alamat}</div>
+          <div style="font-weight: 600; color: #333;">${esc(k.nama_kk)}</div>
+          <div style="font-size: 0.85rem; color: #999;">${esc(k.alamat)}</div>
         `;
         item.onclick = function() { selectKeluarga(k.id_keluarga, k.nama_kk); };
         item.onmouseover = function() { this.style.background = '#f0f0f0'; };
         item.onmouseout = function() { this.style.background = 'transparent'; };
         resultsContainer.appendChild(item);
       });
-      
+
+      // Opsi KK baru selalu tersedia di bawah hasil
+      const newItem = document.createElement('div');
+      newItem.style.cssText = 'padding: 0.75rem 1rem; cursor: pointer; color: var(--color-accent); font-weight: 600;';
+      newItem.textContent = '+ Buat Keluarga (KK) Baru';
+      newItem.onclick = selectKeluargaBaru;
+      resultsContainer.appendChild(newItem);
+
       resultsContainer.style.display = 'block';
     }
-    
+
     function selectKeluarga(keluargaId, keluargaNama) {
-      const searchInput = document.getElementById('keluarga-search-input');
-      const hiddenSelect = document.getElementById('form-id-keluarga');
-      const resultsContainer = document.getElementById('keluarga-results-container');
-      
-      hiddenSelect.value = keluargaId;
-      searchInput.value = keluargaNama;
-      resultsContainer.style.display = 'none';
-      
-      // Trigger change event to show/hide new keluarga fields
+      document.getElementById('form-id-keluarga').value = keluargaId;
+      document.getElementById('keluarga-search-input').value = keluargaNama;
+      document.getElementById('keluarga-results-container').style.display = 'none';
       toggleKeluargaFields();
     }
-    
+
     function selectKeluargaBaru() {
       selectKeluarga('NEW', 'Buat Keluarga Baru');
     }
-    
-    function toggleKeluargaFields() {
-      const selectedValue = document.getElementById('form-id-keluarga').value;
-      const newKeluargaFields = document.getElementById('new-keluarga-fields');
-      
-      if (selectedValue === 'NEW') {
-        newKeluargaFields.style.display = 'block';
-        document.getElementById('form-nama-kk').required = true;
-        document.getElementById('form-alamat').required = true;
-      } else {
-        newKeluargaFields.style.display = 'none';
-        document.getElementById('form-nama-kk').required = false;
-        document.getElementById('form-alamat').required = false;
-      }
-    }
-    
-    // Close results when clicking outside
+
+    // Tutup daftar hasil saat klik di luar (didaftarkan sekali saja)
     function setupKeluargaSearch() {
       document.addEventListener('click', function(e) {
         const searchInput = document.getElementById('keluarga-search-input');
@@ -1274,81 +1356,37 @@
       });
     }
 
+    // --- View Rendering ---
     function renderAll() {
-      console.log('🎨 renderAll() called');
-      console.log('📦 appData.keluarga length:', appData.keluarga ? appData.keluarga.length : 'undefined');
-      
-      // Setup keluarga search
-      setupKeluargaSearch();
-      
-      // 5. KPI stats
-      document.getElementById('kpi-total').innerText = appData.rekap.total;
-      document.getElementById('kpi-kk').innerText = appData.rekap.kkCount;
-      document.getElementById('kpi-laki').innerText = appData.rekap.laki;
-      document.getElementById('kpi-perempuan').innerText = appData.rekap.perempuan;
+      document.getElementById('kpi-total').innerText = appData.rekap.total || 0;
+      document.getElementById('kpi-kk').innerText = appData.rekap.kkCount || 0;
+      document.getElementById('kpi-laki').innerText = appData.rekap.laki || 0;
+      document.getElementById('kpi-perempuan').innerText = appData.rekap.perempuan || 0;
       document.getElementById('kpi-lansia').innerText = appData.rekap.lansia || 0;
 
-      // Dropdown KK
-      populateKeluargaDropdown();
-
-      // High-level visual stats
-      renderVisualStats();
-
-      // Rekap Table
+      if (analyticsDashboardVisible) renderVisualStats();
       renderRekapTable();
-
-      // Data Table
       filterAndRenderTable();
+      lucide.createIcons();
     }
 
     function renderVisualStats() {
       const rekap = appData.rekap;
       const totalJamaah = rekap.total || 0;
-      
-      const categories = [
-        { key: "BALITA-PAUD", label: "BALITA-PAUD" },
-        { key: "Caberawit", label: "Caberawit" },
-        { key: "Pra Remaja (SMP)", label: "Pra Remaja (SMP)" },
-        { key: "Remaja (SMA)", label: "Remaja (SMA)" },
-        { key: "Usia (Pra) Menikah", label: "Usia (Pra) Menikah" },
-        { key: "Dewasa Menikah", label: "Dewasa Menikah" }
-      ];
 
+      const categories = ["BALITA-PAUD", "Caberawit", "Pra Remaja (SMP)", "Remaja (SMA)", "Usia (Pra) Menikah", "Dewasa Menikah"];
       const dudaCount = rekap.duda || 0;
       const jandaCount = rekap.janda || 0;
+      const pct = n => totalJamaah > 0 ? ((n / totalJamaah) * 100).toFixed(1) : 0;
 
-      const items = [];
-      categories.forEach(c => {
-        const detail = rekap.detail[c.key] || { L: 0, P: 0 };
-        const totalCat = detail.L + detail.P;
-        items.push({
-          label: c.label,
-          L: detail.L,
-          P: detail.P,
-          total: totalCat,
-          percentage: totalJamaah > 0 ? ((totalCat / totalJamaah) * 100).toFixed(1) : 0
-        });
+      const items = categories.map(label => {
+        const detail = (rekap.detail && rekap.detail[label]) || { L: 0, P: 0 };
+        const total = detail.L + detail.P;
+        return { label, L: detail.L, P: detail.P, total, percentage: pct(total) };
       });
+      items.push({ label: "Duda", L: dudaCount, P: 0, total: dudaCount, percentage: pct(dudaCount) });
+      items.push({ label: "Janda", L: 0, P: jandaCount, total: jandaCount, percentage: pct(jandaCount) });
 
-      // Add Duda
-      items.push({
-        label: "Duda",
-        L: dudaCount,
-        P: 0,
-        total: dudaCount,
-        percentage: totalJamaah > 0 ? ((dudaCount / totalJamaah) * 100).toFixed(1) : 0
-      });
-
-      // Add Janda
-      items.push({
-        label: "Janda",
-        L: 0,
-        P: jandaCount,
-        total: jandaCount,
-        percentage: totalJamaah > 0 ? ((jandaCount / totalJamaah) * 100).toFixed(1) : 0
-      });
-
-      // Render the progress bar list
       const listEl = document.getElementById('visual-stats-list');
       if (listEl) {
         listEl.innerHTML = '';
@@ -1361,9 +1399,9 @@
           itemEl.className = 'visual-stat-item';
           itemEl.innerHTML = `
             <div class="visual-stat-info">
-              <span class="visual-stat-label">${item.label}</span>
+              <span class="visual-stat-label">${esc(item.label)}</span>
               <span class="visual-stat-value">
-                <strong>${item.total} Jiwa</strong> (${item.percentage}%) &middot; 
+                <strong>${item.total} Jiwa</strong> (${item.percentage}%) &middot;
                 <span style="color: #60a5fa;">L: ${item.L}</span> | <span style="color: #f43f5e;">P: ${item.P}</span>
               </span>
             </div>
@@ -1376,108 +1414,70 @@
         });
       }
 
-      // Render Chart.js Doughnut Chart
       const ctx = document.getElementById('categoryChart');
       const noDataEl = document.getElementById('chart-no-data');
-      if (ctx) {
-        // Destroy existing chart to avoid layout overlap errors
-        if (categoryChartInstance) {
-          categoryChartInstance.destroy();
-        }
+      if (!ctx) return;
 
-        const activeItems = items.filter(x => x.total > 0);
-        const chartLabels = activeItems.map(x => x.label);
-        const chartData = activeItems.map(x => x.total);
-        
-        // Colors palette
-        const colors = [
-          '#10b981', // BALITA - Emerald
-          '#6366f1', // Caberawit - Indigo
-          '#3b82f6', // Pra Remaja - Blue
-          '#f59e0b', // Remaja - Amber
-          '#ec4899', // Pra Nikah - Pink
-          '#8b5cf6', // Dewasa Menikah - Purple
-          '#ef4444', // Duda - Red
-          '#06b6d4'  // Janda - Cyan
-        ];
+      if (categoryChartInstance) {
+        categoryChartInstance.destroy();
+        categoryChartInstance = null;
+      }
 
-        if (chartData.length === 0) {
-          categoryChartInstance = null;
-          ctx.style.display = 'none';
-          if (noDataEl) noDataEl.style.display = 'block';
-          return;
-        }
-        ctx.style.display = 'block';
-        if (noDataEl) noDataEl.style.display = 'none';
+      const activeItems = items.filter(x => x.total > 0);
+      const colorByLabel = {
+        "BALITA-PAUD": '#10b981', "Caberawit": '#6366f1', "Pra Remaja (SMP)": '#3b82f6', "Remaja (SMA)": '#f59e0b',
+        "Usia (Pra) Menikah": '#ec4899', "Dewasa Menikah": '#8b5cf6', "Duda": '#ef4444', "Janda": '#06b6d4'
+      };
 
-        categoryChartInstance = new Chart(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: chartLabels,
-            datasets: [{
-              data: chartData,
-              backgroundColor: colors.slice(0, chartLabels.length),
-              borderWidth: 2,
-              borderColor: '#ffffff'
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                position: 'right',
-                labels: {
-                  boxWidth: 12,
-                  font: {
-                    family: 'Outfit',
-                    size: 11
-                  },
-                  padding: 8
-                }
-              },
-              tooltip: {
-                callbacks: {
-                  label: function(context) {
-                    const label = context.label || '';
-                    const val = context.raw || 0;
-                    const pct = totalJamaah > 0 ? ((val / totalJamaah) * 100).toFixed(1) : 0;
-                    return ` ${label}: ${val} Jiwa (${pct}%)`;
-                  }
+      if (activeItems.length === 0) {
+        ctx.style.display = 'none';
+        if (noDataEl) noDataEl.style.display = 'block';
+        return;
+      }
+      ctx.style.display = 'block';
+      if (noDataEl) noDataEl.style.display = 'none';
+
+      categoryChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: activeItems.map(x => x.label),
+          datasets: [{
+            data: activeItems.map(x => x.total),
+            // warna mengikuti kategori, tidak bergeser saat ada kategori kosong
+            backgroundColor: activeItems.map(x => colorByLabel[x.label]),
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { boxWidth: 12, font: { family: 'Outfit', size: 11 }, padding: 8 }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const val = context.raw || 0;
+                  return ` ${context.label || ''}: ${val} Jiwa (${pct(val)}%)`;
                 }
               }
-            },
-            cutout: '65%'
-          }
-        });
-      }
-    }
-
-    function populateKeluargaDropdown() {
-      const select = document.getElementById('form-id-keluarga');
-      // Keep only initial option + option NEW
-      select.innerHTML = `
-        <option value="">-- Pilih KK --</option>
-        <option value="NEW" style="color: var(--color-accent); font-weight: 600;">+ Buat Keluarga (KK) Baru</option>
-      `;
-      appData.keluarga.forEach(k => {
-        const option = document.createElement('option');
-        option.value = k.id_keluarga;
-        option.innerText = `${k.nama_kk} (${k.alamat})`;
-        select.appendChild(option);
+            }
+          },
+          cutout: '65%'
+        }
       });
     }
 
     function renderRekapTable() {
-      // 1. KK count
-      document.getElementById('rekap-kk').innerText = appData.rekap.kkCount || 0;
+      const r = appData.rekap || {};
+      document.getElementById('rekap-kk').innerText = r.kkCount || 0;
+      document.getElementById('rekap-laki').innerText = r.laki || 0;
+      document.getElementById('rekap-perempuan').innerText = r.perempuan || 0;
+      document.getElementById('rekap-total-gender').innerText = (r.laki || 0) + (r.perempuan || 0);
 
-      // 2. Gender counts
-      document.getElementById('rekap-laki').innerText = appData.rekap.laki || 0;
-      document.getElementById('rekap-perempuan').innerText = appData.rekap.perempuan || 0;
-      document.getElementById('rekap-total-gender').innerText = (appData.rekap.laki || 0) + (appData.rekap.perempuan || 0);
-
-      // 3. Category counts (L and P)
       const categories = {
         "BALITA-PAUD": "balita",
         "Caberawit": "caberawit",
@@ -1486,27 +1486,15 @@
         "Usia (Pra) Menikah": "pra-nikah",
         "Dewasa Menikah": "dewasa"
       };
-
-      const detailUpper = {};
-      if (appData.rekap && appData.rekap.detail) {
-        for (let k in appData.rekap.detail) {
-          detailUpper[k.toUpperCase().trim()] = appData.rekap.detail[k];
-        }
-      }
-
       for (let key in categories) {
-        const domPrefix = categories[key];
-        const detail = detailUpper[key.toUpperCase().trim()] || { L: 0, P: 0 };
-        document.getElementById(`rekap-${domPrefix}-l`).innerText = detail.L;
-        document.getElementById(`rekap-${domPrefix}-p`).innerText = detail.P;
+        const detail = (r.detail && r.detail[key]) || { L: 0, P: 0 };
+        document.getElementById(`rekap-${categories[key]}-l`).innerText = detail.L;
+        document.getElementById(`rekap-${categories[key]}-p`).innerText = detail.P;
       }
 
-      // 4. Duda / Janda
-      document.getElementById('rekap-duda').innerText = appData.rekap.duda || 0;
-      document.getElementById('rekap-janda').innerText = appData.rekap.janda || 0;
-
-      // 5. Grand total all
-      document.getElementById('rekap-total-all').innerText = appData.rekap.total || 0;
+      document.getElementById('rekap-duda').innerText = r.duda || 0;
+      document.getElementById('rekap-janda').innerText = r.janda || 0;
+      document.getElementById('rekap-total-all').innerText = r.total || 0;
     }
 
     function setSort(field) {
@@ -1525,7 +1513,6 @@
       fields.forEach(f => {
         const el = document.getElementById(`sort-${f}`);
         if (!el) return;
-        
         let iconName = 'chevrons-up-down';
         if (sortField === f) {
           iconName = (sortOrder === 'asc') ? 'chevron-up' : 'chevron-down';
@@ -1533,48 +1520,47 @@
         } else {
           el.parentElement.classList.remove('sorted');
         }
-        
         el.innerHTML = `<i data-lucide="${iconName}" style="width: 14px; height: 14px;"></i>`;
       });
       lucide.createIcons();
     }
 
-    function filterAndRenderTable() {
+    // Satu fungsi filter+sort dipakai tabel dan cetak (sebelumnya diduplikasi)
+    function getFilteredJamaah() {
       const q = document.getElementById('search-input').value.toLowerCase();
       const fKategori = document.getElementById('filter-kategori').value;
       const fGender = document.getElementById('filter-gender').value;
       const fAktif = document.getElementById('filter-aktif').value;
       const fAbsen = document.getElementById('filter-absen').value;
 
-      const filtered = appData.jamaah.filter(j => {
-        const matchesQ = j.nama_lengkap.toLowerCase().includes(q) ||
-          j.nama_absen.toLowerCase().includes(q) ||
-          j.nama_kk.toLowerCase().includes(q);
-        const matchesKategori = !fKategori || j.kategori_usia === fKategori;
-        const matchesGender = !fGender || j.jenis_kelamin === fGender;
-        const matchesAktif = !fAktif || j.is_aktif === fAktif;
-        const matchesAbsen = !fAbsen || j.flag_absen === fAbsen;
-
-        return matchesQ && matchesKategori && matchesGender && matchesAktif && matchesAbsen;
+      const filtered = (appData.jamaah || []).filter(j => {
+        const matchesQ = String(j.nama_lengkap).toLowerCase().includes(q) ||
+          String(j.nama_absen).toLowerCase().includes(q) ||
+          String(j.nama_kk).toLowerCase().includes(q);
+        return matchesQ &&
+          (!fKategori || j.kategori_usia === fKategori) &&
+          (!fGender || j.jenis_kelamin === fGender) &&
+          (!fAktif || j.is_aktif === fAktif) &&
+          (!fAbsen || j.flag_absen === fAbsen);
       });
 
-      // Sorting
       if (sortField) {
         filtered.sort((a, b) => {
           let valA = a[sortField];
           let valB = b[sortField];
-          
-          if (typeof valA === 'string') {
-            valA = valA.toLowerCase();
-            valB = valB.toLowerCase();
-          }
-          
+          if (valA === null || valA === undefined) return 1;
+          if (valB === null || valB === undefined) return -1;
+          if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = String(valB).toLowerCase(); }
           if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
           if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
           return 0;
         });
       }
+      return filtered;
+    }
 
+    function filterAndRenderTable() {
+      const filtered = getFilteredJamaah();
       const tbody = document.getElementById('jamaah-table-rows');
       tbody.innerHTML = '';
 
@@ -1585,31 +1571,26 @@
 
       filtered.forEach((j, index) => {
         const tr = document.createElement('tr');
-        
-        // ✅ Build row cells safely without innerHTML
+        // Semua nilai dari data di-escape sebelum masuk HTML
         const cells = [
           { text: String(index + 1), style: 'color: var(--text-muted);' },
-          { html: `${j.nama_lengkap} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">(${j.nama_absen})</span>`, style: 'font-weight: 600;' },
-          { html: `<span style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 0.2rem 0.4rem; border-radius: 4px;">${j.hubungan_keluarga}</span>`, style: 'text-align: center;' },
+          { html: `${esc(j.nama_lengkap)} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">(${esc(j.nama_absen)})</span>`, style: 'font-weight: 600;' },
+          { html: `<span style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 0.2rem 0.4rem; border-radius: 4px;">${esc(j.hubungan_keluarga)}</span>`, style: 'text-align: center;' },
           { text: j.nama_kk, style: '' },
           { text: j.kategori_usia, style: '' },
-          { text: j.umur + ' th', style: 'text-align: center;' },
-          { html: `<span class="active-badge ${j.is_aktif === 'Y' ? 'yes' : 'no'}">${j.is_aktif}</span>`, style: 'text-align: center;' },
-          { html: `<span class="active-badge ${j.flag_absen === 'Y' ? 'yes' : 'no'}">${j.flag_absen}</span>`, style: 'text-align: center;' }
+          { text: umurText(j.umur), style: 'text-align: center;' },
+          { html: `<span class="active-badge ${j.is_aktif === 'Y' ? 'yes' : 'no'}">${esc(j.is_aktif)}</span>`, style: 'text-align: center;' },
+          { html: `<span class="active-badge ${j.flag_absen === 'Y' ? 'yes' : 'no'}">${esc(j.flag_absen)}</span>`, style: 'text-align: center;' }
         ];
-        
+
         cells.forEach(cell => {
           const td = document.createElement('td');
           if (cell.style) td.style.cssText = cell.style;
-          if (cell.html) {
-            td.innerHTML = cell.html;
-          } else {
-            td.textContent = cell.text;
-          }
+          if (cell.html) td.innerHTML = cell.html;
+          else td.textContent = cell.text;
           tr.appendChild(td);
         });
-        
-        // Add Edit button in last cell
+
         const tdEdit = document.createElement('td');
         const editBtn = document.createElement('button');
         editBtn.className = 'edit-btn';
@@ -1617,7 +1598,7 @@
         editBtn.onclick = function() { editJamaah(j.id_jamaah); };
         tdEdit.appendChild(editBtn);
         tr.appendChild(tdEdit);
-        
+
         tbody.appendChild(tr);
       });
 
@@ -1625,100 +1606,30 @@
     }
 
     function printTable() {
-      const q = document.getElementById('search-input').value.toLowerCase();
-      const fKategori = document.getElementById('filter-kategori').value;
-      const fGender = document.getElementById('filter-gender').value;
-      const fAktif = document.getElementById('filter-aktif').value;
-      const fAbsen = document.getElementById('filter-absen').value;
-
-      const filtered = appData.jamaah.filter(j => {
-        const matchesQ = j.nama_lengkap.toLowerCase().includes(q) ||
-          j.nama_absen.toLowerCase().includes(q) ||
-          j.nama_kk.toLowerCase().includes(q);
-        const matchesKategori = !fKategori || j.kategori_usia === fKategori;
-        const matchesGender = !fGender || j.jenis_kelamin === fGender;
-        const matchesAktif = !fAktif || j.is_aktif === fAktif;
-        const matchesAbsen = !fAbsen || j.flag_absen === fAbsen;
-
-        return matchesQ && matchesKategori && matchesGender && matchesAktif && matchesAbsen;
-      });
-
-      if (sortField) {
-        filtered.sort((a, b) => {
-          let valA = a[sortField];
-          let valB = b[sortField];
-          if (typeof valA === 'string') {
-            valA = valA.toLowerCase();
-            valB = valB.toLowerCase();
-          }
-          if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-          if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
-          return 0;
-        });
-      }
-
+      const filtered = getFilteredJamaah();
       const printWindow = window.open('', '_blank');
+      if (!printWindow) { alert('Pop-up diblokir browser. Izinkan pop-up untuk mencetak.'); return; }
       printWindow.document.write(`
         <html>
           <head>
             <title>Cetak Data Sensus Jamaah</title>
             <style>
-              body {
-                font-family: system-ui, -apple-system, sans-serif;
-                color: #1e293b;
-                padding: 2.5rem;
-                line-height: 1.5;
-              }
-              h2 {
-                text-align: center;
-                margin-top: 0;
-                margin-bottom: 0.25rem;
-                color: #0f766e;
-                font-size: 1.6rem;
-              }
-              .sub-title {
-                text-align: center;
-                font-size: 1.1rem;
-                font-weight: 500;
-                color: #475569;
-                margin-bottom: 0.5rem;
-              }
-              .meta-info {
-                text-align: center;
-                font-size: 0.85rem;
-                color: #64748b;
-                margin-bottom: 2rem;
-                border-bottom: 2px solid #e2e8f0;
-                padding-bottom: 1rem;
-              }
-              table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 0.8rem;
-              }
-              th, td {
-                border: 1px solid #cbd5e1;
-                padding: 0.5rem 0.75rem;
-                text-align: left;
-              }
-              th {
-                background: #f8fafc;
-                font-weight: 600;
-                color: #334155;
-              }
-              .text-center {
-                text-align: center;
-              }
-              tr:nth-child(even) {
-                background: #f8fafc;
-              }
+              body { font-family: system-ui, -apple-system, sans-serif; color: #1e293b; padding: 2.5rem; line-height: 1.5; }
+              h2 { text-align: center; margin-top: 0; margin-bottom: 0.25rem; color: #0f766e; font-size: 1.6rem; }
+              .sub-title { text-align: center; font-size: 1.1rem; font-weight: 500; color: #475569; margin-bottom: 0.5rem; }
+              .meta-info { text-align: center; font-size: 0.85rem; color: #64748b; margin-bottom: 2rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; }
+              table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+              th, td { border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; text-align: left; }
+              th { background: #f8fafc; font-weight: 600; color: #334155; }
+              .text-center { text-align: center; }
+              tr:nth-child(even) { background: #f8fafc; }
             </style>
           </head>
           <body>
             <h2>Sensus Jamaah Babakan Barat</h2>
             <div class="sub-title">Daftar Hasil Pencarian Sensus</div>
             <div class="meta-info">
-              Dicetak pada: ${new Date().toLocaleString('id-ID')} &bull; Filter Aktif: ${filtered.length} Jiwa
+              Dicetak pada: ${esc(new Date().toLocaleString('id-ID'))} &bull; Filter Aktif: ${filtered.length} Jiwa
             </div>
             <table>
               <thead>
@@ -1741,13 +1652,13 @@
                 ` : filtered.map((j, index) => `
                   <tr>
                     <td class="text-center">${index + 1}</td>
-                    <td><strong>${j.nama_lengkap}</strong> (${j.nama_absen})</td>
-                    <td class="text-center" style="font-family: monospace;">${j.hubungan_keluarga}</td>
-                    <td>${j.nama_kk}</td>
-                    <td>${j.kategori_usia}</td>
-                    <td class="text-center">${j.umur} th</td>
-                    <td class="text-center">${j.is_aktif}</td>
-                    <td class="text-center">${j.flag_absen}</td>
+                    <td><strong>${esc(j.nama_lengkap)}</strong> (${esc(j.nama_absen)})</td>
+                    <td class="text-center" style="font-family: monospace;">${esc(j.hubungan_keluarga)}</td>
+                    <td>${esc(j.nama_kk)}</td>
+                    <td>${esc(j.kategori_usia)}</td>
+                    <td class="text-center">${esc(umurText(j.umur))}</td>
+                    <td class="text-center">${esc(j.is_aktif)}</td>
+                    <td class="text-center">${esc(j.flag_absen)}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -1766,23 +1677,18 @@
 
     // --- Form Logic ---
     function toggleKeluargaFields() {
-      const select = document.getElementById('form-id-keluarga');
-      const container = document.getElementById('new-keluarga-fields');
-      const isNewFlag = document.getElementById('form-is-new-keluarga');
+      const isNew = document.getElementById('form-id-keluarga').value === 'NEW';
+      document.getElementById('new-keluarga-fields').style.display = isNew ? 'block' : 'none';
+      document.getElementById('form-is-new-keluarga').value = isNew ? 'true' : 'false';
 
-      const fields = ['form-nama-kk', 'form-alamat', 'form-telepon'];
-
-      if (select.value === 'NEW') {
-        container.style.display = 'block';
-        isNewFlag.value = 'true';
-        fields.forEach(f => document.getElementById(f).setAttribute('required', 'true'));
-      } else {
-        container.style.display = 'none';
-        isNewFlag.value = 'false';
-        fields.forEach(f => {
-          document.getElementById(f).removeAttribute('required');
-          document.getElementById(f).value = '';
-        });
+      // Telepon opsional; nama KK & alamat wajib bila membuat KK baru
+      ['form-nama-kk', 'form-alamat'].forEach(f => {
+        const el = document.getElementById(f);
+        if (isNew) el.setAttribute('required', 'true');
+        else el.removeAttribute('required');
+      });
+      if (!isNew) {
+        ['form-nama-kk', 'form-alamat', 'form-telepon'].forEach(f => document.getElementById(f).value = '');
       }
     }
 
@@ -1794,24 +1700,20 @@
       document.getElementById('submit-btn').querySelector('span').innerText = "Update Data";
       document.getElementById('cancel-btn').style.display = 'block';
 
-      // Set values
       document.getElementById('form-id-jamaah').value = j.id_jamaah;
-      document.getElementById('form-id-keluarga').value = j.id_keluarga;
+      // Isi juga kotak pencarian supaya KK yang sedang dipakai terlihat
+      selectKeluarga(j.id_keluarga, j.nama_kk);
       document.getElementById('form-nama-lengkap').value = j.nama_lengkap;
       document.getElementById('form-nama-absen').value = j.nama_absen;
       document.getElementById('form-hubungan-keluarga').value = j.hubungan_keluarga;
       document.getElementById('form-jenis-kelamin').value = j.jenis_kelamin;
-      document.getElementById('form-tahun-lahir').value = j.tahun_lahir;
-      document.getElementById('form-status-nikah').value = j.status_nikah;
-      document.getElementById('form-status-keberadaan').value = j.status_keberadaan;
+      document.getElementById('form-tahun-lahir').value = j.tahun_lahir || '';
+      document.getElementById('form-status-nikah').value = j.status_nikah === 'BELUM' ? '' : j.status_nikah;
+      document.getElementById('form-status-keberadaan').value = j.status_keberadaan || 'Menetap';
       document.getElementById('form-is-aktif').checked = (j.is_aktif === 'Y');
       document.getElementById('form-flag-absen').checked = (j.flag_absen === 'Y');
-      document.getElementById('form-catatan').value = j.catatan;
+      document.getElementById('form-catatan').value = j.catatan || '';
 
-      // Close new keluarga section if it was open
-      toggleKeluargaFields();
-
-      // Scroll to form
       document.getElementById('form-container').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -1820,13 +1722,26 @@
       document.getElementById('submit-btn').querySelector('span').innerText = "Simpan Data";
       document.getElementById('cancel-btn').style.display = 'none';
 
-      document.getElementById('form-id-jamaah').value = '';
       document.getElementById('sensus-form').reset();
+      // form.reset() TIDAK mengosongkan <input type="hidden">, jadi dikosongkan manual
+      document.getElementById('form-id-jamaah').value = '';
+      document.getElementById('form-id-keluarga').value = '';
+      document.getElementById('form-is-new-keluarga').value = 'false';
+      document.getElementById('keluarga-search-input').value = '';
+      document.getElementById('keluarga-results-container').style.display = 'none';
       toggleKeluargaFields();
     }
 
     function handleFormSubmit(event) {
       event.preventDefault();
+
+      // Validasi klien (server tetap memvalidasi ulang)
+      const idKeluarga = document.getElementById('form-id-keluarga').value;
+      if (!idKeluarga) {
+        alert("Pilih Keluarga (KK) dari daftar hasil pencarian, atau pilih '+ Buat Keluarga (KK) Baru'.");
+        document.getElementById('keluarga-search-input').focus();
+        return;
+      }
 
       const submitBtn = document.getElementById('submit-btn');
       const originalText = submitBtn.querySelector('span').innerText;
@@ -1835,20 +1750,18 @@
 
       const formData = {
         id_jamaah: document.getElementById('form-id-jamaah').value || null,
-        id_keluarga: document.getElementById('form-id-keluarga').value,
+        id_keluarga: idKeluarga,
         is_new_keluarga: document.getElementById('form-is-new-keluarga').value === 'true',
 
-        // New keluarga detail
         nama_kk: document.getElementById('form-nama-kk').value || null,
         alamat: document.getElementById('form-alamat').value || null,
         telepon: document.getElementById('form-telepon').value || null,
 
-        // Jamaah detail
         nama_lengkap: document.getElementById('form-nama-lengkap').value,
         nama_absen: document.getElementById('form-nama-absen').value,
         hubungan_keluarga: document.getElementById('form-hubungan-keluarga').value,
         jenis_kelamin: document.getElementById('form-jenis-kelamin').value,
-        tahun_lahir: parseInt(document.getElementById('form-tahun-lahir').value),
+        tahun_lahir: parseInt(document.getElementById('form-tahun-lahir').value, 10),
         status_nikah: document.getElementById('form-status-nikah').value || "BELUM",
         status_keberadaan: document.getElementById('form-status-keberadaan').value,
         is_aktif: document.getElementById('form-is-aktif').checked ? 'Y' : 'N',
@@ -1856,99 +1769,70 @@
         catatan: document.getElementById('form-catatan').value || ""
       };
 
+      const done = () => {
+        submitBtn.disabled = false;
+        submitBtn.querySelector('span').innerText = originalText;
+      };
+
       if (isLocalMode) {
-        // --- Handle submit locally (Mock) ---
         setTimeout(() => {
           let targetKeluargaId = formData.id_keluarga;
           if (formData.is_new_keluarga) {
             targetKeluargaId = "KK-" + new Date().getTime();
-            appData.keluarga.push({
-              id_keluarga: targetKeluargaId,
-              nama_kk: formData.nama_kk,
-              alamat: formData.alamat,
-              telepon: formData.telepon
-            });
+            appData.keluarga.push({ id_keluarga: targetKeluargaId, nama_kk: formData.nama_kk, alamat: formData.alamat, telepon: formData.telepon });
           }
-
-          const namaKK = appData.keluarga.find(k => k.id_keluarga === targetKeluargaId).nama_kk;
-          const tahunSekarang = new Date().getFullYear();
-          const umur = tahunSekarang - formData.tahun_lahir;
-
-          // Rule Engine Kategori Usia
-          let kategoriUsia = "Usia (Pra) Menikah";
-          if (formData.status_nikah === 'MENIKAH' || formData.status_nikah === 'JANDA' || formData.status_nikah === 'DUDA') {
-            kategoriUsia = "Dewasa Menikah";
-          } else if (umur <= 5) {
-            kategoriUsia = "BALITA-PAUD";
-          } else if (umur <= 12) {
-            kategoriUsia = "Caberawit";
-          } else if (umur <= 15) {
-            kategoriUsia = "Pra Remaja (SMP)";
-          } else if (umur <= 17) {
-            kategoriUsia = "Remaja (SMA)";
-          }
-
-          const calculatedJamaah = {
+          const kk = appData.keluarga.find(k => k.id_keluarga === targetKeluargaId);
+          const jamaah = {
             id_jamaah: formData.id_jamaah || ("JM-" + new Date().getTime()),
             id_keluarga: targetKeluargaId,
-            nama_kk: namaKK,
+            nama_kk: kk ? kk.nama_kk : 'Tidak Terdaftar',
             hubungan_keluarga: formData.hubungan_keluarga,
             nama_lengkap: formData.nama_lengkap,
             nama_absen: formData.nama_absen,
             jenis_kelamin: formData.jenis_kelamin,
             tahun_lahir: formData.tahun_lahir,
-            umur: umur,
+            umur: new Date().getFullYear() - formData.tahun_lahir,
             status_nikah: formData.status_nikah,
             is_aktif: formData.is_aktif,
             flag_absen: formData.flag_absen,
             status_keberadaan: formData.status_keberadaan,
-            kategori_usia: kategoriUsia,
+            kategori_usia: kategoriUsiaLokal(formData.tahun_lahir, formData.status_nikah),
             catatan: formData.catatan
           };
-
-          if (formData.id_jamaah) {
-            // Edit existing
-            const idx = appData.jamaah.findIndex(j => j.id_jamaah === formData.id_jamaah);
-            if (idx !== -1) appData.jamaah[idx] = calculatedJamaah;
-          } else {
-            // Add new
-            appData.jamaah.push(calculatedJamaah);
-          }
+          const idx = appData.jamaah.findIndex(j => j.id_jamaah === jamaah.id_jamaah);
+          if (idx !== -1) appData.jamaah[idx] = jamaah; else appData.jamaah.push(jamaah);
 
           calculateMockRekap();
           renderAll();
           resetForm();
-
-          submitBtn.disabled = false;
-          submitBtn.querySelector('span').innerText = originalText;
+          done();
           alert("Simulasi lokal: Data berhasil disimpan!");
         }, 600);
-
-      } else {
-        // --- Live GAS API Submit ---
-        google.script.run
-          .withSuccessHandler((response) => {
-            submitBtn.disabled = false;
-            submitBtn.querySelector('span').innerText = originalText;
-            if (response.success) {
-              alert(response.message);
-              resetForm();
-              loadData(); // Reload stats and table
-            } else {
-              alert("Gagal menyimpan: " + response.message);
-            }
-          })
-          .withFailureHandler((err) => {
-            submitBtn.disabled = false;
-            submitBtn.querySelector('span').innerText = originalText;
-            alert("Error: " + err.toString());
-          })
-          .saveSensusData(formData);
+        return;
       }
+
+      google.script.run
+        .withSuccessHandler((response) => {
+          done();
+          if (handleAuthError(response)) return;
+          if (response.success) {
+            alert(response.message);
+            resetForm();
+            loadData();
+          } else {
+            alert(response.message);
+          }
+        })
+        .withFailureHandler((err) => {
+          done();
+          alert("Error: " + (err.message || err));
+        })
+        .saveSensusData(authToken, formData);
     }
 
     // --- Helper UI Functions ---
     function showLoading(show) {
+      document.getElementById('login-state').style.display = 'none';
       document.getElementById('loading-state').style.display = show ? 'block' : 'none';
       document.getElementById('main-content').style.display = show ? 'none' : 'block';
       document.getElementById('error-state').style.display = 'none';
@@ -1961,11 +1845,9 @@
       document.getElementById('error-message').innerText = msg;
     }
 
-    // Toggle Analytics Dashboard
     function toggleAnalyticsDashboard() {
       analyticsDashboardVisible = !analyticsDashboardVisible;
       const dashboard = document.getElementById('analytics-dashboard');
-      const btn = document.getElementById('toggle-analytics-btn');
       const btnText = document.getElementById('toggle-analytics-text');
       const btnIcon = document.getElementById('toggle-analytics-icon');
 
@@ -1973,14 +1855,12 @@
         dashboard.style.display = 'grid';
         btnText.innerText = 'Sembunyikan Visualisasi Data';
         btnIcon.setAttribute('data-lucide', 'eye-off');
-        // Render the visual stats and chart when toggled on
         renderVisualStats();
       } else {
         dashboard.style.display = 'none';
         btnText.innerText = 'Tampilkan Visualisasi Data';
         btnIcon.setAttribute('data-lucide', 'eye');
       }
-
       lucide.createIcons();
     }
   </script>

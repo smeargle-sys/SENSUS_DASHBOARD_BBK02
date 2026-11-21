@@ -12,10 +12,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Lucide Icons for Clean Iconography -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@1.77.0"></script>
 
   <!-- Chart.js for High Level Data Visualization -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1"></script>
 
   <style>
     /* Design System: Sleek Light Mode & Premium Clean Aesthetics */
@@ -465,6 +465,15 @@
     .btn-accent:hover {
       background: #4f46e5;
     }
+
+    /* Login PIN */
+    #login-state { display: none; max-width: 380px; margin: 4rem auto; text-align: center; padding: 2rem; }
+    #login-state .lock-icon { width: 48px; height: 48px; color: var(--color-accent); margin-bottom: 0.75rem; }
+    #pin-input { width: 100%; padding: 0.85rem 1rem; margin: 1rem 0 0.75rem; font-size: 1.4rem; letter-spacing: 0.5rem; text-align: center; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; outline: none; }
+    #pin-input:focus { border-color: var(--color-accent); }
+    #login-error { color: var(--color-danger); font-size: 0.9rem; min-height: 1.2rem; margin-top: 0.75rem; }
+    .header-actions { display: flex; align-items: center; gap: 0.75rem; }
+    #logout-btn { display: none; width: auto; margin-top: 0; padding: 0.45rem 0.9rem; font-size: 0.85rem; }
   </style>
 </head>
 
@@ -475,14 +484,32 @@
         <h1>Sensus Jiwa & Jamaah</h1>
         <p>Kelompok Babakan Barat - Ringkasan Publik & Laporan Kehadiran</p>
       </div>
-      <div id="mode-badge" class="badge" style="background: var(--color-accent);">
-        <i data-lucide="eye"></i>
-        <span>Mode Lihat (Read-Only)</span>
+      <div class="header-actions">
+        <div id="mode-badge" class="badge" style="background: var(--color-accent);">
+          <i data-lucide="eye"></i>
+          <span>Mode Lihat (Read-Only)</span>
+        </div>
+        <button id="logout-btn" class="btn btn-secondary" onclick="handleLogout()">
+          <i data-lucide="log-out" style="width: 15px; height: 15px;"></i>
+          <span>Keluar</span>
+        </button>
       </div>
     </header>
 
+    <!-- Login PIN -->
+    <div id="login-state" class="card">
+      <i data-lucide="lock" class="lock-icon"></i>
+      <h2>Masuk Ringkasan Sensus</h2>
+      <p style="color: var(--text-muted); margin-top: 0.5rem;">Masukkan PIN pengurus untuk melihat laporan.</p>
+      <form onsubmit="handleLogin(event)">
+        <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••••" required>
+        <button type="submit" id="login-btn" class="btn btn-accent" style="width: 100%;"><span>Masuk</span></button>
+      </form>
+      <p id="login-error"></p>
+    </div>
+
     <!-- Loading State -->
-    <div id="loading-state">
+    <div id="loading-state" style="display: none;">
       <div class="spinner"></div>
       <h2>Memuat Laporan Sensus...</h2>
       <p style="color: var(--text-muted); margin-top: 0.5rem;">Sedang menyinkronkan data langsung dari server.</p>
@@ -497,7 +524,7 @@
     </div>
 
     <!-- Main Content Area -->
-    <div id="main-content" style="display: none; display: flex; flex-direction: column; gap: 2rem;">
+    <div id="main-content" style="display: none; flex-direction: column; gap: 2rem;">
       <!-- KPI Stats -->
       <div class="grid-5">
         <div class="card stat-card">
@@ -740,6 +767,36 @@
     // --- Analytics Dashboard Toggle State ---
     let analyticsDashboardVisible = false;
 
+    // --- Auth State ---
+    const TOKEN_KEY = 'sensus_token_view';
+    let authToken = null;
+
+    // Escape data sebelum masuk ke innerHTML / template HTML (anti-XSS)
+    function esc(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function umurText(umur) {
+      return (umur === null || umur === undefined) ? '-' : umur + ' th';
+    }
+
+    // Sel CSV yang diawali = + - @ bisa dieksekusi sebagai rumus oleh Excel/Sheets
+    function csvCell(value) {
+      let s = String(value == null ? '' : value);
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+
+    function saveToken(t) {
+      authToken = t;
+      try { t ? sessionStorage.setItem(TOKEN_KEY, t) : sessionStorage.removeItem(TOKEN_KEY); } catch (e) {}
+    }
+    function loadToken() {
+      try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; }
+    }
+
     // --- Check Mode (GAS vs Local) ---
     const isLocalMode = typeof google === 'undefined' || !google.script || !google.script.run;
 
@@ -752,30 +809,96 @@
       const modeBadge = document.getElementById('mode-badge');
       if (isLocalMode) {
         modeBadge.style.background = 'var(--color-warning)';
-        modeBadge.querySelector('span').innerText = 'Mode Ringkasan Publik (Simulasi)';
+        modeBadge.querySelector('span').innerText = 'Mode Ringkasan (Simulasi)';
         simulateLoadData();
-      } else {
-        loadData();
+        return;
       }
+      authToken = loadToken();
+      if (authToken) loadData();
+      else showLogin();
+    }
+
+    // --- Auth UI ---
+    function showLogin(message) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('error-state').style.display = 'none';
+      document.getElementById('logout-btn').style.display = 'none';
+      document.getElementById('login-state').style.display = 'block';
+      document.getElementById('login-error').innerText = message || '';
+      const pin = document.getElementById('pin-input');
+      pin.value = '';
+      pin.focus();
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();
+      const btn = document.getElementById('login-btn');
+      const pin = document.getElementById('pin-input').value;
+      btn.disabled = true;
+      btn.querySelector('span').innerText = 'Memeriksa...';
+      document.getElementById('login-error').innerText = '';
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false;
+          btn.querySelector('span').innerText = 'Masuk';
+          if (res && res.success) {
+            saveToken(res.token);
+            document.getElementById('login-state').style.display = 'none';
+            loadData();
+          } else {
+            document.getElementById('pin-input').value = '';
+            document.getElementById('login-error').innerText = (res && res.message) || 'PIN salah.';
+          }
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false;
+          btn.querySelector('span').innerText = 'Masuk';
+          document.getElementById('login-error').innerText = 'Gagal terhubung: ' + (err.message || err);
+        })
+        .login(pin, 'view');
+    }
+
+    function handleLogout() {
+      const t = authToken;
+      saveToken(null);
+      appData = { jamaah: [], keluarga: [], rekap: {} };
+      if (!isLocalMode && t) google.script.run.logout(t);
+      showLogin('Anda sudah keluar.');
     }
 
     function simulateLoadData() {
-      // Mock data matching the reverted format
+      // Mock data FIKTIF (halaman bisa dibuka siapa saja sebelum login, jangan isi nama asli)
+      const thisYear = new Date().getFullYear();
+      const kategori = (tahun, status) => {
+        if (['MENIKAH', 'DUDA', 'JANDA'].includes(status)) return 'Dewasa Menikah';
+        const u = thisYear - tahun;
+        if (u <= 5) return 'BALITA-PAUD';
+        if (u <= 12) return 'Caberawit';
+        if (u <= 15) return 'Pra Remaja (SMP)';
+        if (u <= 17) return 'Remaja (SMA)';
+        return 'Usia (Pra) Menikah';
+      };
       const mockKeluarga = [
-        { id_keluarga: "KK-1", nama_kk: "H. Sutardjo", alamat: "Babakan Barat RT 01/02", telepon: "08123456789" },
-        { id_keluarga: "KK-2", nama_kk: "Daud Wibisono", alamat: "Babakan Barat RT 02/02", telepon: "08571234567" },
-        { id_keluarga: "KK-3", nama_kk: "H. Slamet Riyadi", alamat: "Babakan Barat RT 03/02", telepon: "08139988776" }
+        { id_keluarga: "KK-1", nama_kk: "Bapak Contoh Satu" },
+        { id_keluarga: "KK-2", nama_kk: "Bapak Contoh Dua" },
+        { id_keluarga: "KK-3", nama_kk: "Bapak Contoh Tiga" }
       ];
-
       const mockJamaah = [
-        { id_jamaah: "JM-1", id_keluarga: "KK-1", nama_kk: "H. Sutardjo", hubungan_keluarga: "A", nama_lengkap: "H. Sutardjo", nama_absen: "Sutardjo", jenis_kelamin: "L", tahun_lahir: 1956, umur: 70, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
-        { id_jamaah: "JM-2", id_keluarga: "KK-1", nama_kk: "H. Sutardjo", hubungan_keluarga: "B", nama_lengkap: "Sunarni", nama_absen: "Sunarni Sutardjo", jenis_kelamin: "P", tahun_lahir: 1968, umur: 58, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
-        { id_jamaah: "JM-3", id_keluarga: "KK-2", nama_kk: "Daud Wibisono", hubungan_keluarga: "A", nama_lengkap: "Daud Wibisono", nama_absen: "Daud Wibisono", jenis_kelamin: "L", tahun_lahir: 1997, umur: 29, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
-        { id_jamaah: "JM-4", id_keluarga: "KK-2", nama_kk: "Daud Wibisono", hubungan_keluarga: "B", nama_lengkap: "Amalia Istiqomah", nama_absen: "Amalia Isti Wibi", jenis_kelamin: "P", tahun_lahir: 1999, umur: 27, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
-        { id_jamaah: "JM-5", id_keluarga: "KK-2", nama_kk: "Daud Wibisono", hubungan_keluarga: "C", nama_lengkap: "Zafran Shaum Wibisono", nama_absen: "Zafran Shaum Wibisono", jenis_kelamin: "L", tahun_lahir: 2025, umur: 1, status_nikah: "BELUM", is_aktif: "Y", flag_absen: "N", status_keberadaan: "Menetap", kategori_usia: "BALITA-PAUD", catatan: "" },
-        { id_jamaah: "JM-6", id_keluarga: "KK-3", nama_kk: "H. Slamet Riyadi", hubungan_keluarga: "A", nama_lengkap: "H. Slamet Riyadi", nama_absen: "Slamet Riyadi", jenis_kelamin: "L", tahun_lahir: 1967, umur: 59, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" },
-        { id_jamaah: "JM-7", id_keluarga: "KK-3", nama_kk: "H. Slamet Riyadi", hubungan_keluarga: "B", nama_lengkap: "Yusrida Djamal", nama_absen: "Yusrida Djamal Slamet.R", jenis_kelamin: "P", tahun_lahir: 1964, umur: 62, status_nikah: "MENIKAH", is_aktif: "Y", flag_absen: "Y", status_keberadaan: "Menetap", kategori_usia: "DEWASA MENIKAH", catatan: "" }
-      ];
+        ["KK-1", "A", "Bapak Contoh Satu", "Contoh Satu", "L", 1956, "MENIKAH", "Y", "Y"],
+        ["KK-1", "B", "Ibu Contoh Satu", "Ibu Satu", "P", 1968, "MENIKAH", "Y", "Y"],
+        ["KK-2", "A", "Bapak Contoh Dua", "Contoh Dua", "L", 1997, "MENIKAH", "Y", "Y"],
+        ["KK-2", "B", "Ibu Contoh Dua", "Ibu Dua", "P", 1999, "MENIKAH", "Y", "Y"],
+        ["KK-2", "C", "Anak Contoh Dua", "Anak Dua", "L", 2025, "BELUM", "Y", "N"],
+        ["KK-3", "A", "Bapak Contoh Tiga", "Contoh Tiga", "L", 1967, "MENIKAH", "Y", "Y"],
+        ["KK-3", "B", "Ibu Contoh Tiga", "Ibu Tiga", "P", 1964, "MENIKAH", "Y", "Y"]
+      ].map(r => ({
+        id_keluarga: r[0], nama_kk: mockKeluarga.find(k => k.id_keluarga === r[0]).nama_kk,
+        hubungan_keluarga: r[1], nama_lengkap: r[2], nama_absen: r[3], jenis_kelamin: r[4],
+        umur: thisYear - r[5], status_nikah: r[6], is_aktif: r[7], flag_absen: r[8],
+        kategori_usia: kategori(r[5], r[6])
+      }));
 
       setTimeout(() => {
         appData.keluarga = mockKeluarga;
@@ -799,7 +922,7 @@
 
       appData.rekap = {
         total: active.length,
-        kk: appData.keluarga.length,
+        kkCount: appData.keluarga.length,
         laki: l,
         perempuan: p,
         duda: duda,
@@ -817,6 +940,8 @@
     }
 
     function loadData() {
+      if (isLocalMode) { simulateLoadData(); return; }
+      document.getElementById('login-state').style.display = 'none';
       document.getElementById('loading-state').style.display = 'block';
       document.getElementById('main-content').style.display = 'none';
       document.getElementById('error-state').style.display = 'none';
@@ -824,7 +949,13 @@
       google.script.run
         .withSuccessHandler((res) => {
           document.getElementById('loading-state').style.display = 'none';
+          if (res && res.authError) {
+            saveToken(null);
+            showLogin(res.message);
+            return;
+          }
           if (res.success) {
+            document.getElementById('logout-btn').style.display = 'inline-flex';
             appData.jamaah = res.data.jamaah;
             appData.keluarga = res.data.keluarga;
             appData.rekap = res.data.rekap;
@@ -838,7 +969,7 @@
           document.getElementById('loading-state').style.display = 'none';
           showError(err.toString());
         })
-        .getSensusData();
+        .getSensusData(authToken);
     }
 
     function showError(msg) {
@@ -849,13 +980,13 @@
     function renderAll() {
       // Set KPI Cards
       document.getElementById('kpi-total').innerText = appData.rekap.total + " Jiwa";
-      document.getElementById('kpi-kk').innerText = appData.rekap.kk + " KK";
+      document.getElementById('kpi-kk').innerText = (appData.rekap.kkCount || 0) + " KK";
       document.getElementById('kpi-laki').innerText = appData.rekap.laki + " Jiwa";
       document.getElementById('kpi-perempuan').innerText = appData.rekap.perempuan + " Jiwa";
       document.getElementById('kpi-lansia').innerText = appData.rekap.lansia + " Jiwa";
 
       // Set Rekapitulasi Table cells
-      document.getElementById('rekap-kk').innerText = appData.rekap.kk;
+      document.getElementById('rekap-kk').innerText = appData.rekap.kkCount || 0;
       document.getElementById('rekap-laki').innerText = appData.rekap.laki;
       document.getElementById('rekap-perempuan').innerText = appData.rekap.perempuan;
       document.getElementById('rekap-total-gender').innerText = appData.rekap.laki + appData.rekap.perempuan;
@@ -910,7 +1041,7 @@
         row.className = 'visual-stat-item';
         row.innerHTML = `
           <div class="visual-stat-info">
-            <span class="visual-stat-label">${k}</span>
+            <span class="visual-stat-label">${esc(k)}</span>
             <span class="visual-stat-value">L: ${valL} (${percL}%) &nbsp;|&nbsp; P: ${valP} (${percP}%) &nbsp;&bull;&nbsp; Total: ${sum}</span>
           </div>
           <div class="progress-bar-bg">
@@ -1054,14 +1185,14 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="color: var(--text-muted); text-align: center;">${index + 1}</td>
-          <td style="font-weight: 600;">${j.nama_lengkap}</td>
-          <td>${j.nama_absen}</td>
-          <td style="text-align: center;"><span style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 0.2rem 0.4rem; border-radius: 4px;">${j.hubungan_keluarga}</span></td>
-          <td>${j.nama_kk}</td>
-          <td>${j.kategori_usia}</td>
-          <td style="text-align: center;">${j.umur} th</td>
-          <td style="text-align: center;"><span class="active-badge yes">${j.is_aktif}</span></td>
-          <td style="text-align: center;"><span class="active-badge yes">${j.flag_absen}</span></td>
+          <td style="font-weight: 600;">${esc(j.nama_lengkap)}</td>
+          <td>${esc(j.nama_absen)}</td>
+          <td style="text-align: center;"><span style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 0.2rem 0.4rem; border-radius: 4px;">${esc(j.hubungan_keluarga)}</span></td>
+          <td>${esc(j.nama_kk)}</td>
+          <td>${esc(j.kategori_usia)}</td>
+          <td style="text-align: center;">${esc(umurText(j.umur))}</td>
+          <td style="text-align: center;"><span class="active-badge yes">${esc(j.is_aktif)}</span></td>
+          <td style="text-align: center;"><span class="active-badge yes">${esc(j.flag_absen)}</span></td>
         `;
         tbody.appendChild(tr);
       });
@@ -1105,14 +1236,14 @@
       const headers = ["No", "Nama Lengkap", "Nama Absen", "Hub KK", "Nama KK", "Kategori Usia", "Umur", "Status Aktif", "Masuk Absen"];
       const rows = filtered.map((j, index) => [
         index + 1,
-        `"${j.nama_lengkap.replace(/"/g, '""')}"`,
-        `"${j.nama_absen.replace(/"/g, '""')}"`,
-        `"${j.hubungan_keluarga}"`,
-        `"${j.nama_kk.replace(/"/g, '""')}"`,
-        `"${j.kategori_usia}"`,
-        `${j.umur}`,
-        `"${j.is_aktif}"`,
-        `"${j.flag_absen}"`
+        csvCell(j.nama_lengkap),
+        csvCell(j.nama_absen),
+        csvCell(j.hubungan_keluarga),
+        csvCell(j.nama_kk),
+        csvCell(j.kategori_usia),
+        j.umur === null || j.umur === undefined ? '' : j.umur,
+        csvCell(j.is_aktif),
+        csvCell(j.flag_absen)
       ]);
 
       const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
@@ -1241,14 +1372,14 @@
                 ` : filtered.map((j, index) => `
                   <tr>
                     <td class="text-center">${index + 1}</td>
-                    <td><strong>${j.nama_lengkap}</strong></td>
-                    <td>${j.nama_absen}</td>
-                    <td class="text-center" style="font-family: monospace;">${j.hubungan_keluarga}</td>
-                    <td>${j.nama_kk}</td>
-                    <td>${j.kategori_usia}</td>
-                    <td class="text-center">${j.umur} th</td>
-                    <td class="text-center">${j.is_aktif}</td>
-                    <td class="text-center">${j.flag_absen}</td>
+                    <td><strong>${esc(j.nama_lengkap)}</strong></td>
+                    <td>${esc(j.nama_absen)}</td>
+                    <td class="text-center" style="font-family: monospace;">${esc(j.hubungan_keluarga)}</td>
+                    <td>${esc(j.nama_kk)}</td>
+                    <td>${esc(j.kategori_usia)}</td>
+                    <td class="text-center">${esc(umurText(j.umur))}</td>
+                    <td class="text-center">${esc(j.is_aktif)}</td>
+                    <td class="text-center">${esc(j.flag_absen)}</td>
                   </tr>
                 `).join('')}
               </tbody>
