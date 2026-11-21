@@ -589,6 +589,14 @@
       <div class="spinner"></div>
       <h2>Memuat Data Sensus...</h2>
       <p style="color: var(--text-muted); margin-top: 0.5rem;">Silakan tunggu, sistem sedang memproses data.</p>
+      <div id="debug-info" style="margin-top: 1.5rem; padding: 1rem; background: #f0f0f0; border-radius: 8px; font-family: monospace; font-size: 0.85rem; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;">
+        <strong>Debug Info:</strong>
+        <div id="debug-text" style="white-space: pre-wrap; color: #333; margin-top: 0.5rem;">Initializing...</div>
+      </div>
+      <div style="margin-top: 1rem;">
+        <button class="btn btn-primary" onclick="loadData()" style="width: auto; margin: 0 auto;">Coba Load Data</button>
+        <button class="btn btn-secondary" onclick="simulateLoadData()" style="width: auto; margin: 0 auto; margin-top: 0.5rem;">Gunakan Mock Data</button>
+      </div>
     </div>
 
     <!-- Error State -->
@@ -1052,24 +1060,38 @@
     }
 
     // --- Loading Live Data from GAS ---
+    // --- Debug Helper ---
+    function updateDebugInfo(msg) {
+      const debugText = document.getElementById('debug-text');
+      const timestamp = new Date().toLocaleTimeString();
+      debugText.innerText = `[${timestamp}] ${msg}`;
+      console.log(`[DEBUG] ${msg}`);
+    }
+
     function loadData() {
       showLoading(true);
+      updateDebugInfo('Calling getSensusData()...');
       google.script.run
         .withSuccessHandler((response) => {
           console.log('📥 getSensusData response:', response);
+          updateDebugInfo(`Response received. Success: ${response.success}`);
+          
           if (response.success && response.data) {
             appData = response.data;
             console.log('✅ appData loaded:', appData);
+            updateDebugInfo(`✅ Data loaded!\nKeluarga: ${appData.keluarga ? appData.keluarga.length : 0}\nJamaah: ${appData.jamaah ? appData.jamaah.length : 0}`);
             console.log('📦 Total keluarga:', appData.keluarga ? appData.keluarga.length : 0);
             renderAll();
             showLoading(false);
           } else {
             console.error('❌ Response error:', response.message);
+            updateDebugInfo(`❌ Error: ${response.message}`);
             showError(response.message || "Gagal mengambil data dari Google Sheets.");
           }
         })
         .withFailureHandler((err) => {
           console.error('❌ Failure:', err);
+          updateDebugInfo(`❌ Failure: ${err.message || err.toString()}`);
           showError(err.message || err.toString());
         })
         .getSensusData();
@@ -1078,10 +1100,12 @@
     // --- Loading Mock Data ---
     function simulateLoadData() {
       showLoading(true);
+      updateDebugInfo('Using mock data (local test mode)...');
       setTimeout(() => {
         appData.keluarga = [...mockKeluarga];
         appData.jamaah = [...mockJamaah];
         calculateMockRekap();
+        updateDebugInfo(`✅ Mock Data Loaded!\nKeluarga: ${appData.keluarga.length}\nJamaah: ${appData.jamaah.length}`);
         renderAll();
         showLoading(false);
       }, 500);
@@ -1137,11 +1161,12 @@
       const resultsContainer = document.getElementById('keluarga-results-container');
       
       console.log('🔍 filterKeluargaSearch called. Query:', query);
+      console.log('📦 appData:', appData);
       console.log('📦 appData.keluarga:', appData.keluarga);
       
-      if (!appData.keluarga || appData.keluarga.length === 0) {
+      if (!appData || !appData.keluarga || appData.keluarga.length === 0) {
         console.error('❌ appData.keluarga kosong atau tidak ada!');
-        resultsContainer.innerHTML = '<div style="padding: 1rem; color: red;">Data keluarga tidak ada. Silakan refresh page.</div>';
+        resultsContainer.innerHTML = '<div style="padding: 1rem; color: red; font-size: 0.9rem;">Data keluarga tidak ada. Silakan refresh halaman atau hubungi admin.</div>';
         resultsContainer.style.display = 'block';
         return;
       }
@@ -1169,6 +1194,7 @@
         return queryIdx === query.length;
       });
       
+      console.log('✅ Filtered results count:', filtered.length);
       console.log('✅ Filtered results:', filtered);
       renderKeluargaResults(filtered);
     }
