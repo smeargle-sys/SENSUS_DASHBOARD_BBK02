@@ -1,145 +1,241 @@
 # Sensus Jiwa & Jamaah Kelompok Babakan Barat
-Aplikasi Web dan Manajemen Database Sensus Kelompok Babakan Barat, Desa Babakan, Tangerang Selatan.
+Aplikasi web untuk mengelola data sensus jamaah Kelompok Babakan Barat, Desa Babakan, Tangerang Selatan.
 
-Aplikasi ini menggunakan **Google Sheets** sebagai database utama (back-end) dan **Google Apps Script** untuk menyajikan dashboard interaktif dan form input data jamaah baru secara dinamis dan responsif.
+Datanya disimpan di **Google Sheets**, logika server berjalan di **Google Apps Script**, dan tampilannya bisa dibuka dari URL Apps Script atau dari **GitHub Pages**. Ada dua halaman:
 
----
-
-## 🚀 Fitur Utama
-1. **Kategori Usia yang Bisa Diatur**: kategori dihitung dari **Tahun Lahir** dan **Status Pernikahan**. Rentang umur, nama kategori (termasuk **Lansia**), dan nama kategori untuk yang menikah diatur dari menu **Pengaturan Kategori** di halaman admin (tersimpan di sheet `Pengaturan_Kategori`). Status nikah diutamakan: yang menikah masuk kategori menikah; Duda/Janda dihitung di kolom tersendiri; kategori umur berlaku untuk yang belum menikah.
-2. **Hitungan Lansia**: kartu Lansia menghitung semua jamaah aktif dengan umur ≥ umur awal kategori yang diberi tanda Lansia (default 57).
-3. **Database Relasional & Ramping**: Menghilangkan puluhan kolom centang manual di spreadsheet asal dengan memisahkan data menjadi dua tab sheet relasional (`Keluarga` dan `Jamaah`).
-4. **Form Input Interaktif**: Form pembuatan Kartu Keluarga (KK) baru atau penambahan anggota jamaah baru dengan validasi instan.
-5. **Daftar & Filter Multi-Dimensi**: Pencarian jamaah secara instan dan filter berdasarkan Kategori Usia, Gender, Keaktifan Wilayah, serta Daftar Kehadiran (Absen).
-6. **Script Migrasi Instan**: Memindahkan data dari format spreadsheet lama ke format relasional baru secara otomatis (dengan backup otomatis).
-9. **Hapus data dengan arsip**: hapus jamaah per orang; bila yang dihapus Kepala Keluarga, admin memilih hapus kepalanya saja atau seluruh KK. Data terhapus dipindah ke sheet `Arsip_Jamaah` / `Arsip_Keluarga` (bisa disalin balik bila salah hapus).
-10. **Telepon & WhatsApp**: kolom No. Telepon per jamaah; nomor bisa diklik untuk membuka WhatsApp (admin & pengurus).
-11. **Perlu Dibantu**: penanda jamaah penerima santunan, dengan menu & filter tersendiri (hanya admin).
-12. **Daftar lebih mudah dipakai**: pencarian tepat di atas daftar dengan tombol hapus pencarian, urutan berdasarkan kolom, opsi **Kelompokkan per KK** (juga saat cetak), baris Kepala Keluarga diberi latar hijau, halaman bernomor (pertama/terakhir/lompat), filter Mondok/Keberadaan, dan detail jamaah saat nama diklik.
-8. **Tampilan baru (revamp)**: dashboard admin dengan menu samping, kartu angka, komposisi kategori usia, kartu keberadaan, filter cepat (Aktif, Luar kota, Absen, *Perlu dilengkapi*), halaman per 25 baris, daftar Keluarga (KK) dengan tombol tambah anggota, panel tambah/edit 3 langkah dengan pratinjau kategori usia, ekspor CSV; tampilan HP dengan kartu, tombol Tambah, dan navigasi bawah. Halaman ringkasan punya tabel rekap format laporan, daftar absen, ekspor CSV, cetak, dan tab di HP.
-7. **Akses dengan PIN**: Halaman editor hanya bisa dibuka dengan **PIN Admin**; halaman ringkasan (`?page=view`) dengan **PIN Pengurus** (atau PIN Admin). Data kontak (alamat, telepon, catatan) tidak pernah dikirim ke halaman ringkasan.
+| Halaman | File | Untuk | PIN |
+|---|---|---|---|
+| **Admin** | `index.html` | Tambah, edit, hapus data, dan pengaturan | `ADMIN_PIN` |
+| **Ringkasan Pengurus** | `view.html` | Melihat rekap & daftar absen (read-only) | `VIEWER_PIN` atau `ADMIN_PIN` |
 
 ---
 
-## 📁 Struktur Berkas Proyek
-*   `Code.gs`: Logika backend utama Google Apps Script (interaksi Spreadsheet, rule engine, rekap statistik, penyimpanan data, & migrasi).
-*   `index.html`: Kode tampilan frontend tunggal (SPA) bertema terang (*light theme*) profesional, bersih, dan responsif.
-*   `view.html`: Halaman ringkasan (read-only) untuk pengurus.
-*   `config.js`: URL API Apps Script, dipakai saat frontend dibuka dari GitHub Pages.
-*   `simulate_local.js`: Lingkungan pengujian offline lokal berbasis Node.js untuk mensimulasikan Apps Script.
+## 🚀 Fitur
+
+### Akses & keamanan
+- **Login dengan PIN.** Setiap permintaan ke server diperiksa dengan token sesi (berlaku maksimal 6 jam, atau sampai menekan **Keluar**).
+- **Kunci tebakan PIN.** Setelah 5 kali PIN salah, login dikunci 15 menit.
+- **Data dibatasi untuk pengurus.** Halaman ringkasan hanya menerima jamaah aktif yang masuk daftar absen, tanpa alamat, catatan, ID, dan penanda *Perlu dibantu*.
+- **Anti-XSS & anti formula injection.** Semua teks dari sheet di-escape sebelum ditampilkan, data ditulis sebagai teks biasa, dan sel CSV yang diawali `= + - @` dinetralkan.
+
+### Halaman admin
+- **Dashboard:** kartu angka (jiwa aktif, KK aktif, laki-laki, perempuan, lansia), komposisi kategori usia L/P, kartu Keberadaan & Absen (bisa diklik untuk memfilter).
+- **Daftar jamaah:**
+  - Pencarian tepat di atas daftar (nama, nama absen, KK, atau no. telepon) dengan tombol **X** untuk mengosongkan.
+  - Filter cepat: Semua, Aktif wilayah, Luar kota, Mondok, Masuk absen, Tidak absen, **Perlu dibantu**, **Perlu dilengkapi** (dengan jumlahnya).
+  - Filter Kategori, Keberadaan, Gender, dan pilihan **Urutkan**.
+  - **Kelompokkan per KK**: daftar dikelompokkan per keluarga, Kepala Keluarga paling atas. Baris Kepala Keluarga selalu berlatar hijau.
+  - 25 baris per halaman dengan tombol halaman pertama, terakhir, dan nomor halaman.
+  - **Cetak** dan **Ekspor CSV** sesuai filter, urutan, dan pengelompokan yang sedang dipakai.
+- **Detail jamaah:** klik nama untuk melihat data lengkap, nomor telepon (tombol WhatsApp), dan anggota keluarga lainnya. Dari sini bisa langsung **Edit** atau **Hapus**.
+- **Tambah / edit jamaah:** panel 3 langkah (Keluarga → Data diri → Status & absen), pratinjau kategori usia saat tahun lahir diisi, Duda/Janda menyesuaikan jenis kelamin.
+- **Daftar Keluarga (KK):** jumlah anggota aktif, detail anggota, tambah anggota, dan hapus KK.
+- **Perlu Dibantu:** penanda jamaah penerima santunan/bantuan kelompok, dengan menu dan filter tersendiri (hanya terlihat admin).
+- **Pengaturan Kategori:** atur nama dan rentang umur kategori, termasuk Lansia (lihat bagian *Aturan kategori usia*).
+- **Hapus dengan arsip:** data yang dihapus dipindah ke sheet arsip, bukan hilang (lihat bagian *Arsip & pemulihan*).
+
+### Halaman ringkasan pengurus
+- Kartu angka, bar komposisi, dan tabel rekap kategori usia format laporan (L, P, Jumlah, Proporsi, Total).
+- Daftar absen dengan pencarian, filter, urutan, **Kelompokkan per KK**, dan halaman bernomor.
+- Detail jamaah saat nama diklik, termasuk nomor telepon dengan tombol WhatsApp.
+- **Cetak laporan** (mencetak seluruh daftar, bukan hanya halaman aktif) dan **Ekspor CSV**.
+- Tampilan HP dengan tab *Rekap usia* / *Daftar absen*.
+
+> Nomor telepon tidak ditampilkan di daftar. Nomor hanya muncul di **detail** jamaah atau KK.
 
 ---
 
-## 🛠️ Panduan Pengembangan Lokal
-Untuk menguji logika backend (`Code.gs`) secara offline di komputer Anda:
-1. Pastikan Anda memiliki [Node.js](https://nodejs.org/) terinstal di sistem Anda.
-2. Jalankan perintah simulasi di terminal:
-   ```bash
-   node simulate_local.js
-   ```
-3. Script menjalankan rangkaian uji otomatis (login PIN & kunci tebakan, pembatasan data halaman ringkasan, validasi input, batas kategori usia, edit, dan migrasi aman). Semua harus berstatus ✔; bila ada yang gagal, perintah keluar dengan kode 1.
-4. Membuka `index.html` / `view.html` langsung di browser akan menjalankan **Mode Simulasi** dengan data fiktif (tanpa PIN).
+## 📐 Aturan kategori usia
+Kategori dihitung otomatis dari **Tahun Lahir** dan **Status Nikah**:
 
-> ⚠️ Repo ini publik. Jangan pernah menaruh nama, alamat, atau nomor telepon jamaah asli di file mana pun di repo (termasuk data contoh).
+1. **Menikah** → masuk kategori untuk yang menikah (default **Dewasa Menikah**).
+2. **Duda / Janda** → dihitung di kolom Duda / Janda tersendiri.
+3. **Belum menikah** → dicocokkan ke rentang umur di menu **Pengaturan Kategori**.
+
+Bawaan rentang umur:
+
+| Kategori | Umur |
+|---|---|
+| BALITA-PAUD | 0–5 th |
+| Caberawit | 6–12 th |
+| Pra Remaja (SMP) | 13–15 th |
+| Remaja (SMA) | 16–17 th |
+| Usia (Pra) Menikah | 18–56 th |
+| Lansia | 57 th ke atas |
+
+- Rentang harus **bersambung mulai umur 0**, dan kategori terakhir dibiarkan tanpa batas atas.
+- Satu kategori bisa diberi tanda **Lansia**. Umur awalnya dipakai untuk kartu **"Lansia ≥ … th"**, yang menghitung jamaah aktif dari **semua status nikah**.
+- Pengaturan disimpan di sheet `Pengaturan_Kategori` dan bisa diubah dari aplikasi atau langsung di sheet. Kalau isi sheet itu tidak valid, aplikasi memakai kategori bawaan dan menampilkan peringatan di halaman admin.
+- **Perlu dilengkapi** = jamaah yang **tahun lahirnya belum diisi**, sehingga umur dan kategorinya belum bisa dihitung. Kalau jumlahnya 0, artinya semua data tahun lahir sudah lengkap.
 
 ---
 
-## 🌐 Panduan Pemasangan Live ke Google Sheets
+## 🗂️ Struktur spreadsheet
 
-### Langkah 1: Siapkan Google Spreadsheet Anda
-1. Buat Google Spreadsheet baru di Google Drive Anda.
-2. Buat dua tab sheet dengan nama persis sebagai berikut:
-   *   Tab pertama: **`Keluarga`**
-   *   Tab kedua: **`Jamaah`**
-3. Tulis header berikut pada baris pertama masing-masing sheet:
-   *   **Sheet `Keluarga`** (Kolom A-D):
-       `ID Keluarga` | `Nama KK` | `Alamat` | `No Telepon`
-   *   **Sheet `Jamaah`** (Kolom A-N):
-       `ID Jamaah` | `ID Keluarga` | `Hubungan Keluarga` | `Nama Lengkap` | `Nama Absen` | `Jenis Kelamin` | `Tahun Lahir` | `Status Nikah` | `Status Keaktifan` | `Flag Absen` | `Status Keberadaan` | `Catatan` | `No Telepon` | `Perlu Dibantu`
-   *   Sheet lama yang baru punya kolom A-L tidak perlu diubah: header kolom M & N ditambahkan otomatis saat aplikasi pertama kali dibuka.
-   *   Sheet `Pengaturan_Kategori`, `Arsip_Jamaah`, dan `Arsip_Keluarga` dibuat otomatis oleh aplikasi.
-4. Salin **URL Google Spreadsheet** tersebut dari browser.
+| Sheet | Dibuat oleh | Isi |
+|---|---|---|
+| `Keluarga` | Anda / otomatis | Data KK |
+| `Jamaah` | Anda / otomatis | Data jamaah |
+| `Pengaturan_Kategori` | Otomatis | Aturan kategori usia |
+| `Arsip_Jamaah` | Otomatis, saat hapus pertama | Jamaah yang dihapus |
+| `Arsip_Keluarga` | Otomatis, saat hapus KK pertama | KK yang dihapus |
+| `Sensus_Asal` | Anda (opsional) | Data lama untuk migrasi |
 
-### Langkah 2: Buat Google Apps Script
-1. Pada Google Spreadsheet Anda, buka menu **Extensions (Ekstensi)** -> **Apps Script**.
-2. Hapus seluruh kode default di dalam `Code.gs` dan ganti dengan isi berkas `Code.gs` dari repositori ini.
-3. Di baris awal `Code.gs`, isi variabel `FALLBACK_URL` dengan URL spreadsheet Anda:
-    ```javascript
-    FALLBACK_URL: "https://docs.google.com/spreadsheets/d/ID_SPREADSHEET_ANDA/edit"
-    ```
-4. Buat file baru di Apps Script: klik tombol `+` -> Pilih **HTML** -> Beri nama **`index`** (tanpa ekstensi `.html`).
-5. Hapus semua kode default di file `index.html` baru tersebut, lalu ganti dengan isi berkas `index.html` dari repositori ini.
-6. Ulangi untuk file HTML **`view`** dengan isi berkas `view.html`.
-7. Simpan proyek dengan menekan ikon Disket (Save).
+**Sheet `Keluarga`** (kolom A–D):
+`ID Keluarga` | `Nama KK` | `Alamat` | `No Telepon`
 
-### Langkah 2b: Atur PIN (wajib)
-1. Di Apps Script Editor buka **Project Settings (ikon gir) → Script Properties → Add script property**.
+**Sheet `Jamaah`:**
+- **Kolom A–L harus berurutan:**
+  `ID Jamaah` | `ID Keluarga` | `Hubungan Keluarga` | `Nama Lengkap` | `Nama Absen` | `Jenis Kelamin` | `Tahun Lahir` | `Status Nikah` | `Status Keaktifan` | `Flag Absen` | `Status Keberadaan` | `Catatan`
+- **Kolom `No Telepon` dan `Perlu Dibantu`** dicari berdasarkan **nama header**, jadi letaknya bebas setelah kolom L. Kalau belum ada, aplikasi menambahkannya otomatis di kolom kosong berikutnya.
+- **Kolom tambahan milik Anda** setelah kolom L (misalnya `Umur` berisi rumus) aman: tidak akan ditimpa saat menyimpan, menghapus, atau migrasi.
+- Kalau isi kolom `No Telepon` ternyata bukan nomor telepon (misalnya angka umur), nilainya tidak ditampilkan dan admin mendapat peringatan. Biasanya ini berarti header kolom itu salah nama: kembalikan header ke nama aslinya.
+
+**Kode isian:**
+- `Hubungan Keluarga`: `A` Kepala, `B` Istri, `C` Anak, `D` Lainnya
+- `Jenis Kelamin`: `L` / `P`
+- `Status Nikah`: `BELUM`, `MENIKAH`, `DUDA`, `JANDA`
+- `Status Keaktifan`, `Flag Absen`, `Perlu Dibantu`: `Y` / `N`
+- `Status Keberadaan`: `Menetap`, `Mondok`, `Tugas`, `Kerja Luar`
+
+---
+
+## 🗄️ Arsip & pemulihan
+Data yang dihapus dari aplikasi tidak hilang. Datanya dipindah ke tab arsip **di spreadsheet yang sama**:
+
+- **`Arsip_Jamaah`** berisi jamaah yang dihapus.
+- **`Arsip_Keluarga`** berisi KK yang dihapus.
+
+Tiap baris arsip berisi **kolom A** Waktu Hapus, **kolom B** Keterangan, lalu **kolom C dst.** salinan utuh baris aslinya (termasuk kolom tambahan).
+
+Aturan hapus:
+- **Anggota biasa:** hanya orang itu yang dihapus.
+- **Kepala Keluarga:** admin memilih **hapus kepalanya saja** (KK dan anggota lain tetap ada) atau **hapus seluruh KK** beserta semua anggotanya.
+- **Dari Daftar Keluarga:** tombol hapus menghapus KK beserta semua anggotanya.
+
+**Cara memulihkan data yang salah hapus:**
+1. Buka tab `Arsip_Jamaah` dan cari barisnya.
+2. Salin isi baris **mulai kolom C** sampai kolom terakhir.
+3. Tempel di baris kosong pertama tab `Jamaah`, **mulai kolom A**.
+4. Kalau yang terhapus seluruh KK, pulihkan juga baris KK-nya dari `Arsip_Keluarga` ke tab `Keluarga` dengan cara yang sama. Kalau tidak, anggotanya tampil "Tidak Terdaftar".
+5. Muat ulang halaman admin.
+
+---
+
+## 🌐 Pemasangan di Google Apps Script
+
+### Langkah 1: Siapkan spreadsheet
+1. Buat Google Spreadsheet baru, atau pakai spreadsheet sensus yang sudah ada.
+2. Pastikan ada tab **`Keluarga`** dan **`Jamaah`** dengan header seperti di bagian *Struktur spreadsheet*. Kalau belum ada, tab dan header-nya dibuat otomatis saat aplikasi pertama kali dibuka.
+
+### Langkah 2: Pasang kode
+1. Di spreadsheet, buka **Extensions (Ekstensi) → Apps Script**.
+2. Ganti seluruh isi `Code.gs` dengan isi berkas `Code.gs` dari repositori ini.
+3. Klik **+ → HTML**, beri nama **`index`** (tanpa `.html`), lalu isi dengan `index.html`.
+4. Ulangi untuk file HTML **`view`** dengan isi `view.html`.
+5. Simpan proyek.
+
+`CONFIG.FALLBACK_URL` di `Code.gs` hanya perlu diisi URL spreadsheet kalau script **tidak** dibuat dari menu Extensions spreadsheet tersebut (script berdiri sendiri).
+
+### Langkah 3: Atur PIN (wajib)
+1. Buka **Project Settings (ikon gir) → Script Properties → Add script property**.
 2. Tambahkan:
-   *   `ADMIN_PIN` → PIN admin, **minimal 6 digit** (untuk tambah/edit data).
-   *   `VIEWER_PIN` → PIN pengurus, minimal 6 digit (untuk halaman ringkasan). Boleh dikosongkan bila ringkasan hanya untuk admin.
-3. Simpan. PIN bisa diganti kapan saja di tempat yang sama; sesi yang sudah login tetap berlaku sampai maksimal 6 jam atau sampai pengguna menekan **Keluar**.
-4. Setelah 5 kali PIN salah, login dikunci 15 menit (pengaturan `MAX_FAIL` / `LOCK_SEC` di `CONFIG`).
+   - `ADMIN_PIN` → PIN admin, **minimal 6 digit**.
+   - `VIEWER_PIN` → PIN pengurus, minimal 6 digit. Boleh dikosongkan kalau halaman ringkasan hanya untuk admin.
+3. Simpan. PIN bisa diganti kapan saja. Sesi yang sudah login tetap berlaku sampai habis masa sesinya atau pengguna menekan **Keluar**.
 
-### Langkah 3: Publikasikan Web App
-1. Klik tombol **Deploy (Terapkan)** di kanan atas -> Pilih **New Deployment (Terapkan baru)**.
-2. Klik ikon gir (Settings) -> Pilih **Web App (Aplikasi Web)**.
-3. Atur pengaturannya:
-   *   *Description*: Sensus Babakan Barat v1
-   *   *Execute as*: **Me (Saya)**
-   *   *Who has access*: **Anyone (Siapa saja)**
-4. Klik **Deploy**.
-5. Klik **Authorize Access** -> Pilih akun Google Anda -> Klik **Advanced (Lanjutan)** -> Klik **Go to Untitled project (Unsafe)** -> Klik **Allow (Izinkan)**.
-6. Salin **Web App URL** yang diberikan:
-   *   **Halaman Editor**: Akses langsung URL tersebut (contoh: `https://script.google.com/.../exec`) → masukkan **PIN Admin**.
-   *   **Halaman Ringkasan (Read-Only)**: Tambahkan parameter `?page=view` di akhir URL (contoh: `https://script.google.com/.../exec?page=view`) → masukkan **PIN Pengurus**. Halaman ini hanya menampilkan jamaah aktif & masuk absen, tanpa alamat/telepon/catatan.
-7. Setiap kali `Code.gs` atau file HTML diubah: **Deploy → Manage deployments → Edit (ikon pensil) → Version: New version → Deploy**, supaya URL yang sama memakai kode terbaru.
-8. Jika aplikasi di-embed di Google Sites / situs lain, ubah `CONFIG.ALLOW_EMBED` menjadi `true`.
+### Langkah 4: Deploy sebagai Web App
+1. **Deploy → New deployment → ikon gir → Web app**.
+2. Atur:
+   - *Execute as*: **Me**
+   - *Who has access*: **Anyone**
+3. Klik **Deploy**, lalu izinkan akses (**Authorize access → pilih akun → Advanced → Go to … (unsafe) → Allow**).
+4. Salin **Web app URL** (berakhiran `/exec`):
+   - **Admin:** `https://script.google.com/macros/s/…/exec` → PIN Admin
+   - **Ringkasan:** `https://script.google.com/macros/s/…/exec?page=view` → PIN Pengurus
+
+**Setiap kali `Code.gs` atau file HTML di Apps Script diubah:** buka **Deploy → Manage deployments → Edit (pensil) → Version: New version → Deploy**. URL-nya tetap sama.
+
+Kalau aplikasi di-embed di Google Sites atau situs lain, ubah `CONFIG.ALLOW_EMBED` menjadi `true`.
 
 ---
 
-## 🌍 Akses Lewat GitHub Pages (opsional)
-Frontend (`index.html`, `view.html`) bisa dibuka dari GitHub Pages, sementara data tetap di Google Sheets lewat Apps Script. Mekanisme PIN dan pembatasan data sama persis.
+## 🌍 Akses lewat GitHub Pages (opsional)
+Halaman admin dan ringkasan bisa dibuka dari GitHub Pages, sementara data tetap di Google Sheets lewat Apps Script. PIN dan pembatasan data tetap sama.
 
-1. Selesaikan dulu **Langkah 1–3** di atas (Apps Script ter-deploy dengan *Execute as: Me* dan *Who has access: **Anyone***). Akses *Anyone* wajib, karena GitHub Pages memanggil API tanpa login Google.
-2. Salin **Web app URL** (berakhiran `/exec`) ke `config.js`:
+1. Selesaikan dulu pemasangan Apps Script di atas. Akses **Anyone** wajib, karena GitHub Pages memanggil server tanpa login Google.
+2. Isi `config.js` dengan Web app URL:
    ```javascript
    window.SENSUS_CONFIG = {
      API_URL: "https://script.google.com/macros/s/AKfycb.../exec"
    };
    ```
-   Commit & push. URL ini boleh publik; semua data tetap dilindungi PIN.
-3. Di GitHub: **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: `main` / `(root)` → Save**. Tunggu 1–2 menit.
-4. Alamat aksesnya:
-   *   **Admin**: `https://<username>.github.io/<nama-repo>/` → PIN Admin
-   *   **Ringkasan**: `https://<username>.github.io/<nama-repo>/view.html` → PIN Pengurus
+   URL ini boleh publik; tanpa PIN server tidak memberikan data apa pun.
+3. Di GitHub: **Settings → Pages → Deploy from a branch → `main` / `(root)` → Save**. Tunggu 1–2 menit.
+4. Alamat akses:
+   - **Admin:** `https://<username>.github.io/<nama-repo>/`
+   - **Ringkasan:** `https://<username>.github.io/<nama-repo>/view.html`
 
 Catatan:
-*   Setiap kali **`Code.gs`** berubah, buat *New version* di Manage deployments (URL `/exec` tetap sama, `config.js` tidak perlu diubah). Perubahan **HTML** cukup di-push ke GitHub.
-*   Apps Script hanya menerima aksi `login`, `logout`, `getSensusData`, `saveSensusData` lewat API (`doPost`); fungsi migrasi tidak bisa dipanggil dari luar.
-*   GitHub Pages gratis hanya untuk repo **publik**. Jangan simpan data jamaah asli di repo.
+- **Perubahan HTML** cukup di-push ke GitHub.
+- **Perubahan `Code.gs`** tetap perlu *New version* di Apps Script. `config.js` tidak perlu diubah karena URL-nya tetap.
+- Lewat API (`doPost`), server hanya menerima aksi `login`, `logout`, `getSensusData`, `saveSensusData`, `deleteJamaah`, `deleteKeluarga`, dan `saveKategoriConfig`. Fungsi migrasi tidak bisa dipanggil dari luar.
+- GitHub Pages gratis hanya untuk repo **publik**. Jangan simpan data jamaah asli di repo.
 
 ---
 
-## 🔄 Panduan Migrasi Data Lama ke Format Baru
-Jika Anda sudah memiliki data sensus lama di spreadsheet asal dan ingin memindahkannya secara otomatis ke format tabel baru ini:
+## ⚙️ Pengaturan di `Code.gs` (`CONFIG`)
 
-1. Buat tab sheet baru bernama **`Sensus_Asal`** di Google Spreadsheet Anda.
-2. Salin seluruh data sensus lama Anda ke dalam sheet tersebut.
-3. Pastikan struktur kolom di sheet `Sensus_Asal` berurutan tepat dari kolom **A** hingga **L** seperti di bawah ini:
-   *   **A**: Nomor (`No` - 1, 2, 3...)
-   *   **B**: Status Aktif (`Aktif` - Y/N)
-   *   **C**: `Nama Lengkap`
-   *   **D**: `Nama di Absen`
-   *   **E**: Hubungan Keluarga (`A` = KK/Bapak, `B` = Istri, `C` = Anak, `D` = Bukan Inti)
-   *   **F**: Jenis Kelamin (`Jenis Kelamin` - L/P)
-   *   **G**: Tahun Lahir (`TTL` - Cukup tahun lahir saja, misal `1997`)
-   *   **H**: `Umur` (Boleh rumus atau kosong karena akan dihitung otomatis)
-   *   **I**: Penanda Absen (`Absen` - Y/N/Mondok/Tugas/Kerja Luar)
-   *   **J**: Kategori Usia (Boleh isi/kosong)
-   *   **K**: Status Pernikahan (`Status` - MENIKAH/JANDA/DUDA/atau kosong)
-   *   **L**: `Catatan`
-4. Di Google Apps Script Editor Anda, pilih fungsi **`jalankanMigrasiSensus`** pada pilihan run di bagian atas. Fungsi ini **hanya bisa dijalankan pemilik dari Editor**, tidak bisa dipanggil dari web app.
-5. Klik tombol **Run (Jalankan)**.
-6. Sebelum menimpa, isi sheet `Keluarga` & `Jamaah` lama di-backup ke tab `Backup_Keluarga_<tanggal>` dan `Backup_Jamaah_<tanggal>`. Jika `Sensus_Asal` kosong, tidak ada data yang diubah.
-7. Script membagi data menjadi KK unik pada sheet `Keluarga` dan anggota individu pada sheet `Jamaah`. Baris yang perlu dicek (tahun lahir/jenis kelamin tidak valid, anggota tanpa Kepala Keluarga di atasnya) dicantumkan di log eksekusi.
-8. **Hapus tab `Sensus_Asal`** setelah verifikasi selesai, supaya migrasi tidak tidak sengaja dijalankan ulang dan menimpa data terbaru.
+| Kunci | Default | Keterangan |
+|---|---|---|
+| `SESSION_TTL_SEC` | `21600` | Lama sesi login dalam detik (maksimum 6 jam) |
+| `MAX_FAIL` | `5` | Jumlah PIN salah sebelum login dikunci |
+| `LOCK_SEC` | `900` | Lama kunci login dalam detik (15 menit) |
+| `MIN_PIN_LENGTH` | `6` | Panjang minimal PIN |
+| `ALLOW_EMBED` | `false` | `true` bila di-embed di situs lain |
+| `FALLBACK_URL` | `""` | URL spreadsheet untuk script yang berdiri sendiri |
+| `BATAS_LANSIA` | `57` | Dipakai hanya bila tidak ada kategori bertanda Lansia |
+
+---
+
+## 🔄 Migrasi data lama (opsional)
+Untuk memindahkan data sensus format lama ke struktur `Keluarga` + `Jamaah`:
+
+1. Buat tab **`Sensus_Asal`** dan salin data lama ke sana dengan urutan kolom **A–L**:
+   - **A** No · **B** Aktif (Y/N) · **C** Nama Lengkap · **D** Nama di Absen
+   - **E** Hubungan (`A` KK, `B` Istri, `C` Anak, `D` Bukan inti) · **F** Jenis Kelamin (L/P)
+   - **G** Tahun Lahir (mis. `1997`) · **H** Umur (boleh kosong)
+   - **I** Absen (Y / N / Mondok / Tugas / Kerja Luar) · **J** Kategori Usia (boleh kosong)
+   - **K** Status Nikah (MENIKAH / JANDA / DUDA / kosong) · **L** Catatan
+2. Di Apps Script Editor, pilih fungsi **`jalankanMigrasiSensus`** lalu klik **Run**. Fungsi ini **hanya bisa dijalankan pemilik dari Editor**.
+3. Sebelum menimpa, isi `Keluarga` dan `Jamaah` di-backup ke tab `Backup_Keluarga_<tanggal>` dan `Backup_Jamaah_<tanggal>`. Kalau `Sensus_Asal` kosong, tidak ada data yang diubah.
+4. Baris yang perlu dicek (tahun lahir atau jenis kelamin tidak valid, anggota tanpa Kepala Keluarga di atasnya) tercantum di log eksekusi.
+5. **Hapus tab `Sensus_Asal`** setelah dicek, supaya migrasi tidak tidak sengaja dijalankan ulang dan menimpa data terbaru.
+
+---
+
+## 🛠️ Pengembangan & pengujian lokal
+1. Pasang [Node.js](https://nodejs.org/).
+2. Jalankan uji backend:
+   ```bash
+   node simulate_local.js
+   ```
+   Script ini menguji login PIN dan kunci tebakan, pembatasan data pengurus, validasi input, aturan & pengaturan kategori, hapus + arsip, kolom tambahan milik pengguna, API `doPost`, dan migrasi. Semua harus ✔; kalau ada yang gagal, perintah keluar dengan kode 1.
+3. Membuka `index.html` / `view.html` langsung di browser (tanpa `API_URL` di `config.js`) menjalankan **Mode Simulasi** dengan data fiktif, tanpa PIN.
+
+> ⚠️ Repo ini publik. Jangan menaruh nama, alamat, atau nomor telepon jamaah asli di file mana pun di repo, termasuk data contoh.
+
+---
+
+## 📁 Berkas proyek
+
+| Berkas | Isi |
+|---|---|
+| `Code.gs` | Backend Apps Script: PIN & sesi, baca/simpan/hapus data, arsip, kategori usia, rekap, API `doPost`, migrasi |
+| `index.html` | Halaman admin |
+| `view.html` | Halaman ringkasan pengurus |
+| `config.js` | `API_URL` untuk akses lewat GitHub Pages |
+| `simulate_local.js` | Uji otomatis backend secara offline (Node.js) |
+| `.nojekyll` | Supaya GitHub Pages menyajikan berkas apa adanya |
+
+Berkas `REVIEW_SUMMARY.txt`, `TECHNICAL_REVIEW.md`, `FIXES_CODE_EXAMPLES.md`, `ARCHITECTURE_REFACTORING.md`, `QUICK_START_IMPROVEMENTS.md`, `DEPLOYMENT_GUIDE.md`, dan `DOCUMENTATION_INDEX.md` adalah catatan review lama. Isinya sudah tidak sesuai dengan kode sekarang; gunakan README ini sebagai acuan.
