@@ -17,6 +17,9 @@
   <!-- Chart.js for High Level Data Visualization -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1"></script>
 
+  <!-- Konfigurasi URL API (dipakai saat dibuka dari GitHub Pages) -->
+  <script src="config.js"></script>
+
   <style>
     /* Design System: Sleek Light Mode & Premium Clean Aesthetics */
     :root {
@@ -798,7 +801,33 @@
     }
 
     // --- Check Mode (GAS vs Local) ---
-    const isLocalMode = typeof google === 'undefined' || !google.script || !google.script.run;
+    // --- Koneksi ke server ---
+    // 1) Dibuka dari URL Apps Script  -> google.script.run
+    // 2) Dibuka dari GitHub Pages      -> fetch ke API_URL di config.js
+    // 3) Dibuka langsung dari file     -> Mode Simulasi (data fiktif)
+    const SENSUS_CONFIG = window.SENSUS_CONFIG || {};
+    const API_URL = String(SENSUS_CONFIG.API_URL || '').trim();
+    const hasGasRunner = typeof google !== 'undefined' && !!google.script && !!google.script.run;
+    const isLocalMode = !hasGasRunner && !API_URL;
+
+    function callApi(action, ...args) {
+      if (hasGasRunner) {
+        return new Promise((resolve, reject) => {
+          google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[action](...args);
+        });
+      }
+      // text/plain = "simple request", jadi tidak ada preflight CORS yang ditolak Apps Script
+      return fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: action, args: args })
+      }).then(r => {
+        if (!r.ok) throw new Error('Server error HTTP ' + r.status);
+        return r.json();
+      }).catch(err => {
+        throw new Error('Tidak bisa terhubung ke server. Periksa API_URL di config.js & koneksi internet. (' + err.message + ')');
+      });
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
@@ -839,8 +868,8 @@
       btn.querySelector('span').innerText = 'Memeriksa...';
       document.getElementById('login-error').innerText = '';
 
-      google.script.run
-        .withSuccessHandler(res => {
+      callApi('login', pin, 'view')
+        .then(res => {
           btn.disabled = false;
           btn.querySelector('span').innerText = 'Masuk';
           if (res && res.success) {
@@ -851,20 +880,18 @@
             document.getElementById('pin-input').value = '';
             document.getElementById('login-error').innerText = (res && res.message) || 'PIN salah.';
           }
-        })
-        .withFailureHandler(err => {
+        }, err => {
           btn.disabled = false;
           btn.querySelector('span').innerText = 'Masuk';
           document.getElementById('login-error').innerText = 'Gagal terhubung: ' + (err.message || err);
-        })
-        .login(pin, 'view');
+        });
     }
 
     function handleLogout() {
       const t = authToken;
       saveToken(null);
       appData = { jamaah: [], keluarga: [], rekap: {} };
-      if (!isLocalMode && t) google.script.run.logout(t);
+      if (!isLocalMode && t) callApi('logout', t).catch(() => {});
       showLogin('Anda sudah keluar.');
     }
 
@@ -946,8 +973,8 @@
       document.getElementById('main-content').style.display = 'none';
       document.getElementById('error-state').style.display = 'none';
 
-      google.script.run
-        .withSuccessHandler((res) => {
+      callApi('getSensusData', authToken)
+        .then((res) => {
           document.getElementById('loading-state').style.display = 'none';
           if (res && res.authError) {
             saveToken(null);
@@ -964,12 +991,10 @@
           } else {
             showError(res.message);
           }
-        })
-        .withFailureHandler((err) => {
+        }, (err) => {
           document.getElementById('loading-state').style.display = 'none';
           showError(err.toString());
-        })
-        .getSensusData(authToken);
+        });
     }
 
     function showError(msg) {

@@ -19,6 +19,8 @@ Aplikasi ini menggunakan **Google Sheets** sebagai database utama (back-end) dan
 ## 📁 Struktur Berkas Proyek
 *   `Code.gs`: Logika backend utama Google Apps Script (interaksi Spreadsheet, rule engine, rekap statistik, penyimpanan data, & migrasi).
 *   `index.html`: Kode tampilan frontend tunggal (SPA) bertema terang (*light theme*) profesional, bersih, dan responsif.
+*   `view.html`: Halaman ringkasan (read-only) untuk pengurus.
+*   `config.js`: URL API Apps Script, dipakai saat frontend dibuka dari GitHub Pages.
 *   `simulate_local.js`: Lingkungan pengujian offline lokal berbasis Node.js untuk mensimulasikan Apps Script.
 
 ---
@@ -85,6 +87,29 @@ Untuk menguji logika backend (`Code.gs`) secara offline di komputer Anda:
    *   **Halaman Ringkasan (Read-Only)**: Tambahkan parameter `?page=view` di akhir URL (contoh: `https://script.google.com/.../exec?page=view`) → masukkan **PIN Pengurus**. Halaman ini hanya menampilkan jamaah aktif & masuk absen, tanpa alamat/telepon/catatan.
 7. Setiap kali `Code.gs` atau file HTML diubah: **Deploy → Manage deployments → Edit (ikon pensil) → Version: New version → Deploy**, supaya URL yang sama memakai kode terbaru.
 8. Jika aplikasi di-embed di Google Sites / situs lain, ubah `CONFIG.ALLOW_EMBED` menjadi `true`.
+
+---
+
+## 🌍 Akses Lewat GitHub Pages (opsional)
+Frontend (`index.html`, `view.html`) bisa dibuka dari GitHub Pages, sementara data tetap di Google Sheets lewat Apps Script. Mekanisme PIN dan pembatasan data sama persis.
+
+1. Selesaikan dulu **Langkah 1–3** di atas (Apps Script ter-deploy dengan *Execute as: Me* dan *Who has access: **Anyone***). Akses *Anyone* wajib, karena GitHub Pages memanggil API tanpa login Google.
+2. Salin **Web app URL** (berakhiran `/exec`) ke `config.js`:
+   ```javascript
+   window.SENSUS_CONFIG = {
+     API_URL: "https://script.google.com/macros/s/AKfycb.../exec"
+   };
+   ```
+   Commit & push. URL ini boleh publik; semua data tetap dilindungi PIN.
+3. Di GitHub: **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: `main` / `(root)` → Save**. Tunggu 1–2 menit.
+4. Alamat aksesnya:
+   *   **Admin**: `https://<username>.github.io/<nama-repo>/` → PIN Admin
+   *   **Ringkasan**: `https://<username>.github.io/<nama-repo>/view.html` → PIN Pengurus
+
+Catatan:
+*   Setiap kali **`Code.gs`** berubah, buat *New version* di Manage deployments (URL `/exec` tetap sama, `config.js` tidak perlu diubah). Perubahan **HTML** cukup di-push ke GitHub.
+*   Apps Script hanya menerima aksi `login`, `logout`, `getSensusData`, `saveSensusData` lewat API (`doPost`); fungsi migrasi tidak bisa dipanggil dari luar.
+*   GitHub Pages gratis hanya untuk repo **publik**. Jangan simpan data jamaah asli di repo.
 
 ---
 

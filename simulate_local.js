@@ -142,6 +142,10 @@ function createSandbox() {
       formatDate: (d) => d.toISOString().slice(0, 16).replace(/[-:T]/g, '')
     },
     HtmlService: {},
+    ContentService: {
+      MimeType: { JSON: 'application/json' },
+      createTextOutput: (text) => ({ getContent: () => text, setMimeType() { return this; } })
+    },
     Logger: { log: () => {} },
     console
   };
@@ -218,6 +222,40 @@ test("Logout menghapus sesi", () => {
   eq(gs.getSensusData(t).success, true);
   gs.logout(t);
   eq(gs.getSensusData(t).authError, true);
+});
+
+// --- JSON API (doPost) untuk GitHub Pages ----------------------------------
+const post = (gs, body) => JSON.parse(gs.doPost({ postData: { contents: typeof body === 'string' ? body : JSON.stringify(body) } }).getContent());
+
+test("doPost: login, ambil data, dan simpan lewat API JSON", () => {
+  const env = createSandbox();
+  const lg = post(env.gs, { action: 'login', args: ['246810', 'index'] });
+  eq(lg.success, true);
+  const data = post(env.gs, { action: 'getSensusData', args: [lg.token] });
+  eq(data.success, true); eq(data.data.jamaah.length, 9);
+  const sv = post(env.gs, { action: 'saveSensusData', args: [lg.token, validJamaah()] });
+  eq(sv.success, true, sv.message);
+});
+
+test("doPost: tanpa token ditolak (authError)", () => {
+  const { gs } = createSandbox();
+  eq(post(gs, { action: 'getSensusData', args: [] }).authError, true);
+});
+
+test("doPost: fungsi di luar daftar (migrasi, internal) tidak bisa dipanggil", () => {
+  const env = createSandbox();
+  env.session.active = env.session.owner; // bahkan bila pemilik
+  ['jalankanMigrasiSensus', 'readSensus_', 'toString', '__proto__', 'constructor'].forEach(a => {
+    const r = post(env.gs, { action: a, args: [] });
+    eq(r.success, false, a); assert(/tidak dikenal/.test(r.message), r.message);
+  });
+  eq(env.ss.sheets.Jamaah.getLastRow(), 10, "data harus utuh");
+});
+
+test("doPost: body rusak tidak membuat server error", () => {
+  const { gs } = createSandbox();
+  const r = post(gs, '{bukan json');
+  eq(r.success, false);
 });
 
 // --- Pembacaan data & privasi -----------------------------------------------

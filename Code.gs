@@ -3,34 +3,13 @@
  * File ini menangani server-side logic, interaksi dengan Google Sheets,
  * otomatisasi perhitungan kategori usia, rekapitulasi data, dan akses PIN.
  *
- * ============================================================================
- * 🔐 KONFIGURASI PIN (Script Properties)
- * ============================================================================
- * 
- * SETUP AWAL (lakukan 1x saja):
- * 1. Buka Google Apps Script Editor
- * 2. Klik "Project Settings" (sidebar kiri)
- * 3. Scroll ke "Script Properties"
- * 4. Klik "Add property" dan tambahkan:
- * 
- *    Property Name: ADMIN_PIN
- *    Value:         A21112026#!
- * 
- *    Property Name: VIEWER_PIN
- *    Value:         v21112026#?
- * 
- * 5. Klik "Save"
- * 
- * LEVEL AKSES:
- * - ADMIN PIN  (A21112026#!)  : Bisa edit/tambah/hapus data
- * - VIEWER PIN (v21112026#?)  : Hanya bisa lihat & export (read-only)
- * 
- * KEAMANAN:
- * - Jangan share PIN di public atau grup WhatsApp
- * - Ganti PIN setiap 3 bulan sekali
- * - PIN disimpan aman di Script Properties (tidak di GitHub/publik)
- * 
- * ============================================================================
+ * KEAMANAN (WAJIB DIBACA):
+ * - Semua fungsi yang TIDAK berakhiran "_" bisa dipanggil dari browser lewat
+ *   google.script.run. Karena itu setiap fungsi publik di bawah memeriksa token sesi.
+ * - PIN disimpan di Script Properties (Project Settings -> Script Properties):
+ *     ADMIN_PIN  : PIN untuk halaman editor (tambah/edit data)
+ *     VIEWER_PIN : PIN untuk halaman ringkasan (?page=view)
+ *   Gunakan minimal 6 digit dan jangan dibagikan di grup umum.
  */
 
 var CONFIG = {
@@ -80,6 +59,37 @@ function doGet(e) {
     out.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
   return out;
+}
+
+/**
+ * JSON API untuk frontend di luar Apps Script (mis. GitHub Pages).
+ * Body (text/plain): {"action": "login" | "logout" | "getSensusData" | "saveSensusData", "args": [...]}
+ * Hanya aksi di daftar ini yang bisa dipanggil; migrasi & fungsi internal tidak terekspos.
+ * Keamanan tetap sama: setiap aksi (kecuali login) memeriksa token sesi dari PIN.
+ */
+var API_ACTIONS = {
+  login: function (args) { return login(args[0], args[1]); },
+  logout: function (args) { return logout(args[0]); },
+  getSensusData: function (args) { return getSensusData(args[0]); },
+  saveSensusData: function (args) { return saveSensusData(args[0], args[1]); }
+};
+
+function doPost(e) {
+  var result;
+  try {
+    var body = (e && e.postData && e.postData.contents) || '';
+    if (body.length > 50000) throw new Error("Permintaan terlalu besar.");
+    var req = JSON.parse(body || '{}');
+    var action = String(req.action || '');
+    if (!Object.prototype.hasOwnProperty.call(API_ACTIONS, action)) {
+      throw new Error("Aksi tidak dikenal.");
+    }
+    result = API_ACTIONS[action](Array.isArray(req.args) ? req.args : []);
+  } catch (err) {
+    result = { success: false, message: "Permintaan tidak valid: " + err.message };
+  }
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 /* ======================================================================
