@@ -1,0 +1,126 @@
+================================================================================
+  KONFIGURASI PIN - SENSUS JIWA KELOMPOK BABAKAN BARAT
+================================================================================
+
+PIN untuk autentikasi level akses di sistem Sensus Jiwa & Jamaah
+
+ADMIN LEVEL (Edit Data):
+  PIN: A21112026#!
+  Fungsi: Tambah, edit, hapus data jamaah dan keluarga
+  User: Pengurus yang ditunjuk sebagai admin
+
+VIEWER LEVEL (Lihat Saja):
+  PIN: v21112026#?
+  Fungsi: Hanya lihat dan export laporan (read-only)
+  User: Pengurus yang hanya perlu lihat laporan
+
+================================================================================
+  CARA SETUP DI GOOGLE APPS SCRIPT
+================================================================================
+
+STEP 1: Buka Google Apps Script Editor
+  - URL: https://script.google.com/macros/s/AKfycbwEbPsEW0v-V832Wo9FYVMwcCs7PXurP1w5SAq8tCIw5pqx9RAKsqvH0Gjuar5pJqHB/exec
+  - Klik icon pensil (Edit) di kanan atas
+
+STEP 2: Buka Project Settings
+  - Sidebar kiri → Klik "Project Settings"
+
+STEP 3: Cari Script Properties
+  - Scroll ke bagian "Script Properties"
+  - Anda akan lihat table kosong atau sudah ada properties
+
+STEP 4: Tambah Property ADMIN_PIN
+  - Klik "Add property"
+  - Property name: ADMIN_PIN
+  - Value:         A21112026#!
+  - Klik enter
+
+STEP 5: Tambah Property VIEWER_PIN
+  - Klik "Add property" lagi
+  - Property name: VIEWER_PIN
+  - Value:         v21112026#?
+  - Klik enter
+
+STEP 6: Save
+  - Klik tombol "Save" di kanan atas
+  - Done! PIN sudah tersimpan
+
+================================================================================
+  CARA MENGGUNAKAN PIN
+================================================================================
+
+Saat pertama kali mengakses sistem:
+
+1. Buka URL: https://script.google.com/macros/s/AKfycbwEbPsEW0v-V832Wo9FYVMwcCs7PXurP1w5SAq8tCIw5pqx9RAKsqvH0Gjuar5pJqHB/exec
+
+2. Halaman akan meminta PIN
+
+3. Masukkan PIN sesuai role:
+   - ADMIN  : A21112026#! (jika ingin edit data)
+   - VIEWER : v21112026#? (jika hanya lihat data)
+
+4. Klik Login atau tekan Enter
+
+5. Akses dashboard sesuai level
+
+================================================================================
+  KEAMANAN PIN
+================================================================================
+
+⚠️  PENTING - JANGAN LAKUKAN:
+
+1. ❌ Jangan share PIN di grup WhatsApp atau public
+2. ❌ Jangan include PIN di documentation publik (GitHub, Blog, dll)
+3. ❌ Jangan gunakan PIN yang sama untuk semua user
+4. ❌ Jangan hardcode PIN di Code.gs (selalu gunakan Script Properties)
+
+✅ HARAP LAKUKAN:
+
+1. ✓ Ganti PIN setiap 3 bulan sekali
+2. ✓ Simpan PIN di tempat aman (password manager, catatan pribadi)
+3. ✓ Hanya beri PIN ke pengurus yang ditunjuk
+4. ✓ Log siapa saja yang login (untuk audit keamanan)
+5. ✓ Hubungi admin jika ada kebocoran PIN
+
+================================================================================
+  GANTI PIN (Update)
+================================================================================
+
+Jika ingin mengubah PIN:
+
+1. Buka Project Settings → Script Properties (seperti step 1-3 di atas)
+2. Cari property yang ingin diubah (misal: ADMIN_PIN)
+3. Klik value-nya
+4. Edit value dengan PIN baru
+5. Klik "Save"
+6. Inform semua user tentang PIN baru
+
+Contoh update:
+  ADMIN_PIN: A21112026#! → A21112026#! (new)
+  VIEWER_PIN: v21112026#? → v21112026#? (new)
+
+================================================================================
+  TROUBLESHOOTING
+================================================================================
+
+Q: PIN tidak bekerja, padahal sudah set di Script Properties?
+
+A1: Cek spelling PIN - harus exact match (case-sensitive)
+A2: Refresh halaman sebelum login ulang (cache issue)
+A3: Cek apakah Script Properties sudah tersimpan dengan klik "Save"
+A4: Coba deploy ulang sistemnya (New Deployment)
+
+Q: Lupa PIN, bagaimana?
+
+A: Admin bisa lihat di Script Properties → Script Properties
+   Jika lupa, bisa diganti dengan PIN baru sesuai langkah "GANTI PIN"
+
+Q: PIN tidak muncul di halaman login?
+
+A: Ini normal - PIN aman disimpan di backend (Script Properties)
+   User hanya perlu input PIN, tidak bisa dilihat di halaman
+
+================================================================================
+  LAST UPDATED: 2026-01-01
+  Version: 1.0
+================================================================================

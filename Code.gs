@@ -3,13 +3,34 @@
  * File ini menangani server-side logic, interaksi dengan Google Sheets,
  * otomatisasi perhitungan kategori usia, rekapitulasi data, dan akses PIN.
  *
- * KEAMANAN (WAJIB DIBACA):
- * - Semua fungsi yang TIDAK berakhiran "_" bisa dipanggil dari browser lewat
- *   google.script.run. Karena itu setiap fungsi publik di bawah memeriksa token sesi.
- * - PIN disimpan di Script Properties (Project Settings -> Script Properties):
- *     ADMIN_PIN  : PIN untuk halaman editor (tambah/edit data)
- *     VIEWER_PIN : PIN untuk halaman ringkasan (?page=view)
- *   Gunakan minimal 6 digit dan jangan dibagikan di grup umum.
+ * ============================================================================
+ * 🔐 KONFIGURASI PIN (Script Properties)
+ * ============================================================================
+ * 
+ * SETUP AWAL (lakukan 1x saja):
+ * 1. Buka Google Apps Script Editor
+ * 2. Klik "Project Settings" (sidebar kiri)
+ * 3. Scroll ke "Script Properties"
+ * 4. Klik "Add property" dan tambahkan:
+ * 
+ *    Property Name: ADMIN_PIN
+ *    Value:         A21112026#!
+ * 
+ *    Property Name: VIEWER_PIN
+ *    Value:         v21112026#?
+ * 
+ * 5. Klik "Save"
+ * 
+ * LEVEL AKSES:
+ * - ADMIN PIN  (A21112026#!)  : Bisa edit/tambah/hapus data
+ * - VIEWER PIN (v21112026#?)  : Hanya bisa lihat & export (read-only)
+ * 
+ * KEAMANAN:
+ * - Jangan share PIN di public atau grup WhatsApp
+ * - Ganti PIN setiap 3 bulan sekali
+ * - PIN disimpan aman di Script Properties (tidak di GitHub/publik)
+ * 
+ * ============================================================================
  */
 
 var CONFIG = {
