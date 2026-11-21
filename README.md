@@ -46,11 +46,12 @@ Datanya disimpan di **Google Sheets**, logika server berjalan di **Google Apps S
 ---
 
 ## 📐 Aturan kategori usia
-Kategori dihitung otomatis dari **Tahun Lahir** dan **Status Nikah**:
+Kategori dihitung otomatis dari **Tahun Lahir** dan **Status Nikah**, dengan urutan:
 
-1. **Menikah** → masuk kategori untuk yang menikah (default **Dewasa Menikah**).
-2. **Duda / Janda** → dihitung di kolom Duda / Janda tersendiri.
-3. **Belum menikah** → dicocokkan ke rentang umur di menu **Pengaturan Kategori**.
+1. **Umur masuk kategori Lansia** → masuk **Lansia**, **apa pun status nikahnya** (menikah, duda, janda, atau belum menikah).
+2. **Menikah** → masuk kategori untuk yang menikah (default **Dewasa Menikah**).
+3. **Duda / Janda** → dihitung di kolom Duda / Janda tersendiri.
+4. **Belum menikah** → dicocokkan ke rentang umur di menu **Pengaturan Kategori**.
 
 Bawaan rentang umur:
 
@@ -64,7 +65,9 @@ Bawaan rentang umur:
 | Lansia | 57 th ke atas |
 
 - Rentang harus **bersambung mulai umur 0**, dan kategori terakhir dibiarkan tanpa batas atas.
-- Satu kategori bisa diberi tanda **Lansia**. Umur awalnya dipakai untuk kartu **"Lansia ≥ … th"**, yang menghitung jamaah aktif dari **semua status nikah**.
+- Satu kategori bisa diberi tanda **Lansia**. Umur awalnya juga dipakai untuk kartu **"Lansia ≥ … th"**, jadi angka di kartu sama dengan baris Lansia di rekap.
+- Tiap jiwa dihitung **sekali**: Duda/Janda yang sudah lansia masuk baris Lansia, bukan kolom Duda/Janda.
+- Jamaah tanpa tahun lahir tidak bisa dihitung umurnya, jadi kategorinya mengikuti status nikah (yang menikah tetap masuk kategori menikah).
 - Pengaturan disimpan di sheet `Pengaturan_Kategori` dan bisa diubah dari aplikasi atau langsung di sheet. Kalau isi sheet itu tidak valid, aplikasi memakai kategori bawaan dan menampilkan peringatan di halaman admin.
 - **Perlu dilengkapi** = jamaah yang **tahun lahirnya belum diisi**, sehingga umur dan kategorinya belum bisa dihitung. Kalau jumlahnya 0, artinya semua data tahun lahir sudah lengkap.
 

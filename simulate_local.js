@@ -325,7 +325,27 @@ test("Rule engine: batas kategori usia default (termasuk Lansia)", () => {
     [56, 'Usia (Pra) Menikah'], [57, 'Lansia'], [90, 'Lansia']];
   cases.forEach(([umur, kat]) => eq(gs.dapatkanKategoriUsia(THIS_YEAR - umur, 'BELUM'), kat, `umur ${umur}`));
   eq(gs.dapatkanKategoriUsia(THIS_YEAR - 20, 'JANDA'), 'Dewasa Menikah');
-  eq(gs.dapatkanKategoriUsia(THIS_YEAR - 70, 'MENIKAH'), 'Dewasa Menikah', "status nikah diutamakan di atas Lansia");
+  eq(gs.dapatkanKategoriUsia(THIS_YEAR - 56, 'MENIKAH'), 'Dewasa Menikah');
+  eq(gs.dapatkanKategoriUsia(THIS_YEAR - 57, 'MENIKAH'), 'Lansia', "Lansia diutamakan di atas status nikah");
+  eq(gs.dapatkanKategoriUsia(THIS_YEAR - 70, 'JANDA'), 'Lansia');
+  eq(gs.dapatkanKategoriUsia(null, 'MENIKAH'), 'Dewasa Menikah', "tanpa tahun lahir tetap ikut status nikah");
+});
+
+test("Rekap: Janda/Duda lansia dihitung di Lansia (sekali saja), total baris = total jiwa", () => {
+  const env = createSandbox();
+  const sh = env.ss.sheets.Jamaah;
+  sh.rows.push(["JM-10", "KK-C", "D", "Nenek Janda", "Nenek", "P", THIS_YEAR - 75, "JANDA", "Y", "Y", "Menetap", ""]);
+  sh.rows.push(["JM-11", "KK-C", "D", "Janda Muda", "Janda", "P", THIS_YEAR - 40, "JANDA", "Y", "Y", "Menetap", ""]);
+  const t = env.gs.login('246810', 'index').token;
+  const d = env.gs.getSensusData(t).data;
+  eq(d.jamaah.find(j => j.id_jamaah === 'JM-10').kategori_usia, 'Lansia');
+  eq(d.rekap.janda, 1, "hanya janda non-lansia");
+  const lansia = d.rekap.detail['Lansia'];
+  const lansiaExpected = d.jamaah.filter(j => j.is_aktif === 'Y' && j.umur !== null && j.umur >= 57).length;
+  eq(lansia.L + lansia.P, lansiaExpected, "baris Lansia = semua jamaah aktif ≥57");
+  eq(d.rekap.lansia, lansiaExpected, "kartu Lansia sama dengan baris Lansia");
+  const rows = Object.values(d.rekap.detail).reduce((a, x) => a + x.L + x.P, 0) + d.rekap.duda + d.rekap.janda;
+  eq(rows, d.rekap.total - d.rekap.tanpaTahunLahir, "tiap jiwa dihitung sekali");
 });
 
 // --- Pengaturan kategori ----------------------------------------------------
@@ -350,7 +370,8 @@ test("Simpan pengaturan kategori: rekap & batas lansia ikut berubah", () => {
   eq(r.rekap.batasLansia, 60);
   const lansiaExpected = [1956, 1968, 1967, 1964].filter(y => THIS_YEAR - y >= 60).length;
   eq(r.rekap.lansia, lansiaExpected, "lansia dengan batas 60");
-  eq(r.jamaah.find(j => j.id_jamaah === 'JM-1').kategori_usia, 'Sudah Menikah');
+  eq(r.jamaah.find(j => j.id_jamaah === 'JM-1').kategori_usia, 'Lansia', "menikah umur ≥60 -> Lansia");
+  eq(r.jamaah.find(j => j.id_jamaah === 'JM-3').kategori_usia, 'Sudah Menikah');
   eq(r.jamaah.find(j => j.id_jamaah === 'JM-5').kategori_usia, 'Anak');
 });
 

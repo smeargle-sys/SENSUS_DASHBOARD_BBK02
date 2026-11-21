@@ -513,8 +513,9 @@
       showState('loading');
       const thisYear = new Date().getFullYear();
       const kategori = (tahun, status) => {
-        if (['MENIKAH', 'DUDA', 'JANDA'].includes(status)) return 'Dewasa Menikah';
         const u = thisYear - tahun;
+        if (u >= 57) return 'Lansia'; // Lansia diutamakan di atas status nikah
+        if (['MENIKAH', 'DUDA', 'JANDA'].includes(status)) return 'Dewasa Menikah';
         if (u <= 5) return 'BALITA-PAUD';
         if (u <= 12) return 'Caberawit';
         if (u <= 15) return 'Pra Remaja (SMP)';

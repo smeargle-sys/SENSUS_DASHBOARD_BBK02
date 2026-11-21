@@ -637,7 +637,7 @@
         <section id="view-pengaturan" class="card" hidden aria-labelledby="cfg-title">
           <div class="section-head"><h2 id="cfg-title">Pengaturan Kategori Usia</h2></div>
           <div class="settings">
-            <p class="lead">Kategori dihitung otomatis dari <strong>tahun lahir</strong> dan <strong>status nikah</strong>. Jamaah yang <strong>menikah</strong> masuk kategori menikah di bawah; <strong>Duda/Janda</strong> dihitung di kolom tersendiri. Yang <strong>belum menikah</strong> dicocokkan ke rentang umur di tabel ini. Rentang harus bersambung mulai umur 0, dan kategori terakhir dibiarkan tanpa batas atas.</p>
+            <p class="lead">Kategori dihitung otomatis dari <strong>tahun lahir</strong> dan <strong>status nikah</strong>, dengan urutan: (1) umur yang masuk kategori bertanda <strong>Lansia</strong> selalu masuk Lansia, apa pun status nikahnya; (2) yang <strong>menikah</strong> masuk kategori menikah di bawah, sedangkan <strong>Duda/Janda</strong> dihitung di kolom tersendiri; (3) yang <strong>belum menikah</strong> dicocokkan ke rentang umur di tabel ini. Rentang harus bersambung mulai umur 0, dan kategori terakhir dibiarkan tanpa batas atas.</p>
             <div class="cfg-scroll">
               <table class="cfg-table">
                 <thead><tr><th scope="col">Nama kategori</th><th scope="col">Umur dari</th><th scope="col">Umur sampai</th><th scope="col" class="c">Lansia</th><th scope="col"><span class="sr-only">Hapus baris</span></th></tr></thead>
@@ -649,7 +649,7 @@
               <label for="cfg-menikah">Nama kategori untuk yang sudah menikah</label>
               <input id="cfg-menikah" class="input" type="text" maxlength="40" oninput="renderCfgPreview()">
             </div>
-            <div class="note-box">Kategori yang diberi tanda <strong>Lansia</strong>: umur awalnya juga dipakai untuk angka <strong>Lansia</strong> di dashboard (menghitung semua status nikah). Contoh: Lansia mulai 57 th → kartu “Lansia ≥ 57 th”.</div>
+            <div class="note-box">Kategori bertanda <strong>Lansia</strong> berlaku untuk <strong>semua status nikah</strong>: menikah, duda, janda, maupun belum menikah. Duda/Janda yang sudah lansia dihitung di baris Lansia, tidak di kolom Duda/Janda, supaya tiap jiwa dihitung sekali. Umur awalnya juga dipakai untuk kartu dashboard, misalnya Lansia mulai 57 th → kartu “Lansia ≥ 57 th”.</div>
             <div>
               <div class="field-label" style="margin-bottom: 8px">Pratinjau aturan</div>
               <div class="cfg-preview" id="cfg-preview"></div>
@@ -890,12 +890,15 @@
     function kategoriOrder() { return (appData.rekap && appData.rekap.kategoriOrder) || getCfg().kategori.map(k => k.nama).concat([getCfg().labelMenikah]); }
 
     // Rule engine lokal: pratinjau di form & Mode Simulasi. Data live tetap dihitung di server.
+    // Urutan aturan: 1) Lansia (apa pun status nikah)  2) Menikah/Duda/Janda  3) rentang umur
     function kategoriUsiaLokal(tahunLahir, statusNikah, cfg) {
       cfg = cfg || getCfg();
       const s = (statusNikah || '').toUpperCase();
+      const umur = tahunLahir ? new Date().getFullYear() - tahunLahir : null;
+      const lansia = cfg.kategori.find(x => x.lansia);
+      if (lansia && umur !== null && umur >= lansia.min && (lansia.max === null || umur <= lansia.max)) return lansia.nama;
       if (s === 'MENIKAH' || s === 'DUDA' || s === 'JANDA') return cfg.labelMenikah;
-      if (!tahunLahir) return 'Tanpa Tahun Lahir';
-      const umur = new Date().getFullYear() - tahunLahir;
+      if (umur === null) return 'Tanpa Tahun Lahir';
       const k = cfg.kategori.find(x => umur >= x.min && (x.max === null || umur <= x.max));
       return k ? k.nama : 'Di Luar Kategori';
     }
@@ -1011,16 +1014,18 @@
       appData.jamaah.forEach(j => { if (j.hubungan_keluarga === 'A' && j.is_aktif === 'N') inactiveKK[j.id_keluarga] = true; });
       const detail = {};
       order.forEach(k => { detail[k] = { L: 0, P: 0 }; });
+      const lansiaNama = (cfg.kategori.find(x => x.lansia) || {}).nama;
+      // Duda/Janda yang sudah Lansia dihitung di baris Lansia (tiap jiwa sekali)
+      const dudaJanda = j => (j.status_nikah === 'DUDA' || j.status_nikah === 'JANDA') && j.kategori_usia !== lansiaNama;
       active.forEach(j => {
-        if (detail[j.kategori_usia] && (j.jenis_kelamin === 'L' || j.jenis_kelamin === 'P') &&
-            j.status_nikah !== 'DUDA' && j.status_nikah !== 'JANDA') detail[j.kategori_usia][j.jenis_kelamin]++;
+        if (detail[j.kategori_usia] && (j.jenis_kelamin === 'L' || j.jenis_kelamin === 'P') && !dudaJanda(j)) detail[j.kategori_usia][j.jenis_kelamin]++;
       });
       appData.rekap = {
         total: active.length,
         laki: active.filter(j => j.jenis_kelamin === 'L').length,
         perempuan: active.filter(j => j.jenis_kelamin === 'P').length,
-        duda: active.filter(j => j.status_nikah === 'DUDA').length,
-        janda: active.filter(j => j.status_nikah === 'JANDA').length,
+        duda: active.filter(j => j.status_nikah === 'DUDA' && dudaJanda(j)).length,
+        janda: active.filter(j => j.status_nikah === 'JANDA' && dudaJanda(j)).length,
         lansia: active.filter(j => j.umur !== null && j.umur >= lansiaMin(cfg)).length,
         batasLansia: lansiaMin(cfg),
         kkCount: appData.keluarga.filter(k => !inactiveKK[k.id_keluarga]).length,
@@ -2089,8 +2094,8 @@
     function renderCfgPreview() {
       cfgDraft.labelMenikah = $('cfg-menikah').value;
       const sorted = cfgDraft.kategori.slice().sort((a, b) => (Number(a.min) || 0) - (Number(b.min) || 0));
-      $('cfg-preview').innerHTML = sorted.map(k => `<span>${esc(k.min === '' ? '?' : k.min)}${k.max === null || k.max === undefined ? '+ th' : '–' + esc(k.max) + ' th'} → <strong>${esc(k.nama || '(tanpa nama)')}</strong>${k.lansia ? ' · Lansia' : ''}</span>`).join('') +
-        `<span>Menikah → <strong>${esc(cfgDraft.labelMenikah || '(tanpa nama)')}</strong></span><span>Duda / Janda → <strong>kolom tersendiri</strong></span>`;
+      $('cfg-preview').innerHTML = sorted.map(k => `<span>${esc(k.min === '' ? '?' : k.min)}${k.max === null || k.max === undefined ? '+ th' : '–' + esc(k.max) + ' th'} → <strong>${esc(k.nama || '(tanpa nama)')}</strong>${k.lansia ? ' · semua status nikah' : ''}</span>`).join('') +
+        `<span>Menikah (di bawah umur Lansia) → <strong>${esc(cfgDraft.labelMenikah || '(tanpa nama)')}</strong></span><span>Duda / Janda (di bawah umur Lansia) → <strong>kolom tersendiri</strong></span>`;
     }
     function saveCfg() {
       $('cfg-error').hidden = true;

@@ -313,12 +313,12 @@ function newId_(prefix) {
 /* ======================================================================
  * KONFIGURASI KATEGORI USIA
  * Disimpan di sheet "Pengaturan_Kategori" (bisa diubah dari halaman admin
- * atau langsung di sheet). Aturan:
- *  - Status MENIKAH -> kategori "label menikah" (default "Dewasa Menikah").
- *  - Status DUDA / JANDA -> dihitung di kolom Duda / Janda tersendiri.
- *  - Belum menikah -> dicocokkan ke rentang umur di tabel (urut dari umur kecil).
- *  - Satu baris boleh diberi penanda LANSIA: umur minimalnya juga dipakai
- *    untuk angka "Lansia" di dashboard (semua status nikah).
+ * atau langsung di sheet). Aturan, berurutan:
+ *  1. Umur masuk rentang kategori bertanda LANSIA -> kategori Lansia, APA PUN status nikahnya.
+ *  2. Status MENIKAH -> kategori "label menikah" (default "Dewasa Menikah").
+ *  3. Status DUDA / JANDA -> dihitung di kolom Duda / Janda tersendiri.
+ *  4. Belum menikah -> dicocokkan ke rentang umur di tabel (urut dari umur kecil).
+ *  Umur minimal kategori LANSIA juga dipakai untuk kartu "Lansia" di dashboard.
  * ====================================================================== */
 
 var DEFAULT_KATEGORI = {
@@ -427,6 +427,11 @@ function validateKategoriConfig_(input) {
   return { kategori: list, labelMenikah: label };
 }
 
+function lansiaKategori_(cfg) {
+  for (var i = 0; i < cfg.kategori.length; i++) if (cfg.kategori[i].lansia) return cfg.kategori[i];
+  return null;
+}
+
 function lansiaMin_(cfg) {
   for (var i = 0; i < cfg.kategori.length; i++) if (cfg.kategori[i].lansia) return cfg.kategori[i].min;
   return CONFIG.BATAS_LANSIA;
@@ -446,12 +451,20 @@ function lansiaMin_(cfg) {
 function dapatkanKategoriUsia(tahunLahir, statusNikah, cfg) {
   cfg = cfg || DEFAULT_KATEGORI;
   var status = (statusNikah || "").toUpperCase().trim();
+  var umur = tahunLahir ? new Date().getFullYear() - tahunLahir : null;
+
+  // 1. Lansia diutamakan di atas status nikah
+  var lansia = lansiaKategori_(cfg);
+  if (lansia && umur !== null && umur >= lansia.min && (lansia.max === null || umur <= lansia.max)) {
+    return lansia.nama;
+  }
+  // 2–3. Sudah (pernah) menikah
   if (status === "MENIKAH" || status === "DUDA" || status === "JANDA") {
     return cfg.labelMenikah;
   }
-  if (!tahunLahir) return "Tanpa Tahun Lahir";
+  if (umur === null) return "Tanpa Tahun Lahir";
 
-  var umur = new Date().getFullYear() - tahunLahir;
+  // 4. Belum menikah: rentang umur
   for (var i = 0; i < cfg.kategori.length; i++) {
     var k = cfg.kategori[i];
     if (umur >= k.min && (k.max === null || umur <= k.max)) return k.nama;
@@ -487,6 +500,7 @@ function readSensus_() {
   var sheets = initializeSheets_(ss);
   var cfg = getKategoriConfig_(ss);
   var batasLansia = lansiaMin_(cfg);
+  var lansiaKat = lansiaKategori_(cfg);
   var shKeluarga = sheets.keluarga;
   var shJamaah = sheets.jamaah;
   var cols = sheets.jamaahCols;
@@ -588,15 +602,17 @@ function readSensus_() {
         if (jk === "L") rekap.laki++;
         else if (jk === "P") rekap.perempuan++;
 
-        if (statusNikah === "DUDA") rekap.duda++;
-        else if (statusNikah === "JANDA") rekap.janda++;
+        // Tiap jiwa dihitung sekali: Duda/Janda yang sudah masuk Lansia dihitung di baris Lansia
+        var isLansiaKat = !!(lansiaKat && kategoriUsia === lansiaKat.nama);
+        var hitungDudaJanda = !isLansiaKat && (statusNikah === "DUDA" || statusNikah === "JANDA");
+        if (hitungDudaJanda && statusNikah === "DUDA") rekap.duda++;
+        else if (hitungDudaJanda && statusNikah === "JANDA") rekap.janda++;
 
         if (umur !== null && umur >= batasLansia) rekap.lansia++;
         if (!tahunLahir) rekap.tanpaTahunLahir++;
         if (kategoriUsia === "Di Luar Kategori") rekap.diLuarKategori++;
 
-        if (rekap.detail[kategoriUsia] && (jk === "L" || jk === "P") &&
-            statusNikah !== "DUDA" && statusNikah !== "JANDA") {
+        if (rekap.detail[kategoriUsia] && (jk === "L" || jk === "P") && !hitungDudaJanda) {
           rekap.detail[kategoriUsia][jk]++;
         }
       }
