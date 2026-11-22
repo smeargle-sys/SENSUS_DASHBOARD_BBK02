@@ -32,7 +32,9 @@ Datanya disimpan di **Google Sheets**, logika server berjalan di **Google Apps S
 - **Daftar Keluarga (KK):** jumlah anggota aktif, detail anggota, tambah anggota, dan hapus KK.
 - **Jamaah tanpa KK (mandiri / perantau):** pilih **"Tanpa KK (mandiri / perantau)"** di langkah Keluarga pada form. Mereka dihitung sebagai jiwa, tetapi **tidak dihitung sebagai KK**, punya filter **Tanpa KK** sendiri, dan dikelompokkan di bagian akhir saat **Kelompokkan per KK** aktif.
 - **Perlu Dibantu:** penanda jamaah penerima santunan/bantuan kelompok, dengan menu dan filter tersendiri (hanya terlihat admin).
-- **Pengaturan Kategori:** atur nama dan rentang umur kategori, termasuk Lansia (lihat bagian *Aturan kategori usia*).
+- **Pengaturan:**
+  - **Kategori usia:** atur nama dan rentang umur kategori, termasuk Lansia (lihat bagian *Aturan kategori usia*).
+  - **Pilihan Status Keberadaan:** tambah, urutkan, atau hapus pilihan keberadaan (lihat bagian *Status keberadaan*).
 - **Hapus dengan arsip:** data yang dihapus dipindah ke sheet arsip, bukan hilang (lihat bagian *Arsip & pemulihan*).
 
 ### Halaman ringkasan pengurus
@@ -74,6 +76,21 @@ Bawaan rentang umur:
 
 ---
 
+## 📍 Status keberadaan
+Status keberadaan menjelaskan **di mana** jamaah berada (Menetap, Mondok, Tugas, Kerja Luar, dan pilihan lain yang Anda tambahkan, misalnya **Sekolah di Luar**).
+
+- **Hanya keterangan.** Jumlah *jiwa aktif* dan rekap tetap dihitung dari **Aktif di wilayah** (kolom I). Menambah pilihan baru tidak mengubah angka yang sudah ada.
+- **Menambah pilihan:** buka **Pengaturan → Pilihan Status Keberadaan**, ketik nama baru, tekan **Tambah**, lalu **Simpan pilihan**. Pilihan baru langsung muncul di form, filter, kartu *Keberadaan & Absen*, dan halaman pengurus.
+- **Menetap** wajib ada dan selalu di urutan pertama. Jamaah dengan isian kosong dianggap Menetap.
+- Pilihan yang **masih dipakai** jamaah tidak bisa dihapus atau diganti namanya; jumlah pemakainya tampil di sebelah nama. Ubah dulu status keberadaan jamaah tersebut.
+- Maksimal 20 pilihan, masing-masing maksimal 30 karakter, tidak boleh ganda (huruf besar/kecil dianggap sama).
+- Daftar disimpan di sheet `Pengaturan_Keberadaan` (kolom A Urutan, B Status Keberadaan). Kalau isi sheet itu tidak valid, aplikasi memakai 4 pilihan bawaan.
+- Kalau kolom K di sheet `Jamaah` berisi nilai yang **belum ada** di daftar (misalnya diketik langsung di sheet), datanya tetap tampil dan admin mendapat peringatan. Di menu Pengaturan ada tombol untuk menambahkan nilai itu ke daftar. Perbedaan huruf besar/kecil (mis. `mondok`) otomatis disamakan.
+
+**Kapan pakai Status Keberadaan, kapan pakai Aktif di wilayah?** Contoh: anak yang sekolah di luar kota dan jarang pulang → keberadaan **Sekolah di Luar**, *Aktif di wilayah* dimatikan. Kalau ia tetap ikut kegiatan di kelompok, *Aktif di wilayah* tetap dinyalakan; labelnya menjadi **Aktif · Sekolah di Luar**.
+
+---
+
 ## 🗂️ Struktur spreadsheet
 
 | Sheet | Dibuat oleh | Isi |
@@ -81,6 +98,7 @@ Bawaan rentang umur:
 | `Keluarga` | Anda / otomatis | Data KK |
 | `Jamaah` | Anda / otomatis | Data jamaah |
 | `Pengaturan_Kategori` | Otomatis | Aturan kategori usia |
+| `Pengaturan_Keberadaan` | Otomatis | Pilihan Status Keberadaan |
 | `Arsip_Jamaah` | Otomatis, saat hapus pertama | Jamaah yang dihapus |
 | `Arsip_Keluarga` | Otomatis, saat hapus KK pertama | KK yang dihapus |
 | `Sensus_Asal` | Anda (opsional) | Data lama untuk migrasi |
@@ -98,15 +116,15 @@ Bawaan rentang umur:
 **Jamaah tanpa KK:** kolom `ID Keluarga` dibiarkan **kosong**. Kalau isinya ID yang tidak ada di sheet `Keluarga`, aplikasi menampilkan "KK tidak ditemukan"; saat diedit, admin bisa memilih KK yang benar atau menyimpannya sebagai Tanpa KK.
 
 **Label status di daftar** (hanya tampilan; perhitungan tetap dari kolom I):
-- Aktif & Menetap → **Aktif**; aktif tapi keberadaan lain → **Aktif · Mondok** / **Aktif · Tugas** / **Aktif · Kerja luar**
-- Tidak aktif → sesuai keberadaannya: **Mondok**, **Tugas**, **Kerja luar**; atau **Tidak aktif** bila keberadaannya Menetap
+- Aktif & Menetap → **Aktif**; aktif tapi keberadaan lain → **Aktif · Mondok**, **Aktif · Sekolah di Luar**, dan seterusnya
+- Tidak aktif → sesuai keberadaannya: **Mondok**, **Tugas**, **Kerja Luar**, **Sekolah di Luar**, …; atau **Tidak aktif** bila keberadaannya Menetap
 
 **Kode isian:**
 - `Hubungan Keluarga`: `A` Kepala, `B` Istri, `C` Anak, `D` Lainnya
 - `Jenis Kelamin`: `L` / `P`
 - `Status Nikah`: `BELUM`, `MENIKAH`, `DUDA`, `JANDA`
 - `Status Keaktifan`, `Flag Absen`, `Perlu Dibantu`: `Y` / `N`
-- `Status Keberadaan`: `Menetap`, `Mondok`, `Tugas`, `Kerja Luar`
+- `Status Keberadaan`: salah satu pilihan di sheet `Pengaturan_Keberadaan` (bawaan: `Menetap`, `Mondok`, `Tugas`, `Kerja Luar`)
 
 ---
 
@@ -216,7 +234,7 @@ Untuk memindahkan data sensus format lama ke struktur `Keluarga` + `Jamaah`:
    - **A** No · **B** Aktif (Y/N) · **C** Nama Lengkap · **D** Nama di Absen
    - **E** Hubungan (`A` KK, `B` Istri, `C` Anak, `D` Bukan inti) · **F** Jenis Kelamin (L/P)
    - **G** Tahun Lahir (mis. `1997`) · **H** Umur (boleh kosong)
-   - **I** Absen (Y / N / Mondok / Tugas / Kerja Luar) · **J** Kategori Usia (boleh kosong)
+   - **I** Absen (Y / N, atau salah satu pilihan Status Keberadaan yang sudah ada di Pengaturan, seperti Mondok / Tugas / Kerja Luar / Sekolah di Luar) · **J** Kategori Usia (boleh kosong)
    - **K** Status Nikah (MENIKAH / JANDA / DUDA / kosong) · **L** Catatan
 2. Di Apps Script Editor, pilih fungsi **`jalankanMigrasiSensus`** lalu klik **Run**. Fungsi ini **hanya bisa dijalankan pemilik dari Editor**.
 3. Sebelum menimpa, isi `Keluarga` dan `Jamaah` di-backup ke tab `Backup_Keluarga_<tanggal>` dan `Backup_Jamaah_<tanggal>`. Kalau `Sensus_Asal` kosong, tidak ada data yang diubah.
@@ -231,7 +249,7 @@ Untuk memindahkan data sensus format lama ke struktur `Keluarga` + `Jamaah`:
    ```bash
    node simulate_local.js
    ```
-   Script ini menguji login PIN dan kunci tebakan, pembatasan data pengurus, validasi input, aturan & pengaturan kategori, hapus + arsip, kolom tambahan milik pengguna, API `doPost`, dan migrasi. Semua harus ✔; kalau ada yang gagal, perintah keluar dengan kode 1.
+   Script ini menguji login PIN dan kunci tebakan, pembatasan data pengurus, validasi input, aturan & pengaturan kategori, pilihan status keberadaan, hapus + arsip, kolom tambahan milik pengguna, API `doPost`, dan migrasi. Semua harus ✔; kalau ada yang gagal, perintah keluar dengan kode 1.
 3. Membuka `index.html` / `view.html` langsung di browser (tanpa `API_URL` di `config.js`) menjalankan **Mode Simulasi** dengan data fiktif, tanpa PIN.
 
 > ⚠️ Repo ini publik. Jangan menaruh nama, alamat, atau nomor telepon jamaah asli di file mana pun di repo, termasuk data contoh.

@@ -397,7 +397,7 @@
         <div class="chips" id="chips" aria-label="Filter cepat">
           <button type="button" class="chip" data-chip="semua" aria-pressed="true" onclick="setChip('semua')">Semua</button>
           <button type="button" class="chip" data-chip="aktif" aria-pressed="false" onclick="setChip('aktif')">Aktif wilayah</button>
-          <button type="button" class="chip" data-chip="luar" aria-pressed="false" onclick="setChip('luar')" title="Status Keaktifan = N (Mondok, Tugas, Kerja Luar, atau tidak aktif)">Tidak aktif</button>
+          <button type="button" class="chip" data-chip="luar" aria-pressed="false" onclick="setChip('luar')" title="Status Keaktifan = N (tidak aktif di wilayah, apa pun status keberadaannya)">Tidak aktif</button>
           <button type="button" class="chip" data-chip="mondok" aria-pressed="false" onclick="setChip('mondok')">Mondok</button>
           <button type="button" class="chip" data-chip="absen" aria-pressed="false" onclick="setChip('absen')">Masuk absen</button>
           <button type="button" class="chip" data-chip="tidakabsen" aria-pressed="false" onclick="setChip('tidakabsen')">Tidak absen</button>
@@ -430,7 +430,7 @@
           </label>
           <label class="select-label">Keberadaan
             <select id="filter-keberadaan" class="select" onchange="resetAndRender()">
-              <option value="">Semua</option><option value="Menetap">Menetap</option><option value="Mondok">Mondok</option><option value="Tugas">Tugas</option><option value="Kerja Luar">Kerja Luar</option>
+              <option value="">Semua</option>
             </select>
           </label>
           <label class="select-label">Gender
@@ -707,6 +707,7 @@
     function kategoriOrder() { return (appData.rekap && appData.rekap.kategoriOrder) || DEFAULT_ORDER; }
 
     function renderAll() {
+      renderKeberadaanFilter();
       const r = appData.rekap || {};
       const absenCount = (appData.jamaah || []).filter(j => j.is_aktif === 'Y' && j.flag_absen === 'Y').length;
       $('data-time').textContent = 'Data per ' + (lastSync ? lastSync.toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-') + ' · angka & rekap dihitung dari jamaah aktif wilayah';
@@ -827,12 +828,22 @@
       return `<span class="tag">${esc(j.kategori_usia)}</span>`;
     }
     // Label wilayah: hanya tampilan. Perhitungan tetap dari kolom I (Status Keaktifan).
-    const KEBERADAAN_LABEL = { 'Menetap': 'Menetap', 'Mondok': 'Mondok', 'Tugas': 'Tugas', 'Kerja Luar': 'Kerja luar' };
     function wilayahLabel(j) {
       const k = j.status_keberadaan || 'Menetap';
-      const kl = KEBERADAAN_LABEL[k] || k;
-      if (j.is_aktif === 'Y') return k === 'Menetap' ? 'Aktif' : 'Aktif · ' + kl;
-      return k === 'Menetap' ? 'Tidak aktif' : kl;
+      if (j.is_aktif === 'Y') return k === 'Menetap' ? 'Aktif' : 'Aktif · ' + k;
+      return k === 'Menetap' ? 'Tidak aktif' : k;
+    }
+    // Pilihan filter Keberadaan mengikuti menu Pengaturan admin, ditambah nilai lain yang ada di data
+    const DEFAULT_KEBERADAAN = ['Menetap', 'Mondok', 'Tugas', 'Kerja Luar'];
+    function renderKeberadaanFilter() {
+      const opts = ((appData.keberadaanOptions && appData.keberadaanOptions.length) ? appData.keberadaanOptions : DEFAULT_KEBERADAAN).slice();
+      (appData.jamaah || []).forEach(j => { const v = j.status_keberadaan || 'Menetap'; if (!opts.includes(v)) opts.push(v); });
+      const sel = $('filter-keberadaan');
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">Semua</option>' + opts.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      sel.value = opts.includes(prev) ? prev : '';
+      const chipMondok = document.querySelector('[data-chip="mondok"]');
+      if (chipMondok) chipMondok.hidden = !opts.includes('Mondok') && currentChip !== 'mondok';
     }
     function statusStack(j) {
       return `<span class="status ${j.is_aktif === 'Y' ? 'on' : ''}">${esc(wilayahLabel(j))}</span>

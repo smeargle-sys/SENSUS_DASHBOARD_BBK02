@@ -700,6 +700,130 @@ test("Edit jamaah dengan ID tidak ada: gagal dan tidak membuat KK yatim", () => 
 });
 
 // --- Migrasi ----------------------------------------------------------------
+// --- Pilihan Status Keberadaan ---------------------------------------------
+const KB_SHEET = 'Pengaturan_Keberadaan';
+const kbRows = (env) => env.ss.sheets[KB_SHEET].rows.slice(1).map(r => r[1]).filter(v => v !== '' && v !== undefined);
+
+test("Keberadaan: sheet Pengaturan_Keberadaan dibuat otomatis dengan 4 pilihan bawaan", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const d = env.gs.getSensusData(t).data;
+  eq(JSON.stringify(d.keberadaanOptions), JSON.stringify(["Menetap", "Mondok", "Tugas", "Kerja Luar"]));
+  eq(JSON.stringify(kbRows(env)), JSON.stringify(["Menetap", "Mondok", "Tugas", "Kerja Luar"]));
+});
+
+test("Keberadaan: tambah 'Sekolah di Luar' lalu simpan jamaah dengan status itu", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const before = env.gs.getSensusData(t).data.rekap;
+  const s = env.gs.saveKeberadaanConfig(t, ["Menetap", "Mondok", "Sekolah di Luar", "Tugas", "Kerja Luar"]);
+  eq(s.success, true, s.message);
+  eq(kbRows(env)[2], "Sekolah di Luar");
+  const r = env.gs.saveSensusData(t, validJamaah({ status_keberadaan: "Sekolah di Luar", is_aktif: "N", flag_absen: "N" }));
+  eq(r.success, true, r.message);
+  const d = env.gs.getSensusData(t).data;
+  const j = d.jamaah.find(x => x.nama_lengkap === 'Anak Contoh Baru');
+  eq(j.status_keberadaan, "Sekolah di Luar");
+  eq(d.rekap.total_aktif, before.total_aktif, "jamaah tidak aktif tidak menambah jiwa aktif");
+  eq(d.warnings.length, 0);
+});
+
+test("Keberadaan: status yang belum ada di Pengaturan ditolak saat simpan", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const r = env.gs.saveSensusData(t, validJamaah({ status_keberadaan: "Sekolah di Luar" }));
+  eq(r.success, false); assert(/belum ada di Pengaturan/.test(r.message), r.message);
+});
+
+test("Keberadaan: pilihan yang masih dipakai tidak bisa dihapus (pesan berisi jumlah)", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const r = env.gs.saveKeberadaanConfig(t, ["Menetap", "Tugas", "Kerja Luar"]);
+  eq(r.success, false); assert(/'Mondok' \(masih dipakai 1 jamaah\)/.test(r.message), r.message);
+  eq(kbRows(env).length, 4, "pengaturan tidak berubah");
+});
+
+test("Keberadaan: pilihan tak terpakai boleh dihapus; Menetap selalu ada & di urutan pertama", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const r = env.gs.saveKeberadaanConfig(t, ["Mondok", "Kerja Luar"]);
+  eq(r.success, true, r.message);
+  eq(JSON.stringify(r.options), JSON.stringify(["Menetap", "Mondok", "Kerja Luar"]));
+  const r2 = env.gs.saveKeberadaanConfig(t, ["Kerja Luar", "menetap", "Mondok"]);
+  eq(JSON.stringify(r2.options), JSON.stringify(["Menetap", "Kerja Luar", "Mondok"]));
+});
+
+const badKb = [
+  ["nama ganda", ["Menetap", "Mondok", "mondok"], /lebih dari sekali/],
+  ["nama terlalu panjang", ["Menetap", "x".repeat(31)], /terlalu panjang/],
+  ["diawali tanda =", ["Menetap", "=HYPERLINK(1)"], /tidak boleh diawali/],
+  ["lebih dari 20", Array.from({ length: 21 }, (_, i) => "Opsi " + i), /Maksimal 20/],
+  ["bukan array", "Menetap", /tidak valid/]
+];
+badKb.forEach(([name, list, re]) => {
+  test(`Keberadaan ditolak: ${name}`, () => {
+    const env = createSandbox();
+    const t = env.gs.login('246810', 'index').token;
+    const r = env.gs.saveKeberadaanConfig(t, list);
+    eq(r.success, false); assert(re.test(r.message), r.message);
+  });
+});
+
+test("Keberadaan: VIEWER & tanpa token tidak boleh menyimpan; lewat doPost API berhasil", () => {
+  const env = createSandbox();
+  const v = env.gs.login('135790', 'view').token;
+  eq(env.gs.saveKeberadaanConfig(v, ["Menetap"]).authError, true);
+  eq(env.gs.saveKeberadaanConfig('', ["Menetap"]).authError, true);
+  const a = env.gs.login('246810', 'index').token;
+  const r = post(env.gs, { action: 'saveKeberadaanConfig', args: [a, ["Menetap", "Mondok", "Tugas", "Kerja Luar", "Sekolah di Luar"]] });
+  eq(r.success, true, r.message);
+});
+
+test("Keberadaan: nilai di sheet beda huruf besar/kecil dinormalkan; nilai asing tetap tampil + peringatan", () => {
+  const env = createSandbox();
+  const rows = env.ss.sheets.Jamaah.rows;
+  rows.find(r => r[0] === 'JM-8')[10] = 'mondok';
+  rows.find(r => r[0] === 'JM-7')[10] = 'Sekolah di Luar';
+  rows.find(r => r[0] === 'JM-9')[10] = '';
+  const t = env.gs.login('246810', 'index').token;
+  const d = env.gs.getSensusData(t).data;
+  eq(d.jamaah.find(j => j.nama_lengkap === 'Anak Mondok Dua').status_keberadaan, 'Mondok');
+  eq(d.jamaah.find(j => j.nama_lengkap === 'Ibu Contoh Tiga').status_keberadaan, 'Sekolah di Luar');
+  eq(d.jamaah.find(j => j.nama_lengkap === 'Anak Tanpa Tahun').status_keberadaan, 'Menetap');
+  eq(d.warnings.length, 1); assert(/'Sekolah di Luar' \(1 jamaah\)/.test(d.warnings[0]), d.warnings[0]);
+  // menghapus pilihan yang tidak ada di daftar tidak berpengaruh; menambahkannya menghilangkan peringatan
+  env.gs.saveKeberadaanConfig(t, ["Menetap", "Mondok", "Tugas", "Kerja Luar", "Sekolah di Luar"]);
+  eq(env.gs.getSensusData(t).data.warnings.length, 0);
+});
+
+test("Keberadaan: halaman pengurus menerima daftar pilihan", () => {
+  const env = createSandbox();
+  const t = env.gs.login('135790', 'view').token;
+  eq(env.gs.getSensusData(t).data.keberadaanOptions.length, 4);
+});
+
+test("Keberadaan: sheet Pengaturan_Keberadaan rusak (nama ganda) -> memakai bawaan", () => {
+  const env = createSandbox();
+  env.ss.sheets[KB_SHEET] = new MockSheet(KB_SHEET, ["Urutan", "Status Keberadaan"], [[1, "Menetap"], [2, "Mondok"], [3, "MONDOK"]]);
+  const t = env.gs.login('246810', 'index').token;
+  eq(env.gs.getSensusData(t).data.keberadaanOptions.length, 4);
+});
+
+test("Migrasi: kolom Absen berisi pilihan keberadaan tambahan ikut dikenali", () => {
+  const env = createSandbox();
+  const a = env.gs.login('246810', 'index').token;
+  env.gs.saveKeberadaanConfig(a, ["Menetap", "Mondok", "Tugas", "Kerja Luar", "Sekolah di Luar"]);
+  env.session.active = env.session.owner;
+  env.ss.sheets.Sensus_Asal = new MockSheet("Sensus_Asal", ["No"], [
+    [1, "Y", "Kepala Satu", "", "A", "L", 1970, "", "Y", "", "MENIKAH", ""],
+    [2, "Y", "Anak Satu", "", "C", "L", 2006, "", "sekolah di luar", "", "", ""]
+  ]);
+  const r = env.gs.jalankanMigrasiSensus();
+  eq(r.success, true, r.message);
+  const anak = env.ss.sheets.Jamaah.rows[2];
+  eq(anak[3], "Anak Satu"); eq(anak[10], "Sekolah di Luar"); eq(anak[9], "N");
+});
+
 test("Migrasi ditolak bila dipanggil dari web app (bukan pemilik di editor)", () => {
   const env = createSandbox();
   env.session.active = '';

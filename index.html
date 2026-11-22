@@ -342,6 +342,14 @@
     .cfg-preview { display: flex; flex-wrap: wrap; gap: 8px; }
     .cfg-preview span { font-size: 13px; padding: 6px 10px; border-radius: 999px; background: var(--soft); border: 1px solid var(--line); }
     .cfg-preview strong { color: var(--primary-ink); }
+    .kb-list { display: flex; flex-direction: column; gap: 8px; max-width: 560px; }
+    .kb-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); }
+    .kb-row .dot { width: 10px; height: 10px; border-radius: 999px; flex: none; }
+    .kb-row .input { flex: 1; min-width: 0; height: 40px; font-size: 14px; }
+    .kb-row .kb-meta { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .kb-row .icon-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .kb-add { display: flex; gap: 8px; max-width: 560px; }
+    .kb-add .input { flex: 1; min-width: 0; }
     .note-box { padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 13px; color: var(--ink-2); line-height: 1.5; }
 
     /* ---------- States & toast ---------- */
@@ -389,6 +397,9 @@
       .modal { width: 100%; border-radius: 20px 20px 0 0; max-height: 92vh; }
       .detail-grid { grid-template-columns: minmax(0, 1fr); }
       .settings { padding: 16px; }
+      .kb-row { flex-wrap: wrap; row-gap: 6px; }
+      .kb-row .input { flex: 1 1 calc(100% - 30px); }
+      .kb-row .kb-meta { flex: 1; padding-left: 18px; }
       .cfg-scroll { overflow-x: auto; }
       #toast { bottom: 96px; }
     }
@@ -465,7 +476,7 @@
           <button type="button" class="nav-item" data-nav="kk" onclick="setView('kk')"><i data-lucide="home"></i> Keluarga (KK)</button>
           <button type="button" class="nav-item" data-nav="dibantu" onclick="showChip('dibantu')"><i data-lucide="hand-heart"></i> Perlu Dibantu <span class="nav-badge" id="nav-dibantu-count" hidden>0</span></button>
           <button type="button" class="nav-item" data-nav="lengkapi" onclick="showChip('lengkapi')"><i data-lucide="triangle-alert"></i> Perlu Dilengkapi <span class="nav-badge" id="nav-lengkapi-count" hidden>0</span></button>
-          <button type="button" class="nav-item" data-nav="pengaturan" onclick="setView('pengaturan')"><i data-lucide="sliders-horizontal"></i> Pengaturan Kategori</button>
+          <button type="button" class="nav-item" data-nav="pengaturan" onclick="setView('pengaturan')"><i data-lucide="sliders-horizontal"></i> Pengaturan</button>
         </div>
         <div class="session-box">
           <div class="session-user">
@@ -532,7 +543,7 @@
               <div class="chips-scroll" id="chips">
                 <button type="button" class="chip" data-chip="semua" aria-pressed="true" onclick="setChip('semua')">Semua</button>
                 <button type="button" class="chip" data-chip="aktif" aria-pressed="false" onclick="setChip('aktif')">Aktif wilayah</button>
-                <button type="button" class="chip" data-chip="luar" aria-pressed="false" onclick="setChip('luar')" title="Status Keaktifan = N (Mondok, Tugas, Kerja Luar, atau tidak aktif)">Tidak aktif</button>
+                <button type="button" class="chip" data-chip="luar" aria-pressed="false" onclick="setChip('luar')" title="Status Keaktifan = N (tidak aktif di wilayah, apa pun status keberadaannya)">Tidak aktif</button>
                 <button type="button" class="chip" data-chip="mondok" aria-pressed="false" onclick="setChip('mondok')">Mondok</button>
                 <button type="button" class="chip" data-chip="absen" aria-pressed="false" onclick="setChip('absen')">Masuk absen</button>
                 <button type="button" class="chip" data-chip="tidakabsen" aria-pressed="false" onclick="setChip('tidakabsen')">Tidak absen</button>
@@ -568,10 +579,6 @@
               <label class="select-label">Keberadaan
                 <select id="filter-keberadaan" class="select" onchange="resetPageAndRender()">
                   <option value="">Semua</option>
-                  <option value="Menetap">Menetap</option>
-                  <option value="Mondok">Mondok</option>
-                  <option value="Tugas">Tugas</option>
-                  <option value="Kerja Luar">Kerja Luar</option>
                 </select>
               </label>
               <label class="select-label">Gender
@@ -635,7 +642,8 @@
         </section>
 
         <!-- ===== VIEW: PENGATURAN ===== -->
-        <section id="view-pengaturan" class="card" hidden aria-labelledby="cfg-title">
+        <div id="view-pengaturan" hidden style="display: flex; flex-direction: column; gap: 24px">
+        <section class="card" aria-labelledby="cfg-title">
           <div class="section-head"><h2 id="cfg-title">Pengaturan Kategori Usia</h2></div>
           <div class="settings">
             <p class="lead">Kategori dihitung otomatis dari <strong>tahun lahir</strong> dan <strong>status nikah</strong>, dengan urutan: (1) umur yang masuk kategori bertanda <strong>Lansia</strong> selalu masuk Lansia, apa pun status nikahnya; (2) yang <strong>menikah</strong> masuk kategori menikah di bawah, sedangkan <strong>Duda/Janda</strong> dihitung di kolom tersendiri; (3) yang <strong>belum menikah</strong> dicocokkan ke rentang umur di tabel ini. Rentang harus bersambung mulai umur 0, dan kategori terakhir dibiarkan tanpa batas atas.</p>
@@ -663,6 +671,27 @@
             </div>
           </div>
         </section>
+
+        <section class="card" aria-labelledby="kb-title">
+          <div class="section-head"><h2 id="kb-title">Pilihan Status Keberadaan</h2></div>
+          <div class="settings">
+            <p class="lead">Daftar ini dipakai di form, filter, dan kartu <strong>Keberadaan &amp; Absen</strong>. Tambahkan pilihan baru bila ada kondisi lain, misalnya <strong>Sekolah di Luar</strong>. Status keberadaan hanya keterangan: jumlah <strong>jiwa aktif</strong> tetap dihitung dari isian <strong>Aktif di wilayah</strong>.</p>
+            <div class="kb-list" id="kb-rows"></div>
+            <div class="note-box" id="kb-asing" hidden></div>
+            <div class="kb-add">
+              <label class="sr-only" for="kb-new">Nama pilihan baru</label>
+              <input id="kb-new" class="input" type="text" maxlength="30" placeholder="Contoh: Sekolah di Luar" onkeydown="if (event.key === 'Enter') { event.preventDefault(); addKbRow(); }">
+              <button type="button" class="btn" onclick="addKbRow()"><i data-lucide="plus"></i> Tambah</button>
+            </div>
+            <div class="note-box"><strong>Menetap</strong> wajib ada dan selalu di urutan pertama. Pilihan yang masih dipakai jamaah tidak bisa dihapus; ubah dulu status keberadaan jamaahnya. Mengganti nama pilihan yang sudah dipakai tidak mengubah isi sheet, jadi lebih aman tambah pilihan baru lalu edit jamaahnya.</div>
+            <div class="form-error" id="kb-error" role="alert" hidden></div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px">
+              <button type="button" class="btn btn-primary" id="kb-save" onclick="saveKb()"><span>Simpan pilihan</span></button>
+              <button type="button" class="btn" id="kb-reset" onclick="resetKbDraft()">Batalkan perubahan</button>
+            </div>
+          </div>
+        </section>
+        </div>
       </main>
     </div>
 
@@ -770,12 +799,8 @@
           <legend><span class="step-no">3</span> Status &amp; absen</legend>
           <div class="field">
             <label for="form-status-keberadaan">Keberadaan</label>
-            <select id="form-status-keberadaan" class="input">
-              <option value="Menetap">Menetap</option>
-              <option value="Mondok">Mondok</option>
-              <option value="Tugas">Tugas</option>
-              <option value="Kerja Luar">Kerja Luar</option>
-            </select>
+            <select id="form-status-keberadaan" class="input"></select>
+            <span class="help">Pilihan baru (mis. Sekolah di Luar) bisa ditambah di menu Pengaturan.</span>
           </div>
           <label class="toggle"><div><strong>Aktif di wilayah</strong><span>Dihitung dalam rekap sensus</span></div><input type="checkbox" id="form-is-aktif" checked></label>
           <label class="toggle"><div><strong>Masuk daftar absen</strong><span>Wajib hadir pengajian rutin</span></div><input type="checkbox" id="form-flag-absen" checked></label>
@@ -802,7 +827,7 @@
 
   <script>
     // ================= STATE =================
-    let appData = { jamaah: [], keluarga: [], rekap: {}, kategoriConfig: null };
+    let appData = { jamaah: [], keluarga: [], rekap: {}, kategoriConfig: null, keberadaanOptions: null };
     let currentView = 'data';
     let currentChip = 'semua';
     let sortField = '';
@@ -811,6 +836,7 @@
     const PAGE_SIZE = 25;
     let lastSync = null;
     let cfgDraft = null;
+    let kbDraft = null;
 
     const TOKEN_KEY = 'sensus_token_admin';
     let authToken = null;
@@ -829,10 +855,43 @@
     const HUB_LABEL = { A: 'Kepala', B: 'Istri', C: 'Anak', D: 'Lainnya' };
     const HUB_ORDER = { A: 0, B: 1, C: 2, D: 3 };
     const NIKAH_LABEL = { BELUM: 'Belum menikah', MENIKAH: 'Menikah', DUDA: 'Duda', JANDA: 'Janda' };
-    const KEBERADAAN = [
-      { key: 'Menetap', color: '#0B6E5B' }, { key: 'Mondok', color: '#2563EB' },
-      { key: 'Tugas', color: '#F59E5B' }, { key: 'Kerja Luar', color: '#94A3A0' }
-    ];
+    // Pilihan Status Keberadaan diatur di menu Pengaturan (sheet Pengaturan_Keberadaan)
+    const DEFAULT_KEBERADAAN = ['Menetap', 'Mondok', 'Tugas', 'Kerja Luar'];
+    const KEBERADAAN_COLORS = ['#0B6E5B', '#2563EB', '#F59E5B', '#94A3A0', '#8B5CF6', '#DB2777', '#0891B2', '#65A30D', '#B45309', '#475569'];
+    function keberadaanOptions() { return (appData.keberadaanOptions && appData.keberadaanOptions.length) ? appData.keberadaanOptions : DEFAULT_KEBERADAAN; }
+    function keberadaanColor(i) { return i < 0 ? '#CBD5E1' : KEBERADAAN_COLORS[i % KEBERADAAN_COLORS.length]; }
+    // Nilai di sheet yang belum ada di Pengaturan (tetap ditampilkan supaya tidak "hilang")
+    function keberadaanAsing(jamaah) {
+      const opts = keberadaanOptions();
+      const out = [];
+      (jamaah || []).forEach(j => { const v = j.status_keberadaan || 'Menetap'; if (!opts.includes(v) && !out.includes(v)) out.push(v); });
+      return out;
+    }
+    function renderKeberadaanSelects() {
+      const opts = keberadaanOptions();
+      const asing = keberadaanAsing(appData.jamaah);
+      const f = $('filter-keberadaan');
+      const prev = f.value;
+      f.innerHTML = '<option value="">Semua</option>' + opts.concat(asing).map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      f.value = opts.concat(asing).includes(prev) ? prev : '';
+      const fs = $('form-status-keberadaan');
+      const cur = fs.value;
+      fs.innerHTML = opts.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      if (opts.includes(cur)) fs.value = cur;
+      const chipMondok = document.querySelector('[data-chip="mondok"]');
+      if (chipMondok) chipMondok.hidden = !opts.includes('Mondok') && currentChip !== 'mondok';
+    }
+    function setFormKeberadaan(value) {
+      const v = value || 'Menetap';
+      renderKeberadaanSelects();
+      const fs = $('form-status-keberadaan');
+      if (!keberadaanOptions().includes(v)) {
+        const o = document.createElement('option');
+        o.value = v; o.textContent = v + ' (belum ada di Pengaturan)';
+        fs.appendChild(o);
+      }
+      fs.value = v;
+    }
 
     // ================= HELPERS =================
     // Escape semua data dari spreadsheet sebelum masuk ke innerHTML / template HTML (anti-XSS)
@@ -999,6 +1058,7 @@
         appData.keluarga = mockKeluargaSeed.map(k => Object.assign({}, k));
         appData.jamaah = buildMockJamaah();
         appData.kategoriConfig = JSON.parse(JSON.stringify(DEFAULT_CFG));
+        appData.keberadaanOptions = DEFAULT_KEBERADAAN.slice();
         calculateMockRekap();
         lastSync = new Date();
         showState('app');
@@ -1123,7 +1183,7 @@
       const t = authToken;
       saveToken(null);
       if (isLocalMode) { showToast('Mode Simulasi tidak memakai PIN.'); return; }
-      appData = { jamaah: [], keluarga: [], rekap: {}, kategoriConfig: null };
+      appData = { jamaah: [], keluarga: [], rekap: {}, kategoriConfig: null, keberadaanOptions: null };
       if (t) callApi('logout', t).catch(() => {});
       showLogin('Anda sudah keluar.');
     }
@@ -1205,11 +1265,13 @@
       if (invalid) $('banner-config-text').textContent = 'Sheet Pengaturan_Kategori tidak valid, sementara memakai kategori bawaan. (' + invalid + ')';
 
       renderKategoriFilter();
+      renderKeberadaanSelects();
       renderKategoriBars();
       renderKeberadaan(jamaah, aktif);
       renderTable();
       renderKeluargaList();
       if (currentView === 'pengaturan' && !cfgDraft) resetCfgDraft();
+      if (currentView === 'pengaturan' && !kbDraft) resetKbDraft();
       updateNav();
       icons();
     }
@@ -1244,10 +1306,13 @@
 
     function renderKeberadaan(jamaah, aktif) {
       const current = $('filter-keberadaan').value;
-      $('keberadaan-list').innerHTML = KEBERADAAN.map(k => {
+      const opts = keberadaanOptions();
+      const items = opts.map((v, i) => ({ key: v, color: keberadaanColor(i), asing: false }))
+        .concat(keberadaanAsing(jamaah).map(v => ({ key: v, color: keberadaanColor(-1), asing: true })));
+      $('keberadaan-list').innerHTML = items.map(k => {
         const n = jamaah.filter(j => (j.status_keberadaan || 'Menetap') === k.key).length;
-        return `<button type="button" class="stat-line clickable" data-keberadaan="${esc(k.key)}" aria-pressed="${current === k.key}" title="Tampilkan jamaah ${esc(k.key)}">
-          <span class="dot" style="background: ${k.color}"></span><span>${esc(k.key)}</span><strong class="num">${fmt(n)}</strong></button>`;
+        return `<button type="button" class="stat-line clickable" data-keberadaan="${esc(k.key)}" aria-pressed="${current === k.key}" title="${k.asing ? 'Belum ada di Pengaturan. ' : ''}Tampilkan jamaah ${esc(k.key)}">
+          <span class="dot" style="background: ${k.color}"></span><span>${esc(k.key)}${k.asing ? ' <em style="font-weight: 500; color: var(--muted)">(belum di Pengaturan)</em>' : ''}</span><strong class="num">${fmt(n)}</strong></button>`;
       }).join('');
       document.querySelectorAll('#keberadaan-list .stat-line').forEach(b => {
         b.onclick = () => {
@@ -1335,12 +1400,10 @@
       return `<span class="tag">${esc(j.kategori_usia)}</span>`;
     }
     // Label wilayah: hanya tampilan. Perhitungan tetap dari kolom I (Status Keaktifan).
-    const KEBERADAAN_LABEL = { 'Menetap': 'Menetap', 'Mondok': 'Mondok', 'Tugas': 'Tugas', 'Kerja Luar': 'Kerja luar' };
     function wilayahLabel(j) {
       const k = j.status_keberadaan || 'Menetap';
-      const kl = KEBERADAAN_LABEL[k] || k;
-      if (j.is_aktif === 'Y') return k === 'Menetap' ? 'Aktif' : 'Aktif · ' + kl;
-      return k === 'Menetap' ? 'Tidak aktif' : kl;
+      if (j.is_aktif === 'Y') return k === 'Menetap' ? 'Aktif' : 'Aktif · ' + k;
+      return k === 'Menetap' ? 'Tidak aktif' : k;
     }
     function statusStack(j, short) {
       return `<span class="status ${j.is_aktif === 'Y' ? 'on' : ''}">${esc(wilayahLabel(j))}</span>
@@ -1496,11 +1559,11 @@
       $('view-data').hidden = view !== 'data';
       $('view-kk').hidden = view !== 'kk';
       $('view-pengaturan').hidden = view !== 'pengaturan';
-      const title = { kk: 'Keluarga (KK)', pengaturan: 'Pengaturan Kategori', data: 'Data Jamaah' }[view];
+      const title = { kk: 'Keluarga (KK)', pengaturan: 'Pengaturan', data: 'Data Jamaah' }[view];
       $('page-title').textContent = title;
       $('mobile-title').textContent = title;
       if (view === 'kk') renderKeluargaList();
-      if (view === 'pengaturan') resetCfgDraft();
+      if (view === 'pengaturan') { resetCfgDraft(); resetKbDraft(); }
       updateNav();
       if (view !== 'data') window.scrollTo({ top: 0 });
       icons();
@@ -1969,7 +2032,7 @@
       setRadio('jk', j.jenis_kelamin === 'P' ? 'P' : 'L');
       $('form-tahun-lahir').value = j.tahun_lahir || '';
       setRadio('nikah', ['MENIKAH', 'DUDA', 'JANDA'].includes(j.status_nikah) ? j.status_nikah : 'BELUM');
-      $('form-status-keberadaan').value = j.status_keberadaan || 'Menetap';
+      setFormKeberadaan(j.status_keberadaan);
       $('form-is-aktif').checked = j.is_aktif === 'Y';
       $('form-flag-absen').checked = j.flag_absen === 'Y';
       $('form-perlu-dibantu').checked = j.perlu_dibantu === 'Y';
@@ -1994,6 +2057,7 @@
       $('form-error').hidden = true;
       $('usia-preview').hidden = true;
       setRadio('hubungan', 'C'); setRadio('jk', 'L'); setRadio('nikah', 'BELUM');
+      setFormKeberadaan('Menetap');
       syncNikahOptions();
     }
 
@@ -2170,6 +2234,113 @@
           $('cfg-error').hidden = false;
         }
       }, err => { done(); $('cfg-error').textContent = 'Error: ' + (err.message || err); $('cfg-error').hidden = false; });
+    }
+
+    // ================= PENGATURAN: PILIHAN STATUS KEBERADAAN =================
+    function kbUsage(name) {
+      const u = String(name || '').trim().toUpperCase();
+      return (appData.jamaah || []).filter(j => String(j.status_keberadaan || 'Menetap').toUpperCase() === u).length;
+    }
+    function resetKbDraft() {
+      // tiap baris ingat nama awalnya supaya jumlah pemakai tetap benar saat namanya sedang diketik ulang
+      kbDraft = keberadaanOptions().map(v => ({ nama: v, asal: v }));
+      $('kb-new').value = '';
+      renderKb();
+    }
+    function renderKb() {
+      $('kb-error').hidden = true;
+      $('kb-rows').innerHTML = kbDraft.map((k, i) => {
+        const wajib = i === 0;
+        const n = k.asal ? kbUsage(k.asal) : 0;
+        const hapusTitle = wajib ? 'Menetap wajib ada' : (n ? 'Masih dipakai ' + n + ' jamaah' : 'Hapus pilihan');
+        return `<div class="kb-row">
+          <span class="dot" style="background: ${keberadaanColor(i)}"></span>
+          <label class="sr-only" for="kb-nama-${i}">Nama pilihan ${i + 1}</label>
+          <input id="kb-nama-${i}" class="input" data-i="${i}" maxlength="30" value="${esc(k.nama)}" ${wajib ? 'readonly' : ''}>
+          <span class="kb-meta">${wajib ? 'wajib · ' : ''}${fmt(n)} jamaah</span>
+          <button type="button" class="icon-btn" data-up="${i}" aria-label="Naikkan ${esc(k.nama)}" ${i <= 1 ? 'disabled' : ''}><i data-lucide="arrow-up"></i></button>
+          <button type="button" class="icon-btn" data-down="${i}" aria-label="Turunkan ${esc(k.nama)}" ${wajib || i === kbDraft.length - 1 ? 'disabled' : ''}><i data-lucide="arrow-down"></i></button>
+          <button type="button" class="icon-btn" data-kbdel="${i}" aria-label="Hapus ${esc(k.nama)}" title="${hapusTitle}" ${wajib || n ? 'disabled' : ''}><i data-lucide="trash-2"></i></button>
+        </div>`;
+      }).join('');
+      const asing = keberadaanAsing(appData.jamaah).filter(v => !kbDraft.some(k => k.nama.trim().toUpperCase() === v.toUpperCase()));
+      $('kb-asing').hidden = asing.length === 0;
+      $('kb-asing').innerHTML = asing.length ? 'Ditemukan di sheet tetapi belum ada di daftar: ' + asing.map(v =>
+        `<button type="button" class="btn btn-sm" data-kbasing="${esc(v)}" style="margin: 4px 4px 0 0"><i data-lucide="plus"></i> ${esc(v)} · ${fmt(kbUsage(v))} jamaah</button>`).join('') : '';
+      document.querySelectorAll('#kb-asing [data-kbasing]').forEach(b => { b.onclick = () => { kbDraft.push({ nama: b.dataset.kbasing, asal: b.dataset.kbasing }); renderKb(); }; });
+      document.querySelectorAll('#kb-rows input[data-i]').forEach(el => { el.oninput = () => { kbDraft[Number(el.dataset.i)].nama = el.value; }; });
+      const move = (i, d) => { const t = kbDraft[i]; kbDraft[i] = kbDraft[i + d]; kbDraft[i + d] = t; renderKb(); };
+      document.querySelectorAll('#kb-rows [data-up]').forEach(b => { b.onclick = () => move(Number(b.dataset.up), -1); });
+      document.querySelectorAll('#kb-rows [data-down]').forEach(b => { b.onclick = () => move(Number(b.dataset.down), 1); });
+      document.querySelectorAll('#kb-rows [data-kbdel]').forEach(b => { b.onclick = () => { kbDraft.splice(Number(b.dataset.kbdel), 1); renderKb(); }; });
+      icons();
+    }
+    function addKbRow() {
+      const name = $('kb-new').value.replace(/\s+/g, ' ').trim();
+      $('kb-error').hidden = true;
+      if (!name) { $('kb-new').focus(); return; }
+      if (kbDraft.some(k => k.nama.trim().toUpperCase() === name.toUpperCase())) {
+        $('kb-error').textContent = "Pilihan '" + name + "' sudah ada."; $('kb-error').hidden = false; return;
+      }
+      kbDraft.push({ nama: name, asal: '' });
+      $('kb-new').value = '';
+      renderKb();
+      $('kb-new').focus();
+    }
+    // Aturan sama dengan validateKeberadaanList_ di Code.gs
+    function validateKbLocal(draft) {
+      const seen = {};
+      const list = [];
+      draft.forEach(k => {
+        const name = String(k.nama || '').replace(/\s+/g, ' ').trim();
+        if (!name) throw new Error('Nama pilihan tidak boleh kosong. Hapus barisnya bila tidak dipakai.');
+        if (name.length > 30) throw new Error("Nama '" + name.slice(0, 30) + "…' terlalu panjang (maks. 30 karakter).");
+        if (/^[=+\-@]/.test(name)) throw new Error("Nama '" + name + "' tidak boleh diawali tanda = + - @.");
+        if (seen[name.toUpperCase()]) throw new Error("Pilihan '" + name + "' dipakai lebih dari sekali.");
+        seen[name.toUpperCase()] = 1;
+        list.push(name.toUpperCase() === 'MENETAP' ? 'Menetap' : name);
+      });
+      if (list.length > 20) throw new Error('Maksimal 20 pilihan keberadaan.');
+      if (list[0] !== 'Menetap') throw new Error('Menetap wajib ada di urutan pertama.');
+      // pilihan lama yang diganti nama / dihapus tapi masih dipakai jamaah
+      const lama = keberadaanOptions();
+      const hilang = lama.filter(v => !list.some(x => x.toUpperCase() === v.toUpperCase())).map(v => ({ v, n: kbUsage(v) })).filter(x => x.n);
+      if (hilang.length) throw new Error('Tidak bisa menghapus/mengganti nama ' + hilang.map(x => "'" + x.v + "' (masih dipakai " + x.n + ' jamaah)').join(', ') + '. Ubah dulu status keberadaan jamaah tersebut.');
+      return list;
+    }
+    function saveKb() {
+      $('kb-error').hidden = true;
+      if ($('kb-new').value.trim()) {
+        $('kb-error').textContent = "Tekan \"Tambah\" dulu untuk memasukkan '" + $('kb-new').value.trim() + "' ke daftar, atau kosongkan isiannya.";
+        $('kb-error').hidden = false; $('kb-new').focus(); return;
+      }
+      let clean;
+      try { clean = validateKbLocal(kbDraft); }
+      catch (e) { $('kb-error').textContent = e.message; $('kb-error').hidden = false; return; }
+      const btn = $('kb-save');
+      btn.disabled = true; btn.querySelector('span').textContent = 'Menyimpan…';
+      const done = () => { btn.disabled = false; btn.querySelector('span').textContent = 'Simpan pilihan'; };
+      if (isLocalMode) {
+        appData.keberadaanOptions = clean;
+        kbDraft = null; renderAll(); resetKbDraft(); done();
+        showToast('Simulasi: pilihan status keberadaan disimpan.');
+        return;
+      }
+      callApi('saveKeberadaanConfig', authToken, clean).then(res => {
+        done();
+        if (handleAuthError(res)) return;
+        if (res.success) {
+          appData.keberadaanOptions = res.options;
+          kbDraft = null;
+          showToast(res.message);
+          renderAll();
+          resetKbDraft();
+          loadData(true);
+        } else {
+          $('kb-error').textContent = res.message;
+          $('kb-error').hidden = false;
+        }
+      }, err => { done(); $('kb-error').textContent = 'Error: ' + (err.message || err); $('kb-error').hidden = false; });
     }
   </script>
 </body>

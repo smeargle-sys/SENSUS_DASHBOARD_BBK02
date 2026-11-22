@@ -17,6 +17,7 @@ var CONFIG = {
   SHEET_JAMAAH: "Jamaah",
   SHEET_SUMBER_MIGRASI: "Sensus_Asal",
   SHEET_PENGATURAN: "Pengaturan_Kategori",
+  SHEET_PENGATURAN_KEBERADAAN: "Pengaturan_Keberadaan",
   SHEET_ARSIP_JAMAAH: "Arsip_Jamaah",
   SHEET_ARSIP_KELUARGA: "Arsip_Keluarga",
   FALLBACK_URL: "", // Masukkan URL Google Spreadsheet Anda di sini jika dijalankan di luar konteks container
@@ -42,6 +43,7 @@ var ENUM = {
   JK: ["L", "P"],
   STATUS_NIKAH: ["BELUM", "MENIKAH", "DUDA", "JANDA"],
   YN: ["Y", "N"],
+  // Pilihan bawaan; daftar yang berlaku diatur di sheet Pengaturan_Keberadaan (menu Pengaturan)
   KEBERADAAN: ["Menetap", "Mondok", "Tugas", "Kerja Luar"]
 };
 
@@ -68,7 +70,7 @@ function doGet(e) {
 /**
  * JSON API untuk frontend di luar Apps Script (mis. GitHub Pages).
  * Body (text/plain): {"action": "login" | "logout" | "getSensusData" | "saveSensusData" |
- *                    "deleteJamaah" | "deleteKeluarga" | "saveKategoriConfig", "args": [...]}
+ *                    "deleteJamaah" | "deleteKeluarga" | "saveKategoriConfig" | "saveKeberadaanConfig", "args": [...]}
  * Hanya aksi di daftar ini yang bisa dipanggil; migrasi & fungsi internal tidak terekspos.
  * Keamanan tetap sama: setiap aksi (kecuali login) memeriksa token sesi dari PIN.
  */
@@ -79,7 +81,8 @@ var API_ACTIONS = {
   saveSensusData: function (args) { return saveSensusData(args[0], args[1]); },
   deleteJamaah: function (args) { return deleteJamaah(args[0], args[1], args[2]); },
   deleteKeluarga: function (args) { return deleteKeluarga(args[0], args[1]); },
-  saveKategoriConfig: function (args) { return saveKategoriConfig(args[0], args[1]); }
+  saveKategoriConfig: function (args) { return saveKategoriConfig(args[0], args[1]); },
+  saveKeberadaanConfig: function (args) { return saveKeberadaanConfig(args[0], args[1]); }
 };
 
 function doPost(e) {
@@ -441,6 +444,71 @@ function lansiaMin_(cfg) {
 }
 
 /* ======================================================================
+ * PILIHAN STATUS KEBERADAAN
+ * Disimpan di sheet "Pengaturan_Keberadaan" (kolom A Urutan, B Nama).
+ * "Menetap" wajib ada dan selalu di urutan pertama (nilai bawaan).
+ * ====================================================================== */
+
+var KEBERADAAN_DEFAULT_VALUE = "Menetap";
+
+function getKeberadaanList_(ss) {
+  var sh = ss.getSheetByName(CONFIG.SHEET_PENGATURAN_KEBERADAAN);
+  if (!sh) {
+    writeKeberadaanSheet_(ss, ENUM.KEBERADAAN);
+    return ENUM.KEBERADAAN.slice();
+  }
+  var last = sh.getLastRow();
+  var raw = last > 1 ? sh.getRange(2, 2, last - 1, 1).getValues().map(function (r) { return r[0]; }) : [];
+  try {
+    return validateKeberadaanList_(raw);
+  } catch (e) {
+    Logger.log("Pengaturan_Keberadaan tidak valid, memakai bawaan: " + e.message);
+    return ENUM.KEBERADAAN.slice();
+  }
+}
+
+function writeKeberadaanSheet_(ss, list) {
+  var sh = ss.getSheetByName(CONFIG.SHEET_PENGATURAN_KEBERADAAN) || ss.insertSheet(CONFIG.SHEET_PENGATURAN_KEBERADAAN);
+  var last = sh.getLastRow();
+  if (last > 0) sh.getRange(1, 1, last, 2).clearContent();
+  var rows = [["Urutan", "Status Keberadaan"]].concat(list.map(function (v, i) { return [i + 1, v]; }));
+  var range = sh.getRange(1, 1, rows.length, 2);
+  range.setNumberFormat('@');
+  sh.getRange(2, 1, rows.length - 1, 1).setNumberFormat('0');
+  range.setValues(rows);
+}
+
+/** Validasi & normalisasi daftar keberadaan. "Menetap" dipastikan ada di urutan pertama. */
+function validateKeberadaanList_(input) {
+  if (!Array.isArray(input)) throw new Error("Format pilihan keberadaan tidak valid.");
+  var seen = {};
+  var list = [];
+  input.forEach(function (v) {
+    var name = String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+    if (!name) return;
+    if (name.length > 30) throw new Error("Nama '" + name.slice(0, 30) + "…' terlalu panjang (maks. 30 karakter).");
+    if (/^[=+\-@]/.test(name)) throw new Error("Nama '" + name + "' tidak boleh diawali tanda = + - @.");
+    var key = name.toUpperCase();
+    if (seen[key]) throw new Error("Pilihan '" + name + "' dipakai lebih dari sekali.");
+    seen[key] = 1;
+    list.push(key === KEBERADAAN_DEFAULT_VALUE.toUpperCase() ? KEBERADAAN_DEFAULT_VALUE : name);
+  });
+  if (list.length > 20) throw new Error("Maksimal 20 pilihan keberadaan.");
+  var idx = list.indexOf(KEBERADAAN_DEFAULT_VALUE);
+  if (idx === -1) list.unshift(KEBERADAAN_DEFAULT_VALUE);
+  else if (idx > 0) { list.splice(idx, 1); list.unshift(KEBERADAAN_DEFAULT_VALUE); }
+  return list;
+}
+
+/** Cocokkan nilai sheet ke pilihan resmi (tidak peka huruf besar/kecil). Kosong = Menetap. */
+function matchKeberadaan_(value, list) {
+  var v = String(value == null ? '' : value).replace(/\s+/g, ' ').trim();
+  if (!v) return { value: KEBERADAAN_DEFAULT_VALUE, known: true };
+  for (var i = 0; i < list.length; i++) if (list[i].toUpperCase() === v.toUpperCase()) return { value: list[i], known: true };
+  return { value: v, known: false };
+}
+
+/* ======================================================================
  * RULE ENGINE
  * ====================================================================== */
 
@@ -502,6 +570,8 @@ function readSensus_() {
   var ss = getSpreadsheet_();
   var sheets = initializeSheets_(ss);
   var cfg = getKategoriConfig_(ss);
+  var keberadaanList = getKeberadaanList_(ss);
+  var keberadaanTakDikenal = {};
   var batasLansia = lansiaMin_(cfg);
   var lansiaKat = lansiaKategori_(cfg);
   var shKeluarga = sheets.keluarga;
@@ -576,6 +646,8 @@ function readSensus_() {
 
       var umur = tahunLahir ? tahunSekarang - tahunLahir : null;
       var kategoriUsia = dapatkanKategoriUsia(tahunLahir, statusNikah, cfg);
+      var keberadaan = matchKeberadaan_(jRow[10], keberadaanList);
+      if (!keberadaan.known) keberadaanTakDikenal[keberadaan.value] = (keberadaanTakDikenal[keberadaan.value] || 0) + 1;
 
       jamaahList.push({
         id_jamaah: String(jRow[0]),
@@ -591,7 +663,7 @@ function readSensus_() {
         status_nikah: statusNikah,
         is_aktif: isAktif,
         flag_absen: flagAbsen,
-        status_keberadaan: String(jRow[10]),
+        status_keberadaan: keberadaan.value,
         kategori_usia: kategoriUsia,
         catatan: String(jRow[11]),
         no_telepon: telepon,
@@ -636,7 +708,15 @@ function readSensus_() {
       HEADER_JAMAAH[12] + "' baru di kolom kosong berikutnya.");
   }
 
-  return { jamaah: jamaahList, keluarga: keluargaList, rekap: rekap, kategoriConfig: cfg, warnings: warnings };
+  var takDikenal = Object.keys(keberadaanTakDikenal);
+  if (takDikenal.length) {
+    warnings.push("Status Keberadaan berikut belum ada di Pengaturan: " +
+      takDikenal.map(function (k) { return "'" + k + "' (" + keberadaanTakDikenal[k] + " jamaah)"; }).join(", ") +
+      ". Data tetap ditampilkan; tambahkan di menu Pengaturan supaya bisa dipilih di form.");
+  }
+
+  return { jamaah: jamaahList, keluarga: keluargaList, rekap: rekap, kategoriConfig: cfg,
+           keberadaanOptions: keberadaanList, warnings: warnings };
 }
 
 function columnLetter_(n) {
@@ -680,7 +760,7 @@ function toPublicData_(full) {
   });
   var rekap = JSON.parse(JSON.stringify(full.rekap));
   delete rekap.perluDibantu;
-  return { jamaah: jamaah, keluarga: [], rekap: rekap };
+  return { jamaah: jamaah, keluarga: [], rekap: rekap, keberadaanOptions: full.keberadaanOptions };
 }
 
 /* ======================================================================
@@ -697,7 +777,7 @@ function saveSensusData(token, formData) {
   var locked = false;
   try {
     requireSession_(token, [ROLE.ADMIN]);
-    var d = validateFormData_(formData);
+    var d = validateFormData_(formData, getKeberadaanList_(getSpreadsheet_()));
 
     locked = lock.tryLock(15000);
     if (!locked) throw new Error("Server sedang sibuk menyimpan data lain. Coba lagi sebentar.");
@@ -772,7 +852,8 @@ function findRowById_(sheet, id) {
 }
 
 /** Validasi & normalisasi input form. Lempar Error berisi pesan yang ramah pengguna. */
-function validateFormData_(f) {
+function validateFormData_(f, keberadaanList) {
+  keberadaanList = keberadaanList || ENUM.KEBERADAAN;
   if (!f || typeof f !== 'object') throw new Error("Data form kosong.");
   var errors = [];
   var tahunSekarang = new Date().getFullYear();
@@ -802,7 +883,7 @@ function validateFormData_(f) {
     status_nikah: pick(f.status_nikah, ENUM.STATUS_NIKAH, "BELUM"),
     is_aktif: pick(f.is_aktif, ENUM.YN, "Y"),
     flag_absen: pick(f.flag_absen, ENUM.YN, "Y"),
-    status_keberadaan: pick(f.status_keberadaan, ENUM.KEBERADAAN, "Menetap"),
+    status_keberadaan: pick(f.status_keberadaan, keberadaanList, KEBERADAAN_DEFAULT_VALUE),
     catatan: text(f.catatan, 500),
     no_telepon: text(f.no_telepon, 20),
     perlu_dibantu: pick(f.perlu_dibantu, ENUM.YN, "N")
@@ -827,7 +908,7 @@ function validateFormData_(f) {
   }
   if (!d.status_nikah) errors.push("Status pernikahan tidak valid.");
   if (!d.is_aktif || !d.flag_absen || !d.perlu_dibantu) errors.push("Penanda Aktif/Absen/Perlu Dibantu tidak valid.");
-  if (!d.status_keberadaan) errors.push("Status keberadaan tidak valid.");
+  if (!d.status_keberadaan) errors.push("Status keberadaan '" + text(f.status_keberadaan, 30) + "' belum ada di Pengaturan. Tambahkan dulu di menu Pengaturan → Pilihan Status Keberadaan.");
   if (d.status_nikah === "DUDA" && d.jenis_kelamin === "P") errors.push("Status DUDA hanya untuk laki-laki.");
   if (d.status_nikah === "JANDA" && d.jenis_kelamin === "L") errors.push("Status JANDA hanya untuk perempuan.");
   if (d.no_telepon && !phoneRe.test(d.no_telepon)) errors.push("No. telepon jamaah hanya boleh angka, spasi, + atau -.");
@@ -964,6 +1045,46 @@ function saveKategoriConfig(token, cfg) {
   }
 }
 
+/**
+ * Simpan pilihan Status Keberadaan. Khusus ADMIN.
+ * Pilihan yang masih dipakai jamaah tidak boleh dihapus.
+ */
+function saveKeberadaanConfig(token, list) {
+  var lock = LockService.getScriptLock();
+  var locked = false;
+  try {
+    requireSession_(token, [ROLE.ADMIN]);
+    var clean = validateKeberadaanList_(list);
+    locked = lock.tryLock(15000);
+    if (!locked) throw new Error("Server sedang sibuk. Coba lagi sebentar.");
+    var ss = getSpreadsheet_();
+    var lama = getKeberadaanList_(ss);
+    var dihapus = lama.filter(function (v) {
+      return !clean.some(function (c) { return c.toUpperCase() === v.toUpperCase(); });
+    });
+    if (dihapus.length) {
+      var sheets = initializeSheets_(ss);
+      var last = lastDataRow_(sheets.jamaah);
+      var nilai = last > 1 ? sheets.jamaah.getRange(2, 11, last - 1, 1).getValues() : [];
+      var dipakai = dihapus.map(function (v) {
+        var n = nilai.filter(function (r) { return String(r[0]).trim().toUpperCase() === v.toUpperCase(); }).length;
+        return { v: v, n: n };
+      }).filter(function (x) { return x.n > 0; });
+      if (dipakai.length) {
+        throw new Error("Tidak bisa menghapus " + dipakai.map(function (x) { return "'" + x.v + "' (masih dipakai " + x.n + " jamaah)"; }).join(", ") +
+          ". Ubah dulu status keberadaan jamaah tersebut.");
+      }
+    }
+    writeKeberadaanSheet_(ss, clean);
+    SpreadsheetApp.flush();
+    return { success: true, message: "Pilihan status keberadaan disimpan.", options: clean };
+  } catch (err) {
+    return errorResponse_(err, err && err.isAuth ? "" : "Gagal menyimpan pengaturan: ");
+  } finally {
+    if (locked) lock.releaseLock();
+  }
+}
+
 /* ======================================================================
  * MIGRASI DATA LAMA
  * ====================================================================== */
@@ -1000,6 +1121,7 @@ function jalankanMigrasiSensus() {
     var dataAsal = sheetAsal.getRange(2, 1, lastRowAsal - 1, 12).getValues();
 
     var tahunSekarang = new Date().getFullYear();
+    var keberadaanList = getKeberadaanList_(ss);
     var currentKeluargaId = "";
     var keluargaRows = [];
     var jamaahRows = [];
@@ -1030,8 +1152,9 @@ function jalankanMigrasiSensus() {
       var flagAbsen = "Y";
       var statusKeberadaan = "Menetap";
       var lowerAbsen = absenVal.toLowerCase();
-      if (lowerAbsen === "mondok" || lowerAbsen === "tugas" || lowerAbsen === "kerja luar") {
-        statusKeberadaan = absenVal;
+      var cocok = matchKeberadaan_(absenVal, keberadaanList);
+      if (absenVal && cocok.known && cocok.value !== KEBERADAAN_DEFAULT_VALUE) {
+        statusKeberadaan = cocok.value; // mis. Mondok, Tugas, Kerja Luar, Sekolah di Luar
         flagAbsen = "N";
       } else if (lowerAbsen === "n") {
         flagAbsen = "N";
