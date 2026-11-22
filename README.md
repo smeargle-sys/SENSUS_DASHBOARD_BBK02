@@ -22,7 +22,7 @@ Datanya disimpan di **Google Sheets**, logika server berjalan di **Google Apps S
 - **Dashboard:** kartu angka (jiwa aktif, KK aktif, laki-laki, perempuan, lansia), komposisi kategori usia L/P, kartu Keberadaan & Absen (bisa diklik untuk memfilter).
 - **Daftar jamaah:**
   - Pencarian tepat di atas daftar (nama, nama absen, KK, atau no. telepon) dengan tombol **X** untuk mengosongkan.
-  - Filter cepat: Semua, Aktif wilayah, Luar kota, Mondok, Masuk absen, Tidak absen, **Perlu dibantu**, **Perlu dilengkapi** (dengan jumlahnya).
+  - Filter cepat: Semua, Aktif wilayah, Tidak aktif, Mondok, Masuk absen, Tidak absen, Tanpa KK, **Perlu dibantu**, **Perlu dilengkapi** (dengan jumlahnya).
   - Filter Kategori, Keberadaan, Gender, dan pilihan **Urutkan**.
   - **Kelompokkan per KK**: daftar dikelompokkan per keluarga, Kepala Keluarga paling atas. Baris Kepala Keluarga selalu berlatar hijau.
   - 25 baris per halaman dengan tombol halaman pertama, terakhir, dan nomor halaman.
@@ -37,7 +37,7 @@ Datanya disimpan di **Google Sheets**, logika server berjalan di **Google Apps S
 
 ### Halaman ringkasan pengurus
 - Kartu angka, bar komposisi, dan tabel rekap kategori usia format laporan (L, P, Jumlah, Proporsi, Total).
-- **Daftar Jamaah** berisi seluruh jamaah (termasuk anak-anak, yang tidak wajib absen, luar kota, dan tanpa KK), dengan filter cepat yang sama seperti admin (Aktif wilayah, Luar kota, Mondok, Masuk absen, Tidak absen, Tanpa KK, Perlu dilengkapi), filter Kategori/Keberadaan/Gender, urutan, **Kelompokkan per KK**, dan halaman bernomor. Tidak ada tombol tambah, edit, atau hapus.
+- **Daftar Jamaah** berisi seluruh jamaah (termasuk anak-anak, yang tidak wajib absen, yang tidak aktif, dan tanpa KK), dengan filter cepat yang sama seperti admin (Aktif wilayah, Tidak aktif, Mondok, Masuk absen, Tidak absen, Tanpa KK, Perlu dilengkapi), filter Kategori/Keberadaan/Gender, urutan, **Kelompokkan per KK**, dan halaman bernomor. Tidak ada tombol tambah, edit, atau hapus.
 - Detail jamaah saat nama diklik: data lengkap termasuk alamat KK, catatan, dan nomor telepon dengan tombol WhatsApp.
 - **Cetak laporan** (rekap + seluruh daftar), **Cetak daftar** (sesuai filter & pengelompokan), dan **Ekspor CSV**.
 - Tampilan HP dengan tab *Rekap usia* / *Daftar jamaah*.
@@ -96,6 +96,10 @@ Bawaan rentang umur:
 - Kalau isi kolom `No Telepon` ternyata bukan nomor telepon (misalnya angka umur), nilainya tidak ditampilkan dan admin mendapat peringatan. Biasanya ini berarti header kolom itu salah nama: kembalikan header ke nama aslinya.
 
 **Jamaah tanpa KK:** kolom `ID Keluarga` dibiarkan **kosong**. Kalau isinya ID yang tidak ada di sheet `Keluarga`, aplikasi menampilkan "KK tidak ditemukan"; saat diedit, admin bisa memilih KK yang benar atau menyimpannya sebagai Tanpa KK.
+
+**Label status di daftar** (hanya tampilan; perhitungan tetap dari kolom I):
+- Aktif & Menetap → **Aktif**; aktif tapi keberadaan lain → **Aktif · Mondok** / **Aktif · Tugas** / **Aktif · Kerja luar**
+- Tidak aktif → sesuai keberadaannya: **Mondok**, **Tugas**, **Kerja luar**; atau **Tidak aktif** bila keberadaannya Menetap
 
 **Kode isian:**
 - `Hubungan Keluarga`: `A` Kepala, `B` Istri, `C` Anak, `D` Lainnya

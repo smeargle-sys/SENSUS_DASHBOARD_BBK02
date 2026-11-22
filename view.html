@@ -397,7 +397,7 @@
         <div class="chips" id="chips" aria-label="Filter cepat">
           <button type="button" class="chip" data-chip="semua" aria-pressed="true" onclick="setChip('semua')">Semua</button>
           <button type="button" class="chip" data-chip="aktif" aria-pressed="false" onclick="setChip('aktif')">Aktif wilayah</button>
-          <button type="button" class="chip" data-chip="luar" aria-pressed="false" onclick="setChip('luar')">Luar kota</button>
+          <button type="button" class="chip" data-chip="luar" aria-pressed="false" onclick="setChip('luar')" title="Status Keaktifan = N (Mondok, Tugas, Kerja Luar, atau tidak aktif)">Tidak aktif</button>
           <button type="button" class="chip" data-chip="mondok" aria-pressed="false" onclick="setChip('mondok')">Mondok</button>
           <button type="button" class="chip" data-chip="absen" aria-pressed="false" onclick="setChip('absen')">Masuk absen</button>
           <button type="button" class="chip" data-chip="tidakabsen" aria-pressed="false" onclick="setChip('tidakabsen')">Tidak absen</button>
@@ -826,8 +826,16 @@
       if (j.kategori_usia === 'Di Luar Kategori') return '<span class="tag tag-warn">Di luar kategori</span>';
       return `<span class="tag">${esc(j.kategori_usia)}</span>`;
     }
+    // Label wilayah: hanya tampilan. Perhitungan tetap dari kolom I (Status Keaktifan).
+    const KEBERADAAN_LABEL = { 'Menetap': 'Menetap', 'Mondok': 'Mondok', 'Tugas': 'Tugas', 'Kerja Luar': 'Kerja luar' };
+    function wilayahLabel(j) {
+      const k = j.status_keberadaan || 'Menetap';
+      const kl = KEBERADAAN_LABEL[k] || k;
+      if (j.is_aktif === 'Y') return k === 'Menetap' ? 'Aktif' : 'Aktif · ' + kl;
+      return k === 'Menetap' ? 'Tidak aktif' : kl;
+    }
     function statusStack(j) {
-      return `<span class="status ${j.is_aktif === 'Y' ? 'on' : ''}">${j.is_aktif === 'Y' ? 'Aktif' : 'Luar kota'}</span>
+      return `<span class="status ${j.is_aktif === 'Y' ? 'on' : ''}">${esc(wilayahLabel(j))}</span>
               <span class="status ${j.flag_absen === 'Y' ? 'on' : ''}">${j.flag_absen === 'Y' ? 'Masuk absen' : 'Tidak absen'}</span>`;
     }
     function groupName(j) { return j.kk_terdaftar ? 'KK ' + j.nama_kk : (j.grup_kk ? j.nama_kk : 'Tanpa KK (mandiri / perantau)'); }

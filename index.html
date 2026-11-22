@@ -532,7 +532,7 @@
               <div class="chips-scroll" id="chips">
                 <button type="button" class="chip" data-chip="semua" aria-pressed="true" onclick="setChip('semua')">Semua</button>
                 <button type="button" class="chip" data-chip="aktif" aria-pressed="false" onclick="setChip('aktif')">Aktif wilayah</button>
-                <button type="button" class="chip" data-chip="luar" aria-pressed="false" onclick="setChip('luar')">Luar kota</button>
+                <button type="button" class="chip" data-chip="luar" aria-pressed="false" onclick="setChip('luar')" title="Status Keaktifan = N (Mondok, Tugas, Kerja Luar, atau tidak aktif)">Tidak aktif</button>
                 <button type="button" class="chip" data-chip="mondok" aria-pressed="false" onclick="setChip('mondok')">Mondok</button>
                 <button type="button" class="chip" data-chip="absen" aria-pressed="false" onclick="setChip('absen')">Masuk absen</button>
                 <button type="button" class="chip" data-chip="tidakabsen" aria-pressed="false" onclick="setChip('tidakabsen')">Tidak absen</button>
@@ -1180,7 +1180,7 @@
       $('kpi-total-hint').textContent = 'dari ' + fmt(jamaah.length) + ' terdaftar';
       $('kpi-kk').textContent = fmt(r.kkCount);
       const kkLuar = (appData.keluarga || []).length - (r.kkCount || 0);
-      $('kpi-kk-hint').textContent = kkLuar > 0 ? fmt(kkLuar) + ' KK luar kota' : 'semua KK aktif';
+      $('kpi-kk-hint').textContent = kkLuar > 0 ? fmt(kkLuar) + ' KK tidak aktif' : 'semua KK aktif';
       $('kpi-laki').textContent = fmt(r.laki);
       $('kpi-laki-hint').textContent = pct(r.laki, r.total) + ' jiwa aktif';
       $('kpi-perempuan').textContent = fmt(r.perempuan);
@@ -1334,8 +1334,16 @@
       if (j.kategori_usia === 'Di Luar Kategori') return '<span class="tag tag-warn">Di luar kategori</span>';
       return `<span class="tag">${esc(j.kategori_usia)}</span>`;
     }
+    // Label wilayah: hanya tampilan. Perhitungan tetap dari kolom I (Status Keaktifan).
+    const KEBERADAAN_LABEL = { 'Menetap': 'Menetap', 'Mondok': 'Mondok', 'Tugas': 'Tugas', 'Kerja Luar': 'Kerja luar' };
+    function wilayahLabel(j) {
+      const k = j.status_keberadaan || 'Menetap';
+      const kl = KEBERADAAN_LABEL[k] || k;
+      if (j.is_aktif === 'Y') return k === 'Menetap' ? 'Aktif' : 'Aktif · ' + kl;
+      return k === 'Menetap' ? 'Tidak aktif' : kl;
+    }
     function statusStack(j, short) {
-      return `<span class="status ${j.is_aktif === 'Y' ? 'on' : ''}">${j.is_aktif === 'Y' ? 'Aktif' : 'Luar kota'}</span>
+      return `<span class="status ${j.is_aktif === 'Y' ? 'on' : ''}">${esc(wilayahLabel(j))}</span>
               <span class="status ${j.flag_absen === 'Y' ? 'on' : ''}">${j.flag_absen === 'Y' ? (short ? 'Absen' : 'Masuk absen') : 'Tidak absen'}</span>`;
     }
     function groupHeader(kkId, name, count) {
@@ -1551,7 +1559,7 @@
           <td><div class="person"><span class="avatar ${avatarClass(k.id_keluarga)}">${esc(initials(k.nama_kk))}</span><div class="person-text"><strong>${esc(k.nama_kk)}</strong></div></div></td>
           <td style="white-space: normal; min-width: 200px; color: var(--ink-2)">${esc(k.alamat)}</td>
           <td class="num" style="text-align: right"><strong>${s.aktif}</strong> / ${s.total}</td>
-          <td><span class="status ${s.headInactive ? '' : 'on'}">${s.headInactive ? 'Luar kota' : 'Aktif'}</span></td>
+          <td><span class="status ${s.headInactive ? '' : 'on'}">${s.headInactive ? 'Tidak aktif' : 'Aktif'}</span></td>
           <td style="text-align: right"><div style="display: flex; gap: 8px; justify-content: flex-end">
             <button type="button" class="btn btn-sm view-members" data-id="${esc(k.id_keluarga)}"><i data-lucide="users"></i> Anggota</button>
             <button type="button" class="btn btn-sm add-member" data-id="${esc(k.id_keluarga)}"><i data-lucide="user-plus"></i> Tambah</button>
