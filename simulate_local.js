@@ -287,16 +287,19 @@ test("ADMIN menerima data lengkap (alamat, telepon, catatan)", () => {
   eq(r.data.jamaah[0].catatan, 'catatan rahasia');
 });
 
-test("VIEWER hanya menerima jamaah aktif & absen, tanpa alamat/telepon/catatan/ID", () => {
+test("VIEWER menerima seluruh jamaah (hanya-lihat), tanpa Perlu dibantu & ID asli", () => {
   const { gs } = createSandbox();
   const t = gs.login('135790', 'view').token;
   const r = gs.getSensusData(t);
   eq(r.role, 'VIEWER');
-  eq(r.data.keluarga.length, 0, "keluarga untuk viewer");
-  assert(r.data.jamaah.every(j => j.is_aktif === 'Y' && j.flag_absen === 'Y'), "ada jamaah non-aktif/non-absen");
-  const forbidden = ['alamat', 'telepon', 'catatan', 'id_jamaah', 'id_keluarga', 'tahun_lahir', 'status_keberadaan'];
+  eq(r.data.jamaah.length, 9, "semua jamaah, termasuk anak & tidak aktif");
+  assert(r.data.jamaah.some(j => j.flag_absen === 'N'), "anak yang tidak wajib absen ikut");
+  assert(r.data.jamaah.some(j => j.is_aktif === 'N'), "jamaah luar kota ikut");
+  const forbidden = ['perlu_dibantu', 'id_jamaah', 'id_keluarga'];
   r.data.jamaah.forEach(j => forbidden.forEach(f => assert(!(f in j), `field ${f} bocor ke viewer`)));
-  eq(r.data.jamaah.length, 7);
+  const kepala = r.data.jamaah.find(j => j.nama_lengkap === 'Bapak Contoh Satu');
+  eq(kepala.alamat_kk, 'Alamat Contoh RT 01'); eq(kepala.catatan, 'catatan rahasia'); eq(kepala.kk_terdaftar, true);
+  eq(r.data.keluarga.length, 0, "daftar keluarga (dengan ID) tidak dikirim");
 });
 
 test("VIEWER tidak boleh menyimpan data", () => {

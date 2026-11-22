@@ -482,7 +482,7 @@ function dapatkanKategoriUsia(tahunLahir, statusNikah, cfg) {
 /**
  * Mengambil data sensus + rekap.
  * ADMIN  : seluruh data (termasuk alamat, telepon, catatan, perlu dibantu) + konfigurasi kategori.
- * VIEWER : hanya jamaah aktif & masuk absen; nama, kategori, umur, dan no. telepon.
+ * VIEWER : seluruh jamaah (hanya-lihat), tanpa penanda Perlu dibantu dan ID asli.
  * @param {string} token
  */
 function getSensusData(token) {
@@ -646,30 +646,38 @@ function columnLetter_(n) {
 }
 
 /**
- * Data untuk halaman ringkasan pengurus:
- * hanya jamaah aktif & masuk absen; tanpa alamat, catatan, ID, tahun lahir, dan penanda perlu dibantu.
- * No. telepon jamaah ikut dikirim (keputusan pengurus: tombol WA tersedia di halaman ringkasan).
+ * Data untuk halaman ringkasan pengurus (hanya-lihat):
+ * seluruh jamaah seperti di halaman admin, KECUALI penanda & jumlah "Perlu dibantu" (khusus admin)
+ * dan ID asli (diganti nomor urut keluarga untuk pengelompokan).
  */
 function toPublicData_(full) {
+  var kk = {};
+  full.keluarga.forEach(function (k) { kk[k.id_keluarga] = k; });
   var grup = {}, next = 1;
-  var jamaah = full.jamaah
-    .filter(function (j) { return j.is_aktif === "Y" && j.flag_absen === "Y"; })
-    .map(function (j) {
-      if (j.id_keluarga && !grup[j.id_keluarga]) grup[j.id_keluarga] = next++;
-      return {
-        nama_lengkap: j.nama_lengkap,
-        nama_absen: j.nama_absen,
-        hubungan_keluarga: j.hubungan_keluarga,
-        nama_kk: j.nama_kk,
-        grup_kk: grup[j.id_keluarga] || 0, // nomor urut keluarga, bukan ID asli
-        jenis_kelamin: j.jenis_kelamin,
-        umur: j.umur,
-        kategori_usia: j.kategori_usia,
-        no_telepon: j.no_telepon,
-        is_aktif: j.is_aktif,
-        flag_absen: j.flag_absen
-      };
-    });
+  var jamaah = full.jamaah.map(function (j) {
+    var k = kk[j.id_keluarga];
+    if (j.id_keluarga && !grup[j.id_keluarga]) grup[j.id_keluarga] = next++;
+    return {
+      nama_lengkap: j.nama_lengkap,
+      nama_absen: j.nama_absen,
+      hubungan_keluarga: j.hubungan_keluarga,
+      nama_kk: j.nama_kk,
+      grup_kk: grup[j.id_keluarga] || 0, // nomor urut keluarga, bukan ID asli; 0 = tanpa KK
+      kk_terdaftar: !!k,
+      alamat_kk: k ? k.alamat : '',
+      telepon_kk: k ? k.telepon : '',
+      jenis_kelamin: j.jenis_kelamin,
+      tahun_lahir: j.tahun_lahir,
+      umur: j.umur,
+      status_nikah: j.status_nikah,
+      kategori_usia: j.kategori_usia,
+      no_telepon: j.no_telepon,
+      is_aktif: j.is_aktif,
+      flag_absen: j.flag_absen,
+      status_keberadaan: j.status_keberadaan,
+      catatan: j.catatan
+    };
+  });
   var rekap = JSON.parse(JSON.stringify(full.rekap));
   delete rekap.perluDibantu;
   return { jamaah: jamaah, keluarga: [], rekap: rekap };

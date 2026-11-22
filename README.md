@@ -6,7 +6,7 @@ Datanya disimpan di **Google Sheets**, logika server berjalan di **Google Apps S
 | Halaman | File | Untuk | PIN |
 |---|---|---|---|
 | **Admin** | `index.html` | Tambah, edit, hapus data, dan pengaturan | `ADMIN_PIN` |
-| **Ringkasan Pengurus** | `view.html` | Melihat rekap & daftar absen (read-only) | `VIEWER_PIN` atau `ADMIN_PIN` |
+| **Ringkasan Pengurus** | `view.html` | Melihat rekap & seluruh data jamaah (hanya-lihat) | `VIEWER_PIN` atau `ADMIN_PIN` |
 
 ---
 
@@ -15,7 +15,7 @@ Datanya disimpan di **Google Sheets**, logika server berjalan di **Google Apps S
 ### Akses & keamanan
 - **Login dengan PIN.** Setiap permintaan ke server diperiksa dengan token sesi (berlaku maksimal 6 jam, atau sampai menekan **Keluar**).
 - **Kunci tebakan PIN.** Setelah 5 kali PIN salah, login dikunci 15 menit.
-- **Data dibatasi untuk pengurus.** Halaman ringkasan hanya menerima jamaah aktif yang masuk daftar absen, tanpa alamat, catatan, ID, dan penanda *Perlu dibantu*.
+- **Pengurus hanya bisa melihat.** Halaman ringkasan menerima seluruh data jamaah seperti halaman admin, kecuali penanda *Perlu dibantu* dan ID asli; semua perubahan hanya bisa dilakukan dengan PIN admin.
 - **Anti-XSS & anti formula injection.** Semua teks dari sheet di-escape sebelum ditampilkan, data ditulis sebagai teks biasa, dan sel CSV yang diawali `= + - @` dinetralkan.
 
 ### Halaman admin
@@ -37,10 +37,10 @@ Datanya disimpan di **Google Sheets**, logika server berjalan di **Google Apps S
 
 ### Halaman ringkasan pengurus
 - Kartu angka, bar komposisi, dan tabel rekap kategori usia format laporan (L, P, Jumlah, Proporsi, Total).
-- Daftar absen dengan pencarian, filter, urutan, **Kelompokkan per KK**, dan halaman bernomor.
-- Detail jamaah saat nama diklik, termasuk nomor telepon dengan tombol WhatsApp.
-- **Cetak laporan** (mencetak seluruh daftar, bukan hanya halaman aktif) dan **Ekspor CSV**.
-- Tampilan HP dengan tab *Rekap usia* / *Daftar absen*.
+- **Daftar Jamaah** berisi seluruh jamaah (termasuk anak-anak, yang tidak wajib absen, luar kota, dan tanpa KK), dengan filter cepat yang sama seperti admin (Aktif wilayah, Luar kota, Mondok, Masuk absen, Tidak absen, Tanpa KK, Perlu dilengkapi), filter Kategori/Keberadaan/Gender, urutan, **Kelompokkan per KK**, dan halaman bernomor. Tidak ada tombol tambah, edit, atau hapus.
+- Detail jamaah saat nama diklik: data lengkap termasuk alamat KK, catatan, dan nomor telepon dengan tombol WhatsApp.
+- **Cetak laporan** (rekap + seluruh daftar), **Cetak daftar** (sesuai filter & pengelompokan), dan **Ekspor CSV**.
+- Tampilan HP dengan tab *Rekap usia* / *Daftar jamaah*.
 
 > Nomor telepon tidak ditampilkan di daftar. Nomor hanya muncul di **detail** jamaah atau KK.
 
