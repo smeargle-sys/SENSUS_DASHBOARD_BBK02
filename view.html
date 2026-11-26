@@ -236,7 +236,7 @@
       .kpis .kpi:not(.kpi-hero) { display: none; }
       .kpi-hero { grid-column: 1 / -1; border-radius: 20px; padding: 18px 20px; gap: 12px; }
       .kpi-hero .kpi-value { font-size: 44px; line-height: 1; }
-      .kpi-mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+      .kpi-mini { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
       .kpi-mini div { background: var(--deep-2); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 2px; }
       .kpi-mini span { font-size: 11px; color: var(--deep-muted); }
       .kpi-mini strong { font-size: 18px; }
@@ -361,12 +361,13 @@
             <div><span>Laki-laki</span><strong class="num" id="mini-laki">0</strong></div>
             <div><span>Perempuan</span><strong class="num" id="mini-perempuan">0</strong></div>
             <div><span>Lansia</span><strong class="num" id="mini-lansia">0</strong></div>
+            <div><span>Wajib sambung</span><strong class="num" id="mini-wajib">0</strong></div>
           </div>
         </div>
         <div class="card kpi"><span class="kpi-label">Laki-laki</span><span class="kpi-value num" id="kpi-laki" style="color: var(--male-ink)">0</span><span class="kpi-hint" id="kpi-laki-hint"></span></div>
         <div class="card kpi"><span class="kpi-label">Perempuan</span><span class="kpi-value num" id="kpi-perempuan" style="color: var(--female-ink)">0</span><span class="kpi-hint" id="kpi-perempuan-hint"></span></div>
         <div class="card kpi"><span class="kpi-label" id="kpi-lansia-label">Lansia</span><span class="kpi-value num" id="kpi-lansia" style="color: var(--primary)">0</span><span class="kpi-hint" id="kpi-lansia-hint"></span></div>
-        <div class="card kpi"><span class="kpi-label">Masuk daftar absen</span><span class="kpi-value num" id="kpi-absen">0</span><span class="kpi-hint" id="kpi-absen-hint"></span></div>
+        <div class="card kpi"><span class="kpi-label">Wajib sambung</span><span class="kpi-value num" id="kpi-absen">0</span><span class="kpi-hint" id="kpi-absen-hint"></span></div>
       </section>
 
       <div class="tabs" role="tablist" aria-label="Tampilan">
@@ -727,6 +728,7 @@
       $('kpi-lansia-hint').textContent = pct(r.lansia, r.total) + ' jiwa aktif';
       $('kpi-absen').textContent = fmt(absenCount);
       $('kpi-absen-hint').textContent = pct(absenCount, r.total) + ' jiwa aktif';
+      $('mini-wajib').textContent = fmt(absenCount);
       $('mini-laki').textContent = fmt(r.laki);
       $('mini-perempuan').textContent = fmt(r.perempuan);
       $('mini-lansia').textContent = fmt(r.lansia);

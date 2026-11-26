@@ -110,7 +110,8 @@
     .search input { border: 0; outline: none; font-size: 14px; flex: 1; min-width: 0; background: transparent; color: var(--ink); }
 
     .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
-    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
+    .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    @media (min-width: 1200px) { .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
     .kpi { padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; }
     .kpi-label { font-size: 13px; font-weight: 600; color: var(--muted); }
     .kpi-value { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
@@ -508,6 +509,7 @@
             <div class="card kpi"><span class="kpi-label">Laki-laki</span><span class="kpi-value num" id="kpi-laki" style="color: var(--male-ink)">0</span><span class="kpi-hint" id="kpi-laki-hint"></span></div>
             <div class="card kpi"><span class="kpi-label">Perempuan</span><span class="kpi-value num" id="kpi-perempuan" style="color: var(--female-ink)">0</span><span class="kpi-hint" id="kpi-perempuan-hint"></span></div>
             <div class="card kpi"><span class="kpi-label" id="kpi-lansia-label">Lansia</span><span class="kpi-value num" id="kpi-lansia" style="color: var(--primary)">0</span><span class="kpi-hint">semua status nikah</span></div>
+            <div class="card kpi"><span class="kpi-label">Wajib sambung</span><span class="kpi-value num" id="kpi-wajib">0</span><span class="kpi-hint" id="kpi-wajib-hint"></span></div>
           </section>
 
           <div class="banner" id="banner-lengkapi" role="status" hidden>
@@ -1251,6 +1253,9 @@
       $('kpi-perempuan-hint').textContent = pct(r.perempuan, r.total) + ' jiwa aktif';
       $('kpi-lansia').textContent = fmt(r.lansia);
       $('kpi-lansia-label').textContent = 'Lansia ≥ ' + (r.batasLansia || lansiaMin()) + ' th';
+      const wajib = aktif.filter(j => j.flag_absen === 'Y').length;
+      $('kpi-wajib').textContent = fmt(wajib);
+      $('kpi-wajib-hint').textContent = pct(wajib, r.total) + ' jiwa aktif';
 
       $('banner-lengkapi').hidden = tanpaTahun === 0;
       $('banner-lengkapi-count').textContent = fmt(tanpaTahun) + ' jamaah';
