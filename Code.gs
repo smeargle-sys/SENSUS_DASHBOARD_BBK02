@@ -60,7 +60,9 @@ function doGet(e) {
 
   var out = HtmlService.createHtmlOutputFromFile(file)
     .setTitle(title)
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+    // maximum-scale=1: cegah iOS auto-zoom saat fokus input di dalam iframe Apps Script.
+    // iOS 10+ tetap mengizinkan pinch-zoom manual.
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1');
   if (CONFIG.ALLOW_EMBED) {
     out.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
