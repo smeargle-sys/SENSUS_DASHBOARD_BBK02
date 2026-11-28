@@ -264,9 +264,9 @@ test("doPost: fungsi di luar daftar (migrasi, internal) tidak bisa dipanggil", (
 test("doPost: hapus & simpan pengaturan lewat API", () => {
   const env = createSandbox();
   const tok = post(env.gs, { action: 'login', args: ['246810', 'index'] }).token;
-  eq(post(env.gs, { action: 'deleteJamaah', args: [tok, 'JM-5', 'single'] }).success, true);
+  eq(post(env.gs, { action: 'deleteJamaah', args: [tok, 'JM-5', 'single', 'Pindah domisili'] }).success, true);
   eq(post(env.gs, { action: 'saveKategoriConfig', args: [tok, CUSTOM_CFG] }).success, true);
-  eq(post(env.gs, { action: 'deleteKeluarga', args: [tok, 'KK-C'] }).success, true);
+  eq(post(env.gs, { action: 'deleteKeluarga', args: [tok, 'KK-C', 'Pindah domisili'] }).success, true);
 });
 
 test("doPost: body rusak tidak membuat server error", () => {
@@ -517,7 +517,7 @@ test("Hapus dengan kolom Umur: arsip menyalin semua kolom", () => {
   withUmurColumn(env);
   const t = env.gs.login('246810', 'index').token;
   env.gs.getSensusData(t);
-  eq(env.gs.deleteJamaah(t, 'JM-2', 'single').success, true);
+  eq(env.gs.deleteJamaah(t, 'JM-2', 'single', 'Pindah domisili').success, true);
   const arsip = env.ss.sheets.Arsip_Jamaah;
   eq(arsip.rows[0][14], 'Umur'); eq(arsip.rows[1][2], 'JM-2'); eq(arsip.rows[1][14], THIS_YEAR - 1968);
 });
@@ -572,10 +572,10 @@ test("Mandiri: 'hapus seluruh KK' ditolak supaya tidak menghapus semua jamaah ma
   const env = createSandbox();
   const sh = withMandiri(env);
   const t = env.gs.login('246810', 'index').token;
-  const r = env.gs.deleteJamaah(t, 'JM-M1', 'kk');
+  const r = env.gs.deleteJamaah(t, 'JM-M1', 'kk', 'Pindah domisili');
   eq(r.success, false); assert(/hapus per orang/.test(r.message), r.message);
   eq(sh.rows.filter(x => String(x[0]).startsWith('JM-M')).length, 2, "tidak ada yang terhapus");
-  eq(env.gs.deleteJamaah(t, 'JM-M1', 'single').success, true);
+  eq(env.gs.deleteJamaah(t, 'JM-M1', 'single', 'Pindah domisili').success, true);
   eq(sh.rows.filter(x => String(x[0]).startsWith('JM-M')).length, 1);
 });
 
@@ -591,19 +591,19 @@ test("Mandiri di halaman pengurus: tanpa ID asli, grup_kk 0", () => {
 test("Hapus jamaah (single): hanya baris itu, dipindah ke Arsip_Jamaah", () => {
   const env = createSandbox();
   const t = env.gs.login('246810', 'index').token;
-  const r = env.gs.deleteJamaah(t, 'JM-5', 'single');
+  const r = env.gs.deleteJamaah(t, 'JM-5', 'single', 'Meninggal dunia');
   eq(r.success, true, r.message);
   eq(env.ss.sheets.Jamaah.getLastRow(), 9);
   assert(!env.ss.sheets.Jamaah.rows.some(x => x[0] === 'JM-5'), "JM-5 masih ada");
   const arsip = env.ss.sheets.Arsip_Jamaah;
-  eq(arsip.rows[0][0], 'Waktu Hapus'); eq(arsip.rows[1][2], 'JM-5'); eq(arsip.rows[1][1], 'Hapus jamaah');
+  eq(arsip.rows[0][0], 'Waktu Hapus'); eq(arsip.rows[1][2], 'JM-5'); eq(arsip.rows[1][1], 'Meninggal dunia');
   eq(env.ss.sheets.Keluarga.getLastRow(), 4, "KK tidak ikut terhapus");
 });
 
 test("Hapus kepala keluarga saja (single): KK & anggota lain tetap", () => {
   const env = createSandbox();
   const t = env.gs.login('246810', 'index').token;
-  eq(env.gs.deleteJamaah(t, 'JM-3', 'single').success, true);
+  eq(env.gs.deleteJamaah(t, 'JM-3', 'single', 'Pindah domisili').success, true);
   eq(env.ss.sheets.Jamaah.rows.filter(x => x[1] === 'KK-B').length, 3);
   eq(env.ss.sheets.Keluarga.getLastRow(), 4);
 });
@@ -611,7 +611,7 @@ test("Hapus kepala keluarga saja (single): KK & anggota lain tetap", () => {
 test("Hapus seluruh KK lewat kepala keluarga (mode kk): semua anggota + KK ke arsip", () => {
   const env = createSandbox();
   const t = env.gs.login('246810', 'index').token;
-  const r = env.gs.deleteJamaah(t, 'JM-3', 'kk');
+  const r = env.gs.deleteJamaah(t, 'JM-3', 'kk', 'Satu keluarga pindah kota');
   eq(r.success, true, r.message);
   eq(r.deleted.jamaah, 4); eq(r.deleted.keluarga, 1);
   assert(!env.ss.sheets.Jamaah.rows.some(x => x[1] === 'KK-B'), "anggota KK-B masih ada");
@@ -624,7 +624,7 @@ test("Hapus seluruh KK lewat kepala keluarga (mode kk): semua anggota + KK ke ar
 test("Hapus KK dari daftar keluarga (deleteKeluarga)", () => {
   const env = createSandbox();
   const t = env.gs.login('246810', 'index').token;
-  const r = env.gs.deleteKeluarga(t, 'KK-A');
+  const r = env.gs.deleteKeluarga(t, 'KK-A', 'Pindah domisili');
   eq(r.success, true, r.message);
   eq(r.deleted.jamaah, 2);
   assert(!env.ss.sheets.Jamaah.rows.some(x => x[1] === 'KK-A'));
@@ -633,12 +633,120 @@ test("Hapus KK dari daftar keluarga (deleteKeluarga)", () => {
 test("Hapus: VIEWER & tanpa token ditolak, ID tidak ada & mode salah ditolak", () => {
   const env = createSandbox();
   const tv = env.gs.login('135790', 'view').token;
-  eq(env.gs.deleteJamaah(tv, 'JM-1', 'single').authError, true);
-  eq(env.gs.deleteKeluarga(undefined, 'KK-A').authError, true);
+  eq(env.gs.deleteJamaah(tv, 'JM-1', 'single', 'Pindah domisili').authError, true);
+  eq(env.gs.deleteKeluarga(undefined, 'KK-A', 'Pindah domisili').authError, true);
   const t = env.gs.login('246810', 'index').token;
-  eq(env.gs.deleteJamaah(t, 'JM-404', 'single').success, false);
-  eq(env.gs.deleteJamaah(t, 'JM-1', 'semua').success, false);
+  eq(env.gs.deleteJamaah(t, 'JM-404', 'single', 'Pindah domisili').success, false);
+  eq(env.gs.deleteJamaah(t, 'JM-1', 'semua', 'Pindah domisili').success, false);
   eq(env.ss.sheets.Jamaah.getLastRow(), 10, "tidak ada yang terhapus");
+});
+
+// --- Alasan hapus, arsip & pulihkan ----------------------------------------
+test("Hapus tanpa alasan / alasan terlalu pendek ditolak dan tidak menghapus apa pun", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  [undefined, '', '   ', 'ab'].forEach(a => {
+    const r = env.gs.deleteJamaah(t, 'JM-5', 'single', a);
+    eq(r.success, false); assert(/Alasan hapus wajib/.test(r.message), r.message);
+  });
+  const rk = env.gs.deleteKeluarga(t, 'KK-A', '');
+  eq(rk.success, false); assert(/Alasan hapus wajib/.test(rk.message), rk.message);
+  eq(env.ss.sheets.Jamaah.getLastRow(), 10, "tidak ada yang terhapus");
+  assert(!env.ss.sheets.Arsip_Jamaah, "arsip tidak dibuat");
+});
+
+test("Hapus seluruh KK: alasan dicatat dengan penanda [Hapus seluruh KK] di arsip jamaah & KK", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  eq(env.gs.deleteKeluarga(t, 'KK-A', 'Pindah ke luar kota').success, true);
+  eq(env.ss.sheets.Arsip_Jamaah.rows[1][1], '[Hapus seluruh KK] Pindah ke luar kota');
+  eq(env.ss.sheets.Arsip_Keluarga.rows[1][1], '[Hapus seluruh KK] Pindah ke luar kota');
+});
+
+test("getArsipJamaah: hanya ADMIN; berisi alasan, status KK, terbaru di atas", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const tv = env.gs.login('135790', 'view').token;
+  eq(env.gs.getArsipJamaah(tv).authError, true);
+  eq(env.gs.getArsipJamaah(t).data.length, 0, "arsip kosong sebelum ada yang dihapus");
+  env.gs.deleteJamaah(t, 'JM-5', 'single', 'Meninggal dunia');
+  env.gs.deleteKeluarga(t, 'KK-A', 'Pindah ke luar kota');
+  const list = env.gs.getArsipJamaah(t).data;
+  eq(list.length, 3);
+  const j5 = list.find(x => x.id_jamaah === 'JM-5');
+  eq(j5.keterangan, 'Meninggal dunia'); eq(j5.kk_status, 'ada');
+  const ka = list.filter(x => x.id_keluarga === 'KK-A');
+  eq(ka.length, 2); ka.forEach(x => eq(x.kk_status, 'arsip'));
+  assert(ka[0].nama_kk, "nama KK dari arsip terisi");
+});
+
+test("Pulihkan jamaah: data kembali persis (termasuk telepon & dibantu), arsip diberi Waktu Pulih", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  const sh = env.ss.sheets.Jamaah;
+  env.gs.saveSensusData(t, validJamaah({ id_jamaah: 'JM-1', id_keluarga: 'KK-A', hubungan_keluarga: 'A', nama_lengkap: 'Bapak Contoh Satu', status_nikah: 'MENIKAH', tahun_lahir: 1956, no_telepon: '081234567890', perlu_dibantu: 'Y' }));
+  const before = sh.rows.find(x => x[0] === 'JM-1').slice();
+  eq(env.gs.deleteJamaah(t, 'JM-1', 'single', 'Salah input').success, true);
+  const item = env.gs.getArsipJamaah(t).data.find(x => x.id_jamaah === 'JM-1');
+  const r = env.gs.restoreJamaah(t, item.row, 'JM-1');
+  eq(r.success, true, r.message);
+  const after = sh.rows.find(x => x[0] === 'JM-1');
+  assert(after, "JM-1 kembali ada");
+  for (let c = 0; c < 12; c++) eq(String(after[c]), String(before[c]), "kolom " + (c + 1));
+  eq(after[6], 1956, "tahun lahir tetap angka");
+  const H = sh.rows[0];
+  eq(after[H.indexOf('No Telepon', 12)], '081234567890');
+  eq(after[H.indexOf('Perlu Dibantu')], 'Y');
+  eq(env.gs.getArsipJamaah(t).data.some(x => x.id_jamaah === 'JM-1'), false, "tidak tampil lagi di daftar arsip");
+  const ar = env.ss.sheets.Arsip_Jamaah;
+  assert(ar.rows[item.row - 1][ar.rows[0].indexOf('Waktu Pulih')], "Waktu Pulih terisi (riwayat tetap ada)");
+  eq(env.gs.restoreJamaah(t, item.row, 'JM-1').success, false, "tidak bisa dipulihkan dua kali");
+});
+
+test("Pulihkan anggota dari KK yang ikut terhapus: KK dipulihkan juga, sekali saja", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  env.gs.deleteKeluarga(t, 'KK-A', 'Pindah ke luar kota');
+  const list = env.gs.getArsipJamaah(t).data.filter(x => x.id_keluarga === 'KK-A');
+  const r1 = env.gs.restoreJamaah(t, list[0].row, list[0].id_jamaah);
+  eq(r1.success, true, r1.message); assert(/ikut dipulihkan/.test(r1.message), r1.message);
+  eq(env.ss.sheets.Keluarga.rows.filter(x => x[0] === 'KK-A').length, 1, "KK-A kembali");
+  const r2 = env.gs.restoreJamaah(t, list[1].row, list[1].id_jamaah);
+  eq(r2.success, true, r2.message); assert(!/ikut dipulihkan/.test(r2.message), "KK tidak dipulihkan dua kali");
+  eq(env.ss.sheets.Keluarga.rows.filter(x => x[0] === 'KK-A').length, 1);
+  eq(env.ss.sheets.Jamaah.rows.filter(x => x[1] === 'KK-A').length, 2);
+});
+
+test("Pulihkan: KK sudah tidak ada di mana pun -> jadi jamaah tanpa KK; ID bentrok & baris salah ditolak", () => {
+  const env = createSandbox();
+  const t = env.gs.login('246810', 'index').token;
+  env.gs.deleteJamaah(t, 'JM-5', 'single', 'Meninggal dunia');
+  // KK-nya dihapus manual di sheet (tanpa arsip)
+  const idKK = env.ss.sheets.Arsip_Jamaah.rows[1][3];
+  const kRow = env.ss.sheets.Keluarga.rows.findIndex(x => x[0] === idKK);
+  env.ss.sheets.Keluarga.deleteRow(kRow + 1);
+  const item = env.gs.getArsipJamaah(t).data[0];
+  eq(item.kk_status, 'hilang');
+  eq(env.gs.restoreJamaah(t, item.row, 'JM-SALAH').success, false, "ID tidak cocok ditolak");
+  eq(env.gs.restoreJamaah(env.gs.login('135790', 'view').token, item.row, 'JM-5').authError, true);
+  const r = env.gs.restoreJamaah(t, item.row, 'JM-5');
+  eq(r.success, true, r.message); assert(/tanpa KK/.test(r.message), r.message);
+  eq(env.ss.sheets.Jamaah.rows.find(x => x[0] === 'JM-5')[1], '');
+  // dihapus lagi lalu ID yang sama dibuat manual -> pulihkan ditolak
+  env.gs.deleteJamaah(t, 'JM-5', 'single', 'Uji ulang');
+  const again = env.gs.getArsipJamaah(t).data.find(x => x.id_jamaah === 'JM-5');
+  env.ss.sheets.Jamaah.appendRow(['JM-5', '', 'C', 'Duplikat', 'Dup', 'L', 1990, 'BELUM', 'Y', 'Y', 'Menetap', '']);
+  const rd = env.gs.restoreJamaah(t, again.row, 'JM-5');
+  eq(rd.success, false); assert(/sudah ada/.test(rd.message), rd.message);
+});
+
+test("doPost: getArsipJamaah & restoreJamaah bisa dipanggil lewat API", () => {
+  const env = createSandbox();
+  const tok = post(env.gs, { action: 'login', args: ['246810', 'index'] }).token;
+  eq(post(env.gs, { action: 'deleteJamaah', args: [tok, 'JM-5', 'single', 'Meninggal dunia'] }).success, true);
+  const list = post(env.gs, { action: 'getArsipJamaah', args: [tok] }).data;
+  eq(list.length, 1);
+  eq(post(env.gs, { action: 'restoreJamaah', args: [tok, list[0].row, 'JM-5'] }).success, true);
 });
 
 const invalidCases = [
@@ -860,4 +968,4 @@ test("Migrasi sukses membuat backup lalu memecah data ke Keluarga & Jamaah", () 
 });
 
 console.log(`\n================= ${passed} lulus, ${failed} gagal =================`);
-process.exit(failed ? 1 : 0);
+process.exit(failed ? 1 : 0)

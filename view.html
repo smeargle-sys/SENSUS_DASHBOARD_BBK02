@@ -1086,7 +1086,7 @@
         { h: 'No', c: true, v: (j, no) => no },
         { h: 'Nama Lengkap', v: j => `<strong>${esc(j.nama_lengkap)}</strong>` },
         { key: 'absen', h: 'Nama Absen', v: j => esc(j.nama_absen) },
-        { key: 'hub', h: 'Hub', c: true, v: j => esc(j.hubungan_keluarga) },
+        { key: 'hub', h: 'Hubungan', v: j => esc(j.hubungan_keluarga) + (HUB_LABEL[j.hubungan_keluarga] ? ' · ' + esc(HUB_LABEL[j.hubungan_keluarga]) : '') },
         { key: 'kk', h: 'Nama KK', v: j => esc(j.nama_kk) },
         { key: 'kategori', h: 'Kategori', v: j => esc(j.kategori_usia) },
         { key: 'umur', h: 'Umur', c: true, v: j => esc(umurText(j.umur)) },

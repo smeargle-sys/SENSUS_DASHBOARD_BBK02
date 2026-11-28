@@ -348,6 +348,18 @@
     .choice button:hover { border-color: var(--primary); background: var(--primary-tint); }
     .choice button.danger:hover { border-color: var(--danger); background: var(--danger-bg); }
     .choice button.danger strong { color: var(--danger); }
+    /* Alasan hapus & arsip terhapus */
+    .reason-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .reason-chips .chip { height: 34px; }
+    .reason-hint { margin: 0; font-size: 12px; color: var(--muted); }
+    .reason-hint.err { color: var(--danger); font-weight: 600; }
+    .arsip-why { white-space: normal !important; min-width: 220px; max-width: 340px; color: var(--ink-2); line-height: 1.45; }
+    .arsip-when { font-size: 13px; color: var(--muted); }
+    .tag-kk { color: var(--ink-2); background: var(--track); font-size: 11px; padding: 2px 8px; margin-right: 4px; }
+    .m-card.arsip-card { flex-direction: column; align-items: stretch; gap: 10px; }
+    .arsip-card .why { font-size: 13px; color: var(--ink-2); background: var(--soft); border-radius: 10px; padding: 8px 10px; line-height: 1.45; }
+    .arsip-card .row-end { display: flex; align-items: center; gap: 10px; }
+    .arsip-card .row-end .arsip-when { flex: 1; }
 
     /* ---------- Pengaturan kategori ---------- */
     .settings { padding: 22px 24px; display: flex; flex-direction: column; gap: 18px; }
@@ -406,8 +418,11 @@
       .cards { display: flex; }
       .table-foot { justify-content: center; }
       .table-foot > span { flex-basis: 100%; text-align: center; }
-      .bottom-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; height: 72px; background: var(--surface); border-top: 1px solid var(--line); z-index: 30; }
-      .bottom-nav button { border: 0; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--muted); font-size: 12px; font-weight: 600; }
+      .bottom-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; height: 72px; background: var(--surface); border-top: 1px solid var(--line); z-index: 30; }
+      .bottom-nav button { border: 0; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--muted); font-size: 11px; font-weight: 600; min-width: 0; padding: 0 2px; white-space: nowrap; }
+      #view-arsip .section-head { flex-wrap: wrap; }
+      #view-arsip .section-head .titles { flex-basis: 100% !important; }
+      #view-arsip .section-head .result-info { flex: 1; }
       .bottom-nav button[aria-current="page"] { color: var(--primary); font-weight: 700; }
       .bottom-nav svg.lucide { width: 22px; height: 22px; }
       .fab { display: flex; align-items: center; gap: 8px; position: fixed; right: 18px; bottom: 92px; height: 56px; padding: 0 22px; border-radius: 18px; border: 0; background: var(--primary); color: #fff; font-weight: 700; font-size: 15px; box-shadow: 0 10px 24px rgba(11, 110, 91, .35); z-index: 31; }
@@ -500,6 +515,7 @@
           <button type="button" class="nav-item" data-nav="kk" onclick="setView('kk')"><i data-lucide="home"></i> Keluarga (KK)</button>
           <button type="button" class="nav-item" data-nav="dibantu" onclick="showChip('dibantu')"><i data-lucide="hand-heart"></i> Perlu Dibantu <span class="nav-badge" id="nav-dibantu-count" hidden>0</span></button>
           <button type="button" class="nav-item" data-nav="lengkapi" onclick="showChip('lengkapi')"><i data-lucide="triangle-alert"></i> Perlu Dilengkapi <span class="nav-badge" id="nav-lengkapi-count" hidden>0</span></button>
+          <button type="button" class="nav-item" data-nav="arsip" onclick="setView('arsip')"><i data-lucide="archive-restore"></i> Arsip Terhapus</button>
           <button type="button" class="nav-item" data-nav="pengaturan" onclick="setView('pengaturan')"><i data-lucide="sliders-horizontal"></i> Pengaturan</button>
         </div>
         <div class="session-box">
@@ -674,6 +690,34 @@
           <div class="cards" id="kk-cards"></div>
         </section>
 
+        <!-- ===== VIEW: ARSIP TERHAPUS ===== -->
+        <section id="view-arsip" class="card" hidden aria-labelledby="arsip-title">
+          <div class="section-head">
+            <div class="titles" style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+              <h2 id="arsip-title">Jamaah yang Dihapus</h2>
+              <span class="muted" style="font-size: 13px">Dicatat di sheet Arsip_Jamaah. Pulihkan untuk mengembalikan data persis seperti saat dihapus.</span>
+            </div>
+            <span class="result-info" id="arsip-info"></span>
+            <button type="button" class="btn btn-sm" onclick="loadArsip()"><i data-lucide="refresh-cw"></i> Muat ulang</button>
+          </div>
+          <div class="list-tools">
+            <label class="search">
+              <i data-lucide="search"></i>
+              <span class="sr-only">Cari di arsip</span>
+              <input type="search" id="arsip-search-input" placeholder="Cari nama, KK, atau alasan hapus…" oninput="renderArsip()" autocomplete="off">
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table class="data">
+              <thead>
+                <tr><th scope="col">Nama</th><th scope="col">Keluarga (KK)</th><th scope="col">Dihapus</th><th scope="col">Alasan</th><th scope="col"><span class="sr-only">Aksi</span></th></tr>
+              </thead>
+              <tbody id="arsip-table-rows"></tbody>
+            </table>
+          </div>
+          <div class="cards" id="arsip-cards"></div>
+        </section>
+
         <!-- ===== VIEW: PENGATURAN ===== -->
         <div id="view-pengaturan" hidden style="display: flex; flex-direction: column; gap: 24px">
         <section class="card" aria-labelledby="cfg-title">
@@ -733,6 +777,7 @@
       <button type="button" data-nav="data" onclick="goData()"><i data-lucide="users"></i> Jamaah</button>
       <button type="button" data-nav="kk" onclick="setView('kk')"><i data-lucide="home"></i> Keluarga</button>
       <button type="button" data-nav="dibantu" onclick="showChip('dibantu')"><i data-lucide="hand-heart"></i> Dibantu</button>
+      <button type="button" data-nav="arsip" onclick="setView('arsip')"><i data-lucide="archive-restore"></i> Arsip</button>
       <button type="button" data-nav="pengaturan" onclick="setView('pengaturan')"><i data-lucide="sliders-horizontal"></i> Pengaturan</button>
     </nav>
   </div>
@@ -1596,11 +1641,13 @@
       $('view-data').hidden = view !== 'data';
       $('view-kk').hidden = view !== 'kk';
       $('view-pengaturan').hidden = view !== 'pengaturan';
-      const title = { kk: 'Keluarga (KK)', pengaturan: 'Pengaturan', data: 'Data Jamaah' }[view];
+      $('view-arsip').hidden = view !== 'arsip';
+      const title = { kk: 'Keluarga (KK)', pengaturan: 'Pengaturan', data: 'Data Jamaah', arsip: 'Arsip Terhapus' }[view];
       $('page-title').textContent = title;
       $('mobile-title').textContent = title;
       if (view === 'kk') renderKeluargaList();
       if (view === 'pengaturan') { resetCfgDraft(); resetKbDraft(); }
+      if (view === 'arsip') loadArsip();
       updateNav();
       if (view !== 'data') window.scrollTo({ top: 0 });
       icons();
@@ -1805,14 +1852,17 @@
           ]
         });
       } else {
-        mode = await choose({
-          title: `Hapus ${j.nama_lengkap}?`,
-          text: 'Hanya data jamaah ini yang dihapus. Datanya disimpan di sheet Arsip_Jamaah.',
-          options: [{ value: 'single', label: 'Ya, hapus jamaah ini', danger: true }]
-        });
+        mode = 'single';
       }
       if (!mode) return;
-      runDelete(() => isLocalMode ? mockDeleteJamaah(id, mode) : callApi('deleteJamaah', authToken, id, mode));
+      const n = mode === 'kk' ? familyMembers(j.id_keluarga).length : 1;
+      const alasan = await askReason({
+        title: mode === 'kk' ? `Hapus seluruh KK ${j.nama_kk}?` : `Hapus ${j.nama_lengkap}?`,
+        text: mode === 'kk' ? `${n} jiwa beserta data KK akan dipindah ke arsip.` : 'Data jamaah ini dipindah ke arsip.',
+        confirmLabel: mode === 'kk' ? `Hapus KK & ${n} jiwa` : 'Hapus jamaah'
+      });
+      if (!alasan) return;
+      runDelete(() => isLocalMode ? mockDeleteJamaah(id, mode, alasan) : callApi('deleteJamaah', authToken, id, mode, alasan));
     }
 
     async function askDeleteKeluarga(idKeluarga) {
@@ -1820,13 +1870,13 @@
       if (!k) return;
       closeModal();
       const n = familyMembers(idKeluarga).length;
-      const ok = await choose({
+      const alasan = await askReason({
         title: `Hapus KK ${k.nama_kk}?`,
-        text: `Data KK beserta ${n} anggota akan dihapus dan disimpan di sheet arsip.`,
-        options: [{ value: 'kk', label: `Ya, hapus KK & ${n} anggota`, danger: true }]
+        text: `Data KK beserta ${n} anggota akan dipindah ke arsip.`,
+        confirmLabel: `Hapus KK & ${n} anggota`
       });
-      if (!ok) return;
-      runDelete(() => isLocalMode ? mockDeleteKeluarga(idKeluarga) : callApi('deleteKeluarga', authToken, idKeluarga));
+      if (!alasan) return;
+      runDelete(() => isLocalMode ? mockDeleteKeluarga(idKeluarga, alasan) : callApi('deleteKeluarga', authToken, idKeluarga, alasan));
     }
 
     function deleteFromForm() {
@@ -1840,26 +1890,194 @@
         if (res && res.success) {
           closeDrawer();
           showToast(res.message);
-          loadData(true);
+          if (!isLocalMode) loadData(true); // mode simulasi: data sudah diubah langsung oleh mock
         } else {
           showToast((res && res.message) || 'Gagal menghapus.', true);
         }
       }, err => showToast('Error: ' + (err.message || err), true));
     }
 
-    function mockDeleteJamaah(id, mode) {
+    // Arsip simulasi (mode lokal tanpa server)
+    let mockArsip = [], mockArsipKK = [], mockArsipSeq = 1;
+    function mockNow() { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; }
+    function mockArchive(j, ket) { mockArsip.push({ row: ++mockArsipSeq, waktu: mockNow(), keterangan: ket, data: Object.assign({}, j), pulih: false }); }
+    function mockDeleteJamaah(id, mode, alasan) {
       const j = appData.jamaah.find(x => x.id_jamaah === id);
-      if (mode === 'kk') return mockDeleteKeluarga(j.id_keluarga);
+      if (mode === 'kk') return mockDeleteKeluarga(j.id_keluarga, alasan);
+      mockArchive(j, alasan);
       appData.jamaah = appData.jamaah.filter(x => x.id_jamaah !== id);
       calculateMockRekap(); renderAll();
-      return { success: true, message: 'Simulasi: data jamaah dihapus.' };
+      return { success: true, message: 'Simulasi: data jamaah dihapus dan disimpan di arsip.' };
     }
-    function mockDeleteKeluarga(idKeluarga) {
-      const n = appData.jamaah.filter(x => x.id_keluarga === idKeluarga).length;
+    function mockDeleteKeluarga(idKeluarga, alasan) {
+      const ket = '[Hapus seluruh KK] ' + alasan;
+      const members = appData.jamaah.filter(x => x.id_keluarga === idKeluarga);
+      members.forEach(j => mockArchive(j, ket));
+      const k = appData.keluarga.find(x => x.id_keluarga === idKeluarga);
+      if (k) mockArsipKK.push({ data: Object.assign({}, k), pulih: false });
       appData.jamaah = appData.jamaah.filter(x => x.id_keluarga !== idKeluarga);
       appData.keluarga = appData.keluarga.filter(x => x.id_keluarga !== idKeluarga);
       calculateMockRekap(); renderAll();
-      return { success: true, message: `Simulasi: KK beserta ${n} anggota dihapus.` };
+      return { success: true, message: `Simulasi: KK beserta ${members.length} anggota dihapus dan disimpan di arsip.` };
+    }
+    function mockGetArsip() {
+      const data = mockArsip.filter(a => !a.pulih).map(a => {
+        const j = a.data, idKK = j.id_keluarga || '';
+        const aktif = appData.keluarga.find(k => k.id_keluarga === idKK);
+        const ak = mockArsipKK.find(k => !k.pulih && k.data.id_keluarga === idKK);
+        return {
+          row: a.row, waktu_hapus: a.waktu, keterangan: a.keterangan, id_jamaah: j.id_jamaah, id_keluarga: idKK,
+          hubungan_keluarga: j.hubungan_keluarga, nama_lengkap: j.nama_lengkap, nama_absen: j.nama_absen, jenis_kelamin: j.jenis_kelamin,
+          tahun_lahir: j.tahun_lahir, status_nikah: j.status_nikah, no_telepon: j.no_telepon,
+          nama_kk: aktif ? aktif.nama_kk : ak ? ak.data.nama_kk : '',
+          kk_status: !idKK ? 'tanpa' : aktif ? 'ada' : ak ? 'arsip' : 'hilang',
+          sudah_ada: appData.jamaah.some(x => x.id_jamaah === j.id_jamaah)
+        };
+      }).sort((x, y) => (y.waktu_hapus > x.waktu_hapus ? 1 : y.waktu_hapus < x.waktu_hapus ? -1 : y.row - x.row));
+      return { success: true, data };
+    }
+    function mockRestore(row, id) {
+      const a = mockArsip.find(x => x.row === row && !x.pulih && x.data.id_jamaah === id);
+      if (!a) return { success: false, message: 'Data arsip tidak ditemukan.' };
+      const j = Object.assign({}, a.data);
+      let note = '';
+      if (j.id_keluarga && !appData.keluarga.some(k => k.id_keluarga === j.id_keluarga)) {
+        const ak = mockArsipKK.find(k => !k.pulih && k.data.id_keluarga === j.id_keluarga);
+        if (ak) { appData.keluarga.push(Object.assign({}, ak.data)); ak.pulih = true; note = ` Data KK ${ak.data.nama_kk} ikut dipulihkan.`; }
+        else { j.id_keluarga = ''; j.nama_kk = 'Tanpa KK (mandiri/perantau)'; note = ' KK lamanya sudah tidak ada, jadi dipulihkan sebagai jamaah tanpa KK.'; }
+      }
+      appData.jamaah.push(j); a.pulih = true;
+      calculateMockRekap(); renderAll();
+      return { success: true, message: `Simulasi: ${j.nama_lengkap} dipulihkan ke data jamaah.${note}` };
+    }
+
+    // ================= ALASAN HAPUS (wajib) =================
+    const ALASAN_CEPAT = ['Pindah domisili', 'Meninggal dunia', 'Menikah & ikut pasangan', 'Data ganda', 'Salah input'];
+    // Modal alasan hapus; mengembalikan Promise berisi alasan (null bila batal)
+    function askReason(opts) {
+      return new Promise(resolve => {
+        openModal(`
+          <div class="modal-head"><div class="titles"><h2 id="modal-title">${esc(opts.title)}</h2><p>${esc(opts.text || '')}</p></div>
+            <button type="button" class="icon-btn" onclick="closeModal()" aria-label="Tutup"><i data-lucide="x"></i></button></div>
+          <div class="modal-body">
+            <div class="field">
+              <label for="reason-input">Alasan hapus <span style="color: var(--danger)">*</span></label>
+              <div class="reason-chips" aria-label="Alasan cepat">${ALASAN_CEPAT.map(r => `<button type="button" class="chip" data-reason="${esc(r)}">${esc(r)}</button>`).join('')}</div>
+              <textarea id="reason-input" class="input" rows="3" maxlength="300" placeholder="Tulis alasan, mis. pindah domisili ke Bogor" data-autofocus aria-describedby="reason-hint"></textarea>
+              <p class="reason-hint" id="reason-hint">Wajib diisi (min. 3 huruf). Dicatat di arsip dan bisa dipulihkan dari menu Arsip Terhapus.</p>
+            </div>
+          </div>
+          <div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button>
+            <button type="button" class="btn btn-danger" id="reason-ok"><i data-lucide="trash-2"></i> ${esc(opts.confirmLabel || 'Hapus')}</button></div>`, true);
+        modalResolve = resolve;
+        const input = $('reason-input');
+        document.querySelectorAll('#modal .reason-chips .chip').forEach(b => {
+          b.onclick = () => {
+            input.value = b.dataset.reason;
+            document.querySelectorAll('#modal .reason-chips .chip').forEach(c => c.setAttribute('aria-pressed', String(c === b)));
+            input.focus(); input.setSelectionRange(input.value.length, input.value.length);
+            $('reason-hint').classList.remove('err');
+          };
+        });
+        input.oninput = () => $('reason-hint').classList.remove('err');
+        $('reason-ok').onclick = () => {
+          const v = input.value.replace(/\s+/g, ' ').trim();
+          if (v.length < 3) {
+            const h = $('reason-hint');
+            h.textContent = 'Alasan hapus wajib diisi (minimal 3 huruf).';
+            h.classList.add('err'); input.focus();
+            return;
+          }
+          closeModal(v);
+        };
+      });
+    }
+
+    // ================= ARSIP TERHAPUS =================
+    let arsipData = [], arsipLoading = false;
+    const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    function fmtWaktu(s) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(s || '');
+      return m ? `${Number(m[3])} ${BULAN[Number(m[2]) - 1]} ${m[1]}, ${m[4]}.${m[5]}` : (s || '-');
+    }
+    function splitAlasan(ket) {
+      const P = '[Hapus seluruh KK] ';
+      return String(ket || '').startsWith(P) ? { kk: true, text: ket.slice(P.length) } : { kk: false, text: ket || '-' };
+    }
+    function kkNote(a) {
+      if (a.kk_status === 'tanpa') return '<span class="muted">Tanpa KK</span>';
+      if (a.kk_status === 'ada') return esc(a.nama_kk);
+      if (a.kk_status === 'arsip') return `${esc(a.nama_kk)}<br><span class="tag tag-kk">KK ikut dipulihkan</span>`;
+      return '<span class="tag tag-warn">KK sudah tidak ada</span>';
+    }
+    function loadArsip() {
+      if (arsipLoading) return;
+      arsipLoading = true;
+      $('arsip-info').textContent = 'Memuat…';
+      $('arsip-table-rows').innerHTML = '<tr><td colspan="5" class="empty">Memuat arsip…</td></tr>';
+      $('arsip-cards').innerHTML = '<div class="empty">Memuat arsip…</div>';
+      Promise.resolve().then(() => isLocalMode ? mockGetArsip() : callApi('getArsipJamaah', authToken)).then(res => {
+        arsipLoading = false;
+        if (handleAuthError(res)) return;
+        if (!res || !res.success) { showToast((res && res.message) || 'Gagal memuat arsip.', true); arsipData = []; }
+        else arsipData = res.data || [];
+        renderArsip();
+      }, err => { arsipLoading = false; showToast('Error: ' + (err.message || err), true); });
+    }
+    function renderArsip() {
+      const q = $('arsip-search-input').value.trim().toLowerCase();
+      const list = arsipData.filter(a => !q || [a.nama_lengkap, a.nama_absen, a.nama_kk, a.keterangan].some(v => String(v || '').toLowerCase().includes(q)));
+      $('arsip-info').textContent = arsipData.length ? (q ? `${list.length} dari ${arsipData.length} jamaah` : `${arsipData.length} jamaah`) : '';
+      if (!list.length) {
+        const msg = arsipData.length ? 'Tidak ada data arsip yang cocok.' : 'Belum ada jamaah yang dihapus.';
+        $('arsip-table-rows').innerHTML = `<tr><td colspan="5" class="empty">${msg}</td></tr>`;
+        $('arsip-cards').innerHTML = `<div class="empty">${msg}</div>`;
+        return;
+      }
+      const btn = (a, small) => a.sudah_ada
+        ? `<span class="muted" style="font-size: 12px" title="Jamaah dengan ID ini sudah ada di data aktif">Sudah aktif</span>`
+        : `<button type="button" class="btn btn-sm restore-btn" data-row="${a.row}" data-id="${esc(a.id_jamaah)}"><i data-lucide="rotate-ccw"></i> ${small ? 'Pulihkan' : 'Pulihkan'}</button>`;
+      $('arsip-table-rows').innerHTML = list.map(a => {
+        const al = splitAlasan(a.keterangan);
+        return `<tr>
+          <td><span class="person"><span class="avatar ${avatarClass(a.id_jamaah)}">${esc(initials(a.nama_lengkap))}</span>
+            <span class="person-text"><strong>${esc(a.nama_lengkap)}</strong><span>Absen: ${esc(a.nama_absen)} · ${esc(HUB_LABEL[a.hubungan_keluarga] || a.hubungan_keluarga || '')}</span></span></span></td>
+          <td style="white-space: normal; min-width: 160px; color: var(--ink-2)">${kkNote(a)}</td>
+          <td class="arsip-when">${esc(fmtWaktu(a.waktu_hapus))}</td>
+          <td class="arsip-why">${al.kk ? '<span class="tag tag-kk">Seluruh KK</span>' : ''}${esc(al.text)}</td>
+          <td style="text-align: right">${btn(a)}</td>
+        </tr>`;
+      }).join('');
+      $('arsip-cards').innerHTML = list.map(a => {
+        const al = splitAlasan(a.keterangan);
+        return `<div class="m-card arsip-card">
+          <span class="person"><span class="avatar ${avatarClass(a.id_jamaah)}" style="width: 42px; height: 42px">${esc(initials(a.nama_lengkap))}</span>
+            <span class="person-text"><strong>${esc(a.nama_lengkap)}</strong><span>${esc(HUB_LABEL[a.hubungan_keluarga] || '')}${a.nama_kk ? ' · ' + esc(a.nama_kk) : ''}</span>
+            ${a.kk_status === 'arsip' ? '<span><span class="tag tag-kk">KK ikut dipulihkan</span></span>' : a.kk_status === 'hilang' ? '<span><span class="tag tag-warn">KK sudah tidak ada</span></span>' : ''}</span></span>
+          <div class="why">${al.kk ? '<span class="tag tag-kk">Seluruh KK</span>' : ''}${esc(al.text)}</div>
+          <div class="row-end"><span class="arsip-when">Dihapus ${esc(fmtWaktu(a.waktu_hapus))}</span>${btn(a, true)}</div>
+        </div>`;
+      }).join('');
+      document.querySelectorAll('.restore-btn').forEach(b => { b.onclick = () => askRestore(Number(b.dataset.row), b.dataset.id); });
+      icons();
+    }
+    async function askRestore(row, id) {
+      const a = arsipData.find(x => x.row === row && x.id_jamaah === id);
+      if (!a) return;
+      const kkDesc = a.kk_status === 'arsip' ? `Data KK ${a.nama_kk} ikut dipulihkan.`
+        : a.kk_status === 'hilang' ? 'KK lamanya sudah tidak ada, jadi dipulihkan sebagai jamaah tanpa KK.'
+        : a.kk_status === 'ada' ? `Kembali ke KK ${a.nama_kk}.` : 'Dipulihkan sebagai jamaah tanpa KK.';
+      const ok = await choose({
+        title: `Pulihkan ${a.nama_lengkap}?`,
+        text: 'Data dikembalikan persis seperti saat dihapus. Riwayat hapus tetap tercatat di arsip.',
+        options: [{ value: true, label: 'Ya, pulihkan', desc: kkDesc }]
+      });
+      if (!ok) return;
+      Promise.resolve().then(() => isLocalMode ? mockRestore(row, id) : callApi('restoreJamaah', authToken, row, id)).then(res => {
+        if (handleAuthError(res)) return;
+        if (res && res.success) { showToast(res.message); loadArsip(); if (!isLocalMode) loadData(true); }
+        else { showToast((res && res.message) || 'Gagal memulihkan.', true); loadArsip(); }
+      }, err => showToast('Error: ' + (err.message || err), true));
     }
 
     // ================= KOLOM (sembunyikan di daftar & cetak) =================
@@ -1912,7 +2130,7 @@
         { h: 'No', c: true, v: (j, no) => no },
         { h: 'Nama Lengkap', v: j => `<strong>${esc(j.nama_lengkap)}</strong>` },
         { key: 'absen', h: 'Nama Absen', v: j => esc(j.nama_absen) },
-        { key: 'hub', h: 'Hub', c: true, v: j => esc(j.hubungan_keluarga) },
+        { key: 'hub', h: 'Hubungan', v: j => esc(j.hubungan_keluarga) + (HUB_LABEL[j.hubungan_keluarga] ? ' · ' + esc(HUB_LABEL[j.hubungan_keluarga]) : '') },
         { key: 'kk', h: 'Nama KK', v: j => esc(j.nama_kk) },
         { key: 'kategori', h: 'Kategori', v: j => esc(j.kategori_usia) },
         { key: 'umur', h: 'Umur', c: true, v: j => esc(umurText(j.umur)) },

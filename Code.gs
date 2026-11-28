@@ -72,7 +72,7 @@ function doGet(e) {
 /**
  * JSON API untuk frontend di luar Apps Script (mis. GitHub Pages).
  * Body (text/plain): {"action": "login" | "logout" | "getSensusData" | "saveSensusData" |
- *                    "deleteJamaah" | "deleteKeluarga" | "saveKategoriConfig" | "saveKeberadaanConfig", "args": [...]}
+ *                    "deleteJamaah" | "deleteKeluarga" | "getArsipJamaah" | "restoreJamaah" | "saveKategoriConfig" | "saveKeberadaanConfig", "args": [...]}
  * Hanya aksi di daftar ini yang bisa dipanggil; migrasi & fungsi internal tidak terekspos.
  * Keamanan tetap sama: setiap aksi (kecuali login) memeriksa token sesi dari PIN.
  */
@@ -81,8 +81,10 @@ var API_ACTIONS = {
   logout: function (args) { return logout(args[0]); },
   getSensusData: function (args) { return getSensusData(args[0]); },
   saveSensusData: function (args) { return saveSensusData(args[0], args[1]); },
-  deleteJamaah: function (args) { return deleteJamaah(args[0], args[1], args[2]); },
-  deleteKeluarga: function (args) { return deleteKeluarga(args[0], args[1]); },
+  deleteJamaah: function (args) { return deleteJamaah(args[0], args[1], args[2], args[3]); },
+  deleteKeluarga: function (args) { return deleteKeluarga(args[0], args[1], args[2]); },
+  getArsipJamaah: function (args) { return getArsipJamaah(args[0]); },
+  restoreJamaah: function (args) { return restoreJamaah(args[0], args[1], args[2]); },
   saveKategoriConfig: function (args) { return saveKategoriConfig(args[0], args[1]); },
   saveKeberadaanConfig: function (args) { return saveKeberadaanConfig(args[0], args[1]); }
 };
@@ -920,24 +922,43 @@ function validateFormData_(f, keberadaanList) {
 }
 
 /* ======================================================================
- * HAPUS DATA (dengan arsip)
- * Baris yang dihapus dipindah ke sheet Arsip_Jamaah / Arsip_Keluarga
- * beserta waktu & keterangan, sehingga bisa dipulihkan manual (salin balik).
+ * HAPUS DATA (dengan arsip) & PULIHKAN
+ * Baris yang dihapus dipindah ke sheet Arsip_Jamaah / Arsip_Keluarga beserta
+ * waktu hapus & alasan (wajib). Jamaah di arsip bisa dipulihkan dari menu
+ * "Arsip Terhapus"; baris arsipnya tidak dihapus, hanya diberi "Waktu Pulih"
+ * supaya riwayat hapus tetap tercatat.
  * ====================================================================== */
+
+var ARSIP_COL = { WAKTU: "Waktu Hapus", KETERANGAN: "Keterangan", PULIH: "Waktu Pulih" };
+var ALASAN_MIN = 3, ALASAN_MAX = 300;
+var PREFIX_HAPUS_KK = "[Hapus seluruh KK] ";
+
+/** Alasan hapus wajib diisi: dirapikan, dibatasi panjangnya, dan tidak boleh kosong. */
+function cleanAlasan_(alasan) {
+  var a = String(alasan == null ? "" : alasan).replace(/\s+/g, " ").trim().slice(0, ALASAN_MAX);
+  if (a.length < ALASAN_MIN) throw new Error("Alasan hapus wajib diisi (minimal " + ALASAN_MIN + " karakter).");
+  return a;
+}
+
+function nowText_() {
+  return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
+}
 
 /**
  * Hapus jamaah. Khusus ADMIN.
  * @param {string} token
  * @param {string} idJamaah
  * @param {string} mode 'single' = hanya jamaah ini; 'kk' = seluruh KK beserta anggotanya
+ * @param {string} alasan alasan hapus (wajib), dicatat di kolom Keterangan arsip
  */
-function deleteJamaah(token, idJamaah, mode) {
+function deleteJamaah(token, idJamaah, mode, alasan) {
   var lock = LockService.getScriptLock();
   var locked = false;
   try {
     requireSession_(token, [ROLE.ADMIN]);
     if (!idJamaah) throw new Error("ID jamaah kosong.");
     if (mode !== 'single' && mode !== 'kk') throw new Error("Mode hapus tidak valid.");
+    var ket = cleanAlasan_(alasan);
 
     locked = lock.tryLock(15000);
     if (!locked) throw new Error("Server sedang sibuk. Coba lagi sebentar.");
@@ -951,11 +972,11 @@ function deleteJamaah(token, idJamaah, mode) {
       var idKeluarga = String(sheets.jamaah.getRange(row, 2, 1, 1).getValues()[0][0]).trim();
       // Tanpa ID KK, "hapus seluruh KK" akan mengenai SEMUA jamaah mandiri -> tolak
       if (!idKeluarga) throw new Error("Jamaah ini tidak terdaftar di KK mana pun. Gunakan hapus per orang.");
-      var res = deleteKeluargaRows_(ss, sheets, idKeluarga, "Hapus seluruh KK (dari jamaah " + idJamaah + ")");
+      var res = deleteKeluargaRows_(ss, sheets, idKeluarga, PREFIX_HAPUS_KK + ket);
       return { success: true, message: "Keluarga beserta " + res.jamaah + " anggota dihapus dan disimpan di arsip.", deleted: res };
     }
 
-    archiveAndDeleteRows_(ss, sheets.jamaah, CONFIG.SHEET_ARSIP_JAMAAH, [row], "Hapus jamaah");
+    archiveAndDeleteRows_(ss, sheets.jamaah, CONFIG.SHEET_ARSIP_JAMAAH, [row], ket);
     SpreadsheetApp.flush();
     return { success: true, message: "Data jamaah dihapus dan disimpan di arsip.", deleted: { jamaah: 1, keluarga: 0 } };
   } catch (err) {
@@ -965,13 +986,14 @@ function deleteJamaah(token, idJamaah, mode) {
   }
 }
 
-/** Hapus satu KK beserta seluruh anggotanya. Khusus ADMIN. */
-function deleteKeluarga(token, idKeluarga) {
+/** Hapus satu KK beserta seluruh anggotanya. Khusus ADMIN. Alasan wajib. */
+function deleteKeluarga(token, idKeluarga, alasan) {
   var lock = LockService.getScriptLock();
   var locked = false;
   try {
     requireSession_(token, [ROLE.ADMIN]);
     if (!idKeluarga) throw new Error("ID keluarga kosong.");
+    var ket = cleanAlasan_(alasan);
 
     locked = lock.tryLock(15000);
     if (!locked) throw new Error("Server sedang sibuk. Coba lagi sebentar.");
@@ -979,7 +1001,7 @@ function deleteKeluarga(token, idKeluarga) {
     var ss = getSpreadsheet_();
     var sheets = initializeSheets_(ss);
     if (!findRowById_(sheets.keluarga, idKeluarga)) throw new Error("Data keluarga tidak ditemukan (mungkin sudah dihapus).");
-    var res = deleteKeluargaRows_(ss, sheets, String(idKeluarga), "Hapus seluruh KK");
+    var res = deleteKeluargaRows_(ss, sheets, String(idKeluarga), PREFIX_HAPUS_KK + ket);
     return { success: true, message: "Keluarga beserta " + res.jamaah + " anggota dihapus dan disimpan di arsip.", deleted: res };
   } catch (err) {
     return errorResponse_(err, err && err.isAuth ? "" : "Gagal menghapus: ");
@@ -1002,26 +1024,205 @@ function deleteKeluargaRows_(ss, sheets, idKeluarga, keterangan) {
   return { jamaah: memberRows.length, keluarga: kkRow ? 1 : 0 };
 }
 
+/** Nama kolom header; kolom tanpa judul diberi nama "Kolom X" agar isinya tetap terarsip. */
+function headerNames_(header) {
+  return header.map(function (h, i) {
+    var n = String(h == null ? "" : h).trim();
+    return n || ("Kolom " + columnLetter_(i + 1));
+  });
+}
+
+/**
+ * Pastikan sheet arsip ada & header-nya memuat semua nama kolom yang diminta
+ * (kolom yang belum ada ditambah di ujung kanan). Mengembalikan peta nama -> kolom (1-based).
+ */
+function ensureArsipHeader_(ss, archiveName, names) {
+  var arsip = ss.getSheetByName(archiveName);
+  if (!arsip) {
+    arsip = ss.insertSheet(archiveName);
+    arsip.appendRow(names);
+  }
+  var width = Math.max(arsip.getLastColumn(), 1);
+  var header = headerNames_(arsip.getRange(1, 1, 1, width).getValues()[0]);
+  var map = {};
+  header.forEach(function (h, i) { if (!map[h]) map[h] = i + 1; });
+  names.forEach(function (n) {
+    if (!map[n]) {
+      width++;
+      arsip.getRange(1, width, 1, 1).setValues([[n]]);
+      map[n] = width;
+    }
+  });
+  return { sheet: arsip, map: map, width: width };
+}
+
 /**
  * Salin baris (semua kolom, termasuk kolom tambahan milik pengguna) ke sheet arsip
- * beserta waktu & keterangan, lalu hapus dari sheet asal, dari bawah ke atas.
+ * beserta waktu & keterangan (dicocokkan per NAMA kolom), lalu hapus dari sheet asal,
+ * dari bawah ke atas.
  */
 function archiveAndDeleteRows_(ss, sheet, archiveName, rowIndexes, keterangan) {
   if (!rowIndexes.length) return;
   var width = sheet.getLastColumn();
-  var header = sheet.getRange(1, 1, 1, width).getValues()[0];
-  var arsip = ss.getSheetByName(archiveName);
-  if (!arsip) {
-    arsip = ss.insertSheet(archiveName);
-    arsip.appendRow(["Waktu Hapus", "Keterangan"].concat(header));
-  }
-  var waktu = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
-  var sorted = rowIndexes.slice().sort(function (a, b) { return b - a; });
+  var names = headerNames_(sheet.getRange(1, 1, 1, width).getValues()[0]);
+  var a = ensureArsipHeader_(ss, archiveName, [ARSIP_COL.WAKTU, ARSIP_COL.KETERANGAN].concat(names).concat([ARSIP_COL.PULIH]));
+  var waktu = nowText_();
+  var sorted = rowIndexes.slice().sort(function (x, y) { return y - x; });
   sorted.forEach(function (r) {
     var values = sheet.getRange(r, 1, 1, width).getValues()[0];
-    writeRowAsText_(arsip, lastDataRow_(arsip) + 1, [waktu, keterangan].concat(values), []);
+    var out = [];
+    for (var c = 0; c < a.width; c++) out.push('');
+    out[a.map[ARSIP_COL.WAKTU] - 1] = waktu;
+    out[a.map[ARSIP_COL.KETERANGAN] - 1] = keterangan;
+    names.forEach(function (n, i) { out[a.map[n] - 1] = values[i]; });
+    writeRowAsText_(a.sheet, lastDataRow_(a.sheet) + 1, out, []);
   });
   sorted.forEach(function (r) { sheet.deleteRow(r); });
+}
+
+/** Baca sheet arsip sebagai daftar objek {row, get(nama)}. */
+function readArsip_(ss, archiveName) {
+  var sh = ss.getSheetByName(archiveName);
+  if (!sh) return { sheet: null, rows: [], map: {} };
+  var last = lastDataRow_(sh), width = sh.getLastColumn();
+  var header = headerNames_(sh.getRange(1, 1, 1, width).getValues()[0]);
+  var map = {};
+  header.forEach(function (h, i) { if (!map[h]) map[h] = i + 1; });
+  var data = last > 1 ? sh.getRange(2, 1, last - 1, width).getValues() : [];
+  var rows = data.map(function (vals, i) {
+    return {
+      row: i + 2,
+      get: function (name) { var c = map[name]; return c ? String(vals[c - 1] == null ? '' : vals[c - 1]).trim() : ''; }
+    };
+  });
+  return { sheet: sh, rows: rows, map: map };
+}
+
+/** Baris arsip KK terbaru yang belum dipulihkan untuk ID tertentu (atau null). */
+function findArsipKeluarga_(arsipKK, idKeluarga) {
+  for (var i = arsipKK.rows.length - 1; i >= 0; i--) {
+    var r = arsipKK.rows[i];
+    if (r.get(HEADER_KELUARGA[0]) === idKeluarga && !r.get(ARSIP_COL.PULIH)) return r;
+  }
+  return null;
+}
+
+/** Daftar jamaah yang dihapus & belum dipulihkan, terbaru di atas. Khusus ADMIN. */
+function getArsipJamaah(token) {
+  try {
+    requireSession_(token, [ROLE.ADMIN]);
+    var ss = getSpreadsheet_();
+    var sheets = initializeSheets_(ss);
+    var arsip = readArsip_(ss, CONFIG.SHEET_ARSIP_JAMAAH);
+    var arsipKK = readArsip_(ss, CONFIG.SHEET_ARSIP_KELUARGA);
+
+    var kkAktif = {};
+    var lastK = lastDataRow_(sheets.keluarga);
+    if (lastK > 1) sheets.keluarga.getRange(2, 1, lastK - 1, 2).getValues().forEach(function (r) { kkAktif[String(r[0]).trim()] = String(r[1]).trim(); });
+    var jamaahAda = {};
+    var lastJ = lastDataRow_(sheets.jamaah);
+    if (lastJ > 1) sheets.jamaah.getRange(2, 1, lastJ - 1, 1).getValues().forEach(function (r) { jamaahAda[String(r[0]).trim()] = true; });
+
+    var H = HEADER_JAMAAH;
+    var list = arsip.rows.filter(function (r) { return r.get(H[0]) && !r.get(ARSIP_COL.PULIH); }).map(function (r) {
+      var idKK = r.get(H[1]);
+      var kkStatus = '', kkNama = '';
+      if (!idKK) { kkStatus = 'tanpa'; }
+      else if (kkAktif[idKK] !== undefined) { kkStatus = 'ada'; kkNama = kkAktif[idKK]; }
+      else {
+        var ak = findArsipKeluarga_(arsipKK, idKK);
+        if (ak) { kkStatus = 'arsip'; kkNama = ak.get(HEADER_KELUARGA[1]); } else { kkStatus = 'hilang'; }
+      }
+      var tl = parseInt(r.get(H[6]), 10);
+      return {
+        row: r.row,
+        waktu_hapus: r.get(ARSIP_COL.WAKTU),
+        keterangan: r.get(ARSIP_COL.KETERANGAN),
+        id_jamaah: r.get(H[0]), id_keluarga: idKK, hubungan_keluarga: r.get(H[2]),
+        nama_lengkap: r.get(H[3]), nama_absen: r.get(H[4]), jenis_kelamin: r.get(H[5]),
+        tahun_lahir: isNaN(tl) ? null : tl, status_nikah: r.get(H[7]),
+        no_telepon: r.get(H[12]),
+        nama_kk: kkNama, kk_status: kkStatus,
+        sudah_ada: !!jamaahAda[r.get(H[0])]
+      };
+    });
+    list.sort(function (a, b) { return a.waktu_hapus < b.waktu_hapus ? 1 : a.waktu_hapus > b.waktu_hapus ? -1 : b.row - a.row; });
+    return { success: true, data: list };
+  } catch (err) {
+    return errorResponse_(err, err && err.isAuth ? "" : "Gagal memuat arsip: ");
+  }
+}
+
+/**
+ * Pulihkan satu jamaah dari arsip ke sheet Jamaah dengan data persis seperti saat dihapus.
+ * Bila KK-nya ikut terhapus, KK dipulihkan juga dari Arsip_Keluarga; bila KK sudah tidak ada
+ * di mana pun, jamaah dipulihkan sebagai jamaah tanpa KK. Khusus ADMIN.
+ * @param {number} arsipRow nomor baris di Arsip_Jamaah (dari getArsipJamaah)
+ * @param {string} idJamaah dicocokkan ulang supaya tidak salah baris bila arsip berubah
+ */
+function restoreJamaah(token, arsipRow, idJamaah) {
+  var lock = LockService.getScriptLock();
+  var locked = false;
+  try {
+    requireSession_(token, [ROLE.ADMIN]);
+    if (!idJamaah) throw new Error("ID jamaah kosong.");
+    locked = lock.tryLock(15000);
+    if (!locked) throw new Error("Server sedang sibuk. Coba lagi sebentar.");
+
+    var ss = getSpreadsheet_();
+    var sheets = initializeSheets_(ss);
+    var arsip = readArsip_(ss, CONFIG.SHEET_ARSIP_JAMAAH);
+    var H = HEADER_JAMAAH;
+    var rec = arsip.rows.filter(function (r) { return r.row === Number(arsipRow); })[0];
+    if (!rec || rec.get(H[0]) !== String(idJamaah)) throw new Error("Data arsip tidak ditemukan atau sudah berubah. Muat ulang daftar arsip.");
+    if (rec.get(ARSIP_COL.PULIH)) throw new Error("Jamaah ini sudah dipulihkan sebelumnya.");
+    if (findRowById_(sheets.jamaah, idJamaah)) throw new Error("Jamaah dengan ID " + idJamaah + " sudah ada di data aktif.");
+
+    var waktu = nowText_();
+    var catatanKK = "";
+    var idKeluarga = rec.get(H[1]);
+    if (idKeluarga && !findRowById_(sheets.keluarga, idKeluarga)) {
+      var arsipKK = readArsip_(ss, CONFIG.SHEET_ARSIP_KELUARGA);
+      var ak = findArsipKeluarga_(arsipKK, idKeluarga);
+      if (ak) {
+        writeRowAsText_(sheets.keluarga, lastDataRow_(sheets.keluarga) + 1,
+          HEADER_KELUARGA.map(function (n) { return ak.get(n); }), []);
+        markPulih_(arsipKK, ak.row, waktu);
+        catatanKK = " Data KK " + ak.get(HEADER_KELUARGA[1]) + " ikut dipulihkan.";
+      } else {
+        idKeluarga = "";
+        catatanKK = " KK lamanya sudah tidak ada, jadi dipulihkan sebagai jamaah tanpa KK.";
+      }
+    }
+
+    var tl = parseInt(rec.get(H[6]), 10);
+    var row = H.slice(0, JAMAAH_CORE_COLS).map(function (n) { return rec.get(n); });
+    row[1] = idKeluarga;
+    row[6] = isNaN(tl) ? '' : tl;
+    var target = lastDataRow_(sheets.jamaah) + 1;
+    writeRowAsText_(sheets.jamaah, target, row, [6]);
+    var cols = sheets.jamaahCols;
+    sheets.jamaah.getRange(target, cols.telepon, 1, 1).setNumberFormat('@').setValues([[rec.get(H[12])]]);
+    sheets.jamaah.getRange(target, cols.dibantu, 1, 1).setNumberFormat('@').setValues([[rec.get(H[13]) || 'N']]);
+    markPulih_(arsip, rec.row, waktu);
+    SpreadsheetApp.flush();
+    return { success: true, message: rec.get(H[3]) + " dipulihkan ke data jamaah." + catatanKK };
+  } catch (err) {
+    return errorResponse_(err, err && err.isAuth ? "" : "Gagal memulihkan: ");
+  } finally {
+    if (locked) lock.releaseLock();
+  }
+}
+
+/** Tandai baris arsip sudah dipulihkan (kolom "Waktu Pulih" dibuat bila belum ada). */
+function markPulih_(arsip, row, waktu) {
+  var col = arsip.map[ARSIP_COL.PULIH];
+  if (!col) {
+    col = arsip.sheet.getLastColumn() + 1;
+    arsip.sheet.getRange(1, col, 1, 1).setValues([[ARSIP_COL.PULIH]]);
+    arsip.map[ARSIP_COL.PULIH] = col;
+  }
+  arsip.sheet.getRange(row, col, 1, 1).setNumberFormat('@').setValues([[waktu]]);
 }
 
 /* ======================================================================
