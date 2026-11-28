@@ -285,6 +285,21 @@
     /* Jamaah tidak masuk daftar absen: latar merah muda lembut */
     tr.no-absen td { background: #FDEEF1; }
     table.data tr.no-absen:hover td { background: #FBE3E8; }
+    /* Menu Kolom: sembunyikan kolom di daftar & cetak */
+    .col-menu { position: relative; }
+    .col-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; width: 250px; max-width: calc(100vw - 24px); background: #fff; border: 1px solid var(--line-2); border-radius: 14px; box-shadow: 0 14px 36px rgba(13, 43, 36, .18); padding: 12px; display: flex; flex-direction: column; gap: 2px; text-align: left; }
+    .col-pop[hidden] { display: none; }
+    .col-pop-head { display: flex; flex-direction: column; gap: 2px; padding: 2px 6px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+    .col-pop-head strong { font-size: 14px; }
+    .col-pop-head span { font-size: 12px; color: var(--muted); }
+    .col-opt { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 6px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer; }
+    .col-opt:hover { background: var(--soft); }
+    .col-opt input { width: 18px; height: 18px; accent-color: var(--primary); margin: 0; }
+    .col-opt small { margin-left: auto; font-size: 11px; color: var(--muted); }
+    .col-pop .link-btn { align-self: flex-start; margin: 6px 6px 2px; font-size: 13px; }
+    .col-count { margin-left: 2px; font-size: 11px; font-weight: 700; color: var(--primary-ink); background: var(--primary-soft); border-radius: 999px; padding: 2px 8px; }
+    .hide-col-absen [data-col="absen"], .hide-col-kk [data-col="kk"], .hide-col-hub [data-col="hub"], .hide-col-kategori [data-col="kategori"],
+    .hide-col-umur [data-col="umur"], .hide-col-telepon [data-col="telepon"], .hide-col-status [data-col="status"] { display: none !important; }
     .m-card.no-absen { background: #FDEEF1; border-color: #F5CDD6; }
 
     /* ---------- Pager ---------- */
@@ -598,6 +613,14 @@
                   <option value="P">Perempuan</option>
                 </select>
               </label>
+              <div class="col-menu">
+                <button type="button" class="btn btn-sm" id="col-btn" aria-haspopup="true" aria-expanded="false" aria-controls="col-pop" onclick="toggleColMenu()"><i data-lucide="columns-3"></i> Kolom <span class="col-count" id="col-hidden-count" hidden></span></button>
+                <div class="col-pop" id="col-pop" hidden>
+                  <div class="col-pop-head"><strong>Tampilkan kolom</strong><span>Berlaku untuk daftar &amp; cetak</span></div>
+                  <div id="col-options"></div>
+                  <button type="button" class="link-btn" onclick="resetCols()">Tampilkan semua</button>
+                </div>
+              </div>
               <button type="button" class="btn btn-sm" onclick="printTable()"><i data-lucide="printer"></i> Cetak</button>
               <button type="button" class="btn btn-sm" onclick="exportCSV()"><i data-lucide="download"></i> CSV</button>
             </div>
@@ -606,11 +629,11 @@
                 <thead>
                   <tr>
                     <th scope="col"><button type="button" class="th-sort" data-sort="nama_lengkap" onclick="setSort('nama_lengkap')">Nama <i data-lucide="chevrons-up-down"></i></button></th>
-                    <th scope="col"><button type="button" class="th-sort" data-sort="nama_kk" onclick="setSort('nama_kk')">Keluarga (KK) <i data-lucide="chevrons-up-down"></i></button></th>
-                    <th scope="col"><button type="button" class="th-sort" data-sort="hubungan_keluarga" onclick="setSort('hubungan_keluarga')">Hubungan <i data-lucide="chevrons-up-down"></i></button></th>
-                    <th scope="col"><button type="button" class="th-sort" data-sort="kategori_usia" onclick="setSort('kategori_usia')">Kategori <i data-lucide="chevrons-up-down"></i></button></th>
-                    <th scope="col" style="text-align: right"><button type="button" class="th-sort" data-sort="umur" onclick="setSort('umur')">Umur <i data-lucide="chevrons-up-down"></i></button></th>
-                    <th scope="col">Status</th>
+                    <th scope="col" data-col="kk"><button type="button" class="th-sort" data-sort="nama_kk" onclick="setSort('nama_kk')">Keluarga (KK) <i data-lucide="chevrons-up-down"></i></button></th>
+                    <th scope="col" data-col="hub"><button type="button" class="th-sort" data-sort="hubungan_keluarga" onclick="setSort('hubungan_keluarga')">Hubungan <i data-lucide="chevrons-up-down"></i></button></th>
+                    <th scope="col" data-col="kategori"><button type="button" class="th-sort" data-sort="kategori_usia" onclick="setSort('kategori_usia')">Kategori <i data-lucide="chevrons-up-down"></i></button></th>
+                    <th scope="col" data-col="umur" style="text-align: right"><button type="button" class="th-sort" data-sort="umur" onclick="setSort('umur')">Umur <i data-lucide="chevrons-up-down"></i></button></th>
+                    <th scope="col" data-col="status">Status</th>
                     <th scope="col"><span class="sr-only">Aksi</span></th>
                   </tr>
                 </thead>
@@ -1428,6 +1451,7 @@
     }
 
     function renderTable() {
+      applyColVisibility();
       const filtered = getFilteredJamaah();
       const grouped = isGrouped();
       const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -1461,22 +1485,22 @@
           const dibantu = j.perlu_dibantu === 'Y' ? ' <span class="tag tag-help">Dibantu</span>' : '';
           rowsHtml += `<tr class="${head.trim()}">
             <td><button type="button" class="name-btn detail-btn" data-id="${esc(j.id_jamaah)}"><span class="person"><span class="avatar ${avatarClass(j.id_jamaah)}">${esc(initials(j.nama_lengkap))}</span>
-              <span class="person-text"><strong>${esc(j.nama_lengkap)}</strong><span>Absen: ${esc(j.nama_absen)}${dibantu}</span></span></span></button></td>
-            <td style="color: var(--ink-2)">${esc(j.nama_kk)}</td>
-            <td><span class="hub"><code>${esc(j.hubungan_keluarga)}</code>${esc(HUB_LABEL[j.hubungan_keluarga] || '')}</span></td>
-            <td>${kategoriTag(j)}</td>
-            <td class="num" style="text-align: right">${esc(umurText(j.umur))}</td>
-            <td><div class="status-stack">${statusStack(j)}</div></td>
+              <span class="person-text"><strong>${esc(j.nama_lengkap)}</strong><span><span data-col="absen">Absen: ${esc(j.nama_absen)}</span>${dibantu}</span></span></span></button></td>
+            <td data-col="kk" style="color: var(--ink-2)">${esc(j.nama_kk)}</td>
+            <td data-col="hub"><span class="hub"><code>${esc(j.hubungan_keluarga)}</code>${esc(HUB_LABEL[j.hubungan_keluarga] || '')}</span></td>
+            <td data-col="kategori">${kategoriTag(j)}</td>
+            <td data-col="umur" class="num" style="text-align: right">${esc(umurText(j.umur))}</td>
+            <td data-col="status"><div class="status-stack">${statusStack(j)}</div></td>
             <td style="text-align: right"><button type="button" class="icon-btn edit-btn" data-id="${esc(j.id_jamaah)}" aria-label="Edit ${esc(j.nama_lengkap)}"><i data-lucide="pencil"></i></button></td>
           </tr>`;
           cardsHtml += `<div class="m-card${head}">
             <button type="button" class="name-btn detail-btn" data-id="${esc(j.id_jamaah)}" style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0">
               <span class="avatar ${avatarClass(j.id_jamaah)}" style="width: 42px; height: 42px">${esc(initials(j.nama_lengkap))}</span>
               <span class="person-text"><strong>${esc(j.nama_lengkap)}</strong>
-                <span class="ell">${esc(HUB_LABEL[j.hubungan_keluarga] || '')} · ${esc(j.nama_kk)}</span>
-                <span class="m-meta">${kategoriTag(j)}<span>${j.umur === null || j.umur === undefined ? '' : esc(j.umur + ' th')}</span>${dibantu}</span></span>
+                <span class="ell">${[colOn('hub') ? esc(HUB_LABEL[j.hubungan_keluarga] || '') : '', colOn('kk') ? esc(j.nama_kk) : ''].filter(Boolean).join(' · ')}</span>
+                <span class="m-meta">${colOn('kategori') ? kategoriTag(j) : ''}<span>${!colOn('umur') || j.umur === null || j.umur === undefined ? '' : esc(j.umur + ' th')}</span>${dibantu}</span></span>
             </button>
-            <span class="m-status">${statusStack(j, true)}</span>
+            ${colOn('status') ? `<span class="m-status">${statusStack(j, true)}</span>` : ''}
           </div>`;
         });
         $('jamaah-table-rows').innerHTML = rowsHtml;
@@ -1838,20 +1862,80 @@
       return { success: true, message: `Simulasi: KK beserta ${n} anggota dihapus.` };
     }
 
+    // ================= KOLOM (sembunyikan di daftar & cetak) =================
+    const COLS = [
+      { key: 'absen', label: 'Nama absen' },
+      { key: 'kk', label: 'Keluarga (KK)' },
+      { key: 'hub', label: 'Hubungan' },
+      { key: 'kategori', label: 'Kategori' },
+      { key: 'umur', label: 'Umur' },
+      { key: 'telepon', label: 'Telepon', note: 'cetak saja' },
+      { key: 'status', label: 'Status aktif / absen' }
+    ];
+    const COL_STORE = 'sensus_hidden_cols';
+    let hiddenCols = new Set();
+    try { hiddenCols = new Set(JSON.parse(localStorage.getItem(COL_STORE) || '[]')); } catch (e) {}
+    function colOn(key) { return !hiddenCols.has(key); }
+    function saveCols() { try { localStorage.setItem(COL_STORE, JSON.stringify([...hiddenCols])); } catch (e) {} }
+    function applyColVisibility() {
+      const root = $('daftar-section');
+      if (root) COLS.forEach(c => root.classList.toggle('hide-col-' + c.key, hiddenCols.has(c.key)));
+      const n = hiddenCols.size, badge = $('col-hidden-count');
+      if (badge) { badge.hidden = n === 0; badge.textContent = n + ' disembunyikan'; }
+    }
+    function renderColOptions() {
+      $('col-options').innerHTML = COLS.map(c => `<label class="col-opt"><input type="checkbox" data-col-key="${c.key}" ${colOn(c.key) ? 'checked' : ''}><span>${esc(c.label)}</span>${c.note ? `<small>${esc(c.note)}</small>` : ''}</label>`).join('');
+      document.querySelectorAll('#col-options input').forEach(i => { i.onchange = () => toggleCol(i.dataset.colKey, i.checked); });
+    }
+    function toggleCol(key, show) {
+      if (show) hiddenCols.delete(key); else hiddenCols.add(key);
+      saveCols(); applyColVisibility(); renderTable();
+    }
+    function resetCols() { hiddenCols.clear(); saveCols(); renderColOptions(); applyColVisibility(); renderTable(); }
+    function toggleColMenu(force) {
+      const pop = $('col-pop'), btn = $('col-btn');
+      const open = typeof force === 'boolean' ? force : pop.hidden;
+      pop.hidden = !open;
+      btn.setAttribute('aria-expanded', String(open));
+      if (open) {
+        renderColOptions();
+        pop.style.left = ''; pop.style.right = '';
+        const r = pop.getBoundingClientRect();
+        if (r.left < 8) { pop.style.left = '0'; pop.style.right = 'auto'; }
+      }
+    }
+    document.addEventListener('click', e => { const p = $('col-pop'); if (p && !p.hidden && !e.target.closest('.col-menu')) toggleColMenu(false); });
+    document.addEventListener('keydown', e => { const p = $('col-pop'); if (e.key === 'Escape' && p && !p.hidden) { toggleColMenu(false); $('col-btn').focus(); } });
+    // Kolom cetak: No & Nama selalu tampil, sisanya mengikuti pilihan Kolom
+    function printColumns() {
+      return [
+        { h: 'No', c: true, v: (j, no) => no },
+        { h: 'Nama Lengkap', v: j => `<strong>${esc(j.nama_lengkap)}</strong>` },
+        { key: 'absen', h: 'Nama Absen', v: j => esc(j.nama_absen) },
+        { key: 'hub', h: 'Hub', c: true, v: j => esc(j.hubungan_keluarga) },
+        { key: 'kk', h: 'Nama KK', v: j => esc(j.nama_kk) },
+        { key: 'kategori', h: 'Kategori', v: j => esc(j.kategori_usia) },
+        { key: 'umur', h: 'Umur', c: true, v: j => esc(umurText(j.umur)) },
+        { key: 'telepon', h: 'Telepon', v: j => esc(j.no_telepon || '') },
+        { key: 'status', h: 'Aktif/Absen', c: true, v: j => `${esc(j.is_aktif)}/${esc(j.flag_absen)}` }
+      ].filter(c => !c.key || colOn(c.key));
+    }
+
     // ================= PRINT & CSV =================
     function printTable() {
       const filtered = getFilteredJamaah();
       const grouped = isGrouped();
       const w = window.open('', '_blank');
       if (!w) { showToast('Pop-up diblokir browser. Izinkan pop-up untuk mencetak.', true); return; }
+      const cols = printColumns();
       let body = '', lastKK = null, no = 0;
       filtered.forEach(j => {
         if (grouped && j.id_keluarga !== lastKK) {
           lastKK = j.id_keluarga;
-          body += `<tr class="g"><td colspan="9">KK ${esc(j.nama_kk)}</td></tr>`;
+          body += `<tr class="g"><td colspan="${cols.length}">KK ${esc(j.nama_kk)}</td></tr>`;
         }
         no++;
-        body += `<tr class="${j.hubungan_keluarga === 'A' ? 'h' : ''}${j.flag_absen !== 'Y' ? ' x' : ''}"><td class="c">${no}</td><td><strong>${esc(j.nama_lengkap)}</strong></td><td>${esc(j.nama_absen)}</td><td class="c">${esc(j.hubungan_keluarga)}</td><td>${esc(j.nama_kk)}</td><td>${esc(j.kategori_usia)}</td><td class="c">${esc(umurText(j.umur))}</td><td>${esc(j.no_telepon || '')}</td><td class="c">${esc(j.is_aktif)}/${esc(j.flag_absen)}</td></tr>`;
+        body += `<tr class="${j.hubungan_keluarga === 'A' ? 'h' : ''}${j.flag_absen !== 'Y' ? ' x' : ''}">${cols.map(c => `<td${c.c ? ' class="c"' : ''}>${c.v(j, no)}</td>`).join('')}</tr>`;
       });
       w.document.write(`<html><head><title>Cetak Data Sensus Jamaah</title><style>
         body{font-family:system-ui,-apple-system,sans-serif;color:#13211D;padding:2rem;line-height:1.45}
@@ -1866,8 +1950,8 @@
       </style></head><body>
         <h2>Sensus Jamaah Babakan Barat</h2>
         <div class="meta">Dicetak ${esc(new Date().toLocaleString('id-ID'))} · ${filtered.length} jiwa sesuai filter${grouped ? ' · dikelompokkan per KK' : ''} · baris hijau = Kepala Keluarga · baris merah muda = tidak masuk absen</div>
-        <table><thead><tr><th class="c">No</th><th>Nama Lengkap</th><th>Nama Absen</th><th class="c">Hub</th><th>Nama KK</th><th>Kategori</th><th class="c">Umur</th><th>Telepon</th><th class="c">Aktif/Absen</th></tr></thead><tbody>
-        ${filtered.length ? body : '<tr><td colspan="9" class="c" style="padding:2rem">Tidak ada data yang cocok dengan filter.</td></tr>'}
+        <table><thead><tr>${cols.map(c => `<th${c.c ? ' class="c"' : ''}>${c.h}</th>`).join('')}</tr></thead><tbody>
+        ${filtered.length ? body : `<tr><td colspan="${cols.length}" class="c" style="padding:2rem">Tidak ada data yang cocok dengan filter.</td></tr>`}
         </tbody></table>
         <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
       </body></html>`);
