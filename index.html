@@ -282,6 +282,10 @@
     .m-group { margin: 6px 2px 0; padding: 8px 12px; border-radius: 10px; background: var(--deep); color: #fff; font-size: 13px; font-weight: 700; }
     .m-group span { color: var(--deep-muted); font-weight: 500; }
     .m-card.is-head { background: #DCEFE7; border-color: #B9D8CE; }
+    /* Jamaah tidak masuk daftar absen: latar merah muda lembut */
+    tr.no-absen td { background: #FDEEF1; }
+    table.data tr.no-absen:hover td { background: #FBE3E8; }
+    .m-card.no-absen { background: #FDEEF1; border-color: #F5CDD6; }
 
     /* ---------- Pager ---------- */
     .pager { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
@@ -1453,7 +1457,7 @@
             rowsHtml += `<tr class="group-row"><td colspan="7"><strong>${esc(g.prefix)}${esc(g.name)}</strong><span>${esc(g.alamat)}${g.alamat ? ' · ' : ''}${g.count} jiwa sesuai filter</span></td></tr>`;
             cardsHtml += `<div class="m-group">${esc(g.prefix)}${esc(g.name)} <span>· ${g.count} jiwa</span></div>`;
           }
-          const head = isHead(j) ? ' is-head' : '';
+          const head = (isHead(j) ? ' is-head' : '') + (j.flag_absen !== 'Y' ? ' no-absen' : '');
           const dibantu = j.perlu_dibantu === 'Y' ? ' <span class="tag tag-help">Dibantu</span>' : '';
           rowsHtml += `<tr class="${head.trim()}">
             <td><button type="button" class="name-btn detail-btn" data-id="${esc(j.id_jamaah)}"><span class="person"><span class="avatar ${avatarClass(j.id_jamaah)}">${esc(initials(j.nama_lengkap))}</span>
@@ -1847,7 +1851,7 @@
           body += `<tr class="g"><td colspan="9">KK ${esc(j.nama_kk)}</td></tr>`;
         }
         no++;
-        body += `<tr class="${j.hubungan_keluarga === 'A' ? 'h' : ''}"><td class="c">${no}</td><td><strong>${esc(j.nama_lengkap)}</strong></td><td>${esc(j.nama_absen)}</td><td class="c">${esc(j.hubungan_keluarga)}</td><td>${esc(j.nama_kk)}</td><td>${esc(j.kategori_usia)}</td><td class="c">${esc(umurText(j.umur))}</td><td>${esc(j.no_telepon || '')}</td><td class="c">${esc(j.is_aktif)}/${esc(j.flag_absen)}</td></tr>`;
+        body += `<tr class="${j.hubungan_keluarga === 'A' ? 'h' : ''}${j.flag_absen !== 'Y' ? ' x' : ''}"><td class="c">${no}</td><td><strong>${esc(j.nama_lengkap)}</strong></td><td>${esc(j.nama_absen)}</td><td class="c">${esc(j.hubungan_keluarga)}</td><td>${esc(j.nama_kk)}</td><td>${esc(j.kategori_usia)}</td><td class="c">${esc(umurText(j.umur))}</td><td>${esc(j.no_telepon || '')}</td><td class="c">${esc(j.is_aktif)}/${esc(j.flag_absen)}</td></tr>`;
       });
       w.document.write(`<html><head><title>Cetak Data Sensus Jamaah</title><style>
         body{font-family:system-ui,-apple-system,sans-serif;color:#13211D;padding:2rem;line-height:1.45}
@@ -1856,11 +1860,12 @@
         table{width:100%;border-collapse:collapse;font-size:.8rem}th,td{border:1px solid #C9D3CF;padding:.45rem .6rem;text-align:left}
         th{background:#F6F8F7}.c{text-align:center}
         tr.h td{background:#DCEFE7;font-weight:600}
+        tr.x td{background:#FCE4EA}
         tr.g td{background:#0D2B24;color:#fff;font-weight:700}
         *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
       </style></head><body>
         <h2>Sensus Jamaah Babakan Barat</h2>
-        <div class="meta">Dicetak ${esc(new Date().toLocaleString('id-ID'))} · ${filtered.length} jiwa sesuai filter${grouped ? ' · dikelompokkan per KK' : ''} · baris hijau = Kepala Keluarga</div>
+        <div class="meta">Dicetak ${esc(new Date().toLocaleString('id-ID'))} · ${filtered.length} jiwa sesuai filter${grouped ? ' · dikelompokkan per KK' : ''} · baris hijau = Kepala Keluarga · baris merah muda = tidak masuk absen</div>
         <table><thead><tr><th class="c">No</th><th>Nama Lengkap</th><th>Nama Absen</th><th class="c">Hub</th><th>Nama KK</th><th>Kategori</th><th class="c">Umur</th><th>Telepon</th><th class="c">Aktif/Absen</th></tr></thead><tbody>
         ${filtered.length ? body : '<tr><td colspan="9" class="c" style="padding:2rem">Tidak ada data yang cocok dengan filter.</td></tr>'}
         </tbody></table>
