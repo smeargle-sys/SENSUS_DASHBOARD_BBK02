@@ -3,6 +3,16 @@
 
 <head>
   <meta charset="UTF-8">
+  <script>
+    // Di GitHub Pages, ?page=view tidak diproses server: alihkan ke halaman Ringkasan (view.html).
+    // (Di Apps Script, doGet() sudah memilih view.html sendiri.)
+    (function () {
+      var q = location.search;
+      if (/[?&]page=view(&|$)/.test(q) && !/(googleusercontent|script\.google)\.com$/.test(location.hostname)) {
+        location.replace('view.html' + q.replace(/([?&])page=view(&|$)/, function (m, a, b) { return b ? a : ''; }) + location.hash);
+      }
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin – Sensus Jiwa Kelompok Babakan Barat</title>
 

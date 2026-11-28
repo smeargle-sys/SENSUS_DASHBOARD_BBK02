@@ -145,7 +145,7 @@ function login(pin, page) {
 
     if (!role && input && viewerPin.length >= CONFIG.MIN_PIN_LENGTH && safeEquals_(input, viewerPin)) {
       // PIN viewer benar, tapi dibuka di halaman admin: beri arahan, jangan dihitung salah
-      return { success: false, message: "Ini PIN viewer (hanya-lihat). Buka halaman Ringkasan: alamat web app ditambah ?page=view" };
+      return { success: false, message: "Ini PIN viewer (hanya-lihat), jadi tidak bisa masuk halaman admin. Buka halaman Ringkasan: di GitHub Pages buka view.html, atau di alamat web app tambahkan ?page=view." };
     }
     if (!role && page === 'view' && viewerPin.length < CONFIG.MIN_PIN_LENGTH && !safeEquals_(input, adminPin)) {
       return { success: false, message: "VIEWER_PIN belum diatur atau kurang dari " + CONFIG.MIN_PIN_LENGTH + " karakter di Script Properties. Hubungi pengelola aplikasi." };
