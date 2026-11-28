@@ -225,6 +225,31 @@ test("PIN viewer tidak bisa masuk halaman admin, tapi bisa di halaman view", () 
   eq(r.success, true); eq(r.role, 'VIEWER');
 });
 
+test("PIN di Script Properties berisi spasi/baris baru & huruf/simbol tetap bisa login", () => {
+  const env = createSandbox();
+  env.props.VIEWER_PIN = '  v2111#?Ab \n';
+  env.props.ADMIN_PIN = 'A2111#!xyz\n';
+  eq(env.gs.login('v2111#?Ab', 'view').role, 'VIEWER');
+  eq(env.gs.login('A2111#!xyz', 'index').role, 'ADMIN');
+});
+
+test("PIN viewer di halaman admin: pesan arahan ke ?page=view & tidak dihitung salah", () => {
+  const env = createSandbox();
+  for (let i = 0; i < 6; i++) {
+    const r = env.gs.login('135790', 'index');
+    eq(r.success, false); assert(/page=view/.test(r.message), r.message);
+  }
+  eq(env.gs.login('246810', 'index').success, true, "tidak terkunci");
+});
+
+test("VIEWER_PIN kosong / terlalu pendek -> pesan jelas di halaman view", () => {
+  const env = createSandbox();
+  env.props.VIEWER_PIN = '123';
+  const r = env.gs.login('123', 'view');
+  eq(r.success, false); assert(/VIEWER_PIN/.test(r.message), r.message);
+  eq(env.gs.login('246810', 'view').role, 'ADMIN', "admin tetap bisa masuk halaman view");
+});
+
 test("Logout menghapus sesi", () => {
   const { gs } = createSandbox();
   const t = gs.login('246810', 'index').token;

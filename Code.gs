@@ -128,8 +128,9 @@ function login(pin, page) {
     }
 
     var props = PropertiesService.getScriptProperties();
-    var adminPin = String(props.getProperty('ADMIN_PIN') || '');
-    var viewerPin = String(props.getProperty('VIEWER_PIN') || '');
+    // trim: nilai yang di-paste ke Script Properties sering membawa spasi / baris baru
+    var adminPin = String(props.getProperty('ADMIN_PIN') || '').trim();
+    var viewerPin = String(props.getProperty('VIEWER_PIN') || '').trim();
     if (adminPin.length < CONFIG.MIN_PIN_LENGTH) {
       return { success: false, message: "ADMIN_PIN belum diatur (minimal " + CONFIG.MIN_PIN_LENGTH + " digit) di Script Properties. Hubungi pengelola aplikasi." };
     }
@@ -140,6 +141,14 @@ function login(pin, page) {
       role = ROLE.ADMIN;
     } else if (page === 'view' && viewerPin.length >= CONFIG.MIN_PIN_LENGTH && input && safeEquals_(input, viewerPin)) {
       role = ROLE.VIEWER;
+    }
+
+    if (!role && input && viewerPin.length >= CONFIG.MIN_PIN_LENGTH && safeEquals_(input, viewerPin)) {
+      // PIN viewer benar, tapi dibuka di halaman admin: beri arahan, jangan dihitung salah
+      return { success: false, message: "Ini PIN viewer (hanya-lihat). Buka halaman Ringkasan: alamat web app ditambah ?page=view" };
+    }
+    if (!role && page === 'view' && viewerPin.length < CONFIG.MIN_PIN_LENGTH && !safeEquals_(input, adminPin)) {
+      return { success: false, message: "VIEWER_PIN belum diatur atau kurang dari " + CONFIG.MIN_PIN_LENGTH + " karakter di Script Properties. Hubungi pengelola aplikasi." };
     }
 
     if (!role) {

@@ -467,7 +467,7 @@
       <div class="field">
         <label for="pin-input" class="sr-only">PIN</label>
         <div class="pin-wrap">
-          <input id="pin-input" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="••••••" oninput="this.value = this.value.replace(/\D/g, ''); document.getElementById('login-error').textContent = ''">
+          <input id="pin-input" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="40" placeholder="••••••" oninput="document.getElementById('login-error').textContent = ''">
           <button type="button" id="pin-toggle" onclick="togglePin()" aria-label="Tampilkan PIN" aria-pressed="false"><i data-lucide="eye"></i></button>
         </div>
       </div>
