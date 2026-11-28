@@ -1064,7 +1064,7 @@ function ensureArsipHeader_(ss, archiveName, names) {
 function archiveAndDeleteRows_(ss, sheet, archiveName, rowIndexes, keterangan) {
   if (!rowIndexes.length) return;
   var width = sheet.getLastColumn();
-  var names = headerNames_(sheet.getRange(1, 1, 1, width).getValues()[0]);
+  var names = sourceNamesForArsip_(headerNames_(sheet.getRange(1, 1, 1, width).getValues()[0]));
   var a = ensureArsipHeader_(ss, archiveName, [ARSIP_COL.WAKTU, ARSIP_COL.KETERANGAN].concat(names).concat([ARSIP_COL.PULIH]));
   var waktu = nowText_();
   var sorted = rowIndexes.slice().sort(function (x, y) { return y - x; });
@@ -1078,6 +1078,23 @@ function archiveAndDeleteRows_(ss, sheet, archiveName, rowIndexes, keterangan) {
     writeRowAsText_(a.sheet, lastDataRow_(a.sheet) + 1, out, []);
   });
   sorted.forEach(function (r) { sheet.deleteRow(r); });
+}
+
+/**
+ * Nama kolom asal untuk arsip. Kolom milik pengguna yang namanya sama dengan kolom
+ * arsip (mis. "Keterangan") diberi akhiran " (data asal)", dan nama kembar diberi
+ * nomor, supaya isinya tidak menimpa alasan hapus / kolom lain.
+ */
+function sourceNamesForArsip_(names) {
+  var reserved = [ARSIP_COL.WAKTU, ARSIP_COL.KETERANGAN, ARSIP_COL.PULIH];
+  var seen = {};
+  return names.map(function (n) {
+    var name = reserved.indexOf(n) !== -1 ? n + " (data asal)" : n;
+    var base = name, k = 2;
+    while (seen[name]) name = base + " (" + (k++) + ")";
+    seen[name] = true;
+    return name;
+  });
 }
 
 /** Baca sheet arsip sebagai daftar objek {row, get(nama)}. */

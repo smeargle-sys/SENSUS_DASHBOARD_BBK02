@@ -749,6 +749,21 @@ test("doPost: getArsipJamaah & restoreJamaah bisa dipanggil lewat API", () => {
   eq(post(env.gs, { action: 'restoreJamaah', args: [tok, list[0].row, 'JM-5'] }).success, true);
 });
 
+test("Sheet Jamaah punya kolom 'Keterangan' / nama kembar sendiri: alasan hapus tidak tertimpa", () => {
+  const env = createSandbox();
+  const sh = env.ss.sheets.Jamaah;
+  sh.rows[0][14] = 'Keterangan';
+  sh.rows.find(x => x[0] === 'JM-5')[14] = 'catatan milik pengguna';
+  const t = env.gs.login('246810', 'index').token;
+  eq(env.gs.deleteJamaah(t, 'JM-5', 'single', 'Meninggal dunia').success, true);
+  const ar = env.ss.sheets.Arsip_Jamaah, H = ar.rows[0];
+  eq(ar.rows[1][H.indexOf('Keterangan')], 'Meninggal dunia', "alasan tersimpan di kolom Keterangan");
+  eq(ar.rows[1][H.indexOf('Keterangan (data asal)')], 'catatan milik pengguna', "kolom pengguna tetap terarsip");
+  eq(env.gs.getArsipJamaah(t).data[0].keterangan, 'Meninggal dunia');
+  const r = env.gs.restoreJamaah(t, env.gs.getArsipJamaah(t).data[0].row, 'JM-5');
+  eq(r.success, true, r.message);
+});
+
 const invalidCases = [
   ["tanpa KK", { id_keluarga: "" }, /Pilih Keluarga/],
   ["KK tidak ada di sheet", { id_keluarga: "KK-TIDAK-ADA" }, /tidak ditemukan/],
